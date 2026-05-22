@@ -16,7 +16,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 const client = new OpenAI({
-  apiKey: process.env.XAI_API_KEY,
+  apiKey: process.env.XAI_API_KEY || 'sk-placeholder',
   baseURL: 'https://api.x.ai/v1',
 });
 
@@ -159,8 +159,7 @@ app.get('/health', (req, res) => {
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Oral exam simulator running on http://0.0.0.0:${PORT}`);
-  if (!process.env.XAI_API_KEY) {
-    console.warn('⚠️  XAI_API_KEY not set. Please set it in .env file');
-  }
+  console.log(`PORT env var: ${process.env.PORT}`);
+  console.log(`XAI_API_KEY set: ${!!process.env.XAI_API_KEY}`);
   console.log('Using model: grok-build-0.1 with Browser Text-to-Speech');
 });
