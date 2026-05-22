@@ -6,7 +6,6 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import multer from 'multer';
 import fs from 'fs';
-import { buildSourceCitation } from './knowledge-base.js';
 
 dotenv.config();
 
@@ -21,22 +20,22 @@ const courseDataPath = path.join(__dirname, 'courses-extracted.json');
 try {
   if (fs.existsSync(courseDataPath)) {
     courseSpecs = JSON.parse(fs.readFileSync(courseDataPath, 'utf-8'));
-    console.log('✅ Loaded real UCBM courses from courses-extracted.json');
+    console.log('✅ Loaded real UCBM courses');
   } else {
     throw new Error('File not found');
   }
 } catch (e) {
-  console.log('⚠️  courses-extracted.json not found, trying fallback...');
+  console.log('⚠️  Trying fallback...');
   try {
     const specPath = path.join(__dirname, 'course-specs.json');
     if (fs.existsSync(specPath)) {
       courseSpecs = JSON.parse(fs.readFileSync(specPath, 'utf-8'));
-      console.log('✅ Using fallback course-specs.json');
+      console.log('✅ Using fallback');
     } else {
-      throw new Error('No spec file found');
+      throw new Error('No spec file');
     }
   } catch (err) {
-    console.error('❌ Course data files not found. Using inline defaults.');
+    console.error('❌ Using minimal defaults');
     courseSpecs = { courses: [
       { id: 'fundamentals-of-computer-science', name: 'Fundamentals of Computer Science', instructor: 'ROSA SICILIA', ects: 10, assessment: 'Practical + Oral', prerequisites: 'Basic computer skills' },
       { id: 'mathematics', name: 'Mathematics', instructor: 'MARTA MENCI', ects: 10, assessment: 'Written exam', prerequisites: 'High school algebra' },
@@ -102,6 +101,32 @@ const client = new OpenAI({
   baseURL: 'https://api.x.ai/v1',
 });
 
+// Verified textbooks by course
+const courseTextbooks = {
+  'anatomy': "Gray's Anatomy for Students, Netter's Atlas of Human Anatomy",
+  'physiology': 'Guyton & Hall Textbook of Medical Physiology, Costanzo Physiology',
+  'chemistry': 'Whitten Chemistry, Lausarot Stechiometria',
+  'general-physics': 'Tipler Physics for Scientists and Engineers, Serway Physics',
+  'advanced-physics': 'Tipler Modern Physics, Morrison Modern Physics',
+  'mathematics': 'Lay Linear Algebra, Stewart Calculus',
+  'mathematics-ii': 'Lay Linear Algebra, Stewart Calculus Early Transcendentals',
+  'probability-and-statistics': 'Ross Introduction to Probability and Statistics',
+  'biomechanics': 'Ozkaya & Nordin Fundamentals of Biomechanics, Y.C. Fung',
+  'biomedical-signal-processing': 'Semmlow Circuits and Systems for Bioengineers, Abood Digital Signal Processing',
+  'electronics-and-electrotechnics': 'Alexander & Sadiku Fundamentals of Electric Circuits, Horowitz & Hill Art of Electronics',
+  'measurements-and-instrumentation-in-biomedical-engineering': 'Beckwith Mechanical Measurements, Figliola Theory and Design for Mechanical Measurements',
+};
+
+// Verified academic sources
+const verifiedSources = {
+  'pubmed': 'https://pubmed.ncbi.nlm.nih.gov/',
+  'ieee': 'https://ieeexplore.ieee.org/',
+  'scholar': 'https://scholar.google.com/',
+  'openstax': 'https://openstax.org/',
+  'nih': 'https://www.nlm.nih.gov/',
+  'sciencedirect': 'https://www.sciencedirect.com/',
+};
+
 function getEmojiForCourse(name) {
   const lowerName = name.toLowerCase();
   if (lowerName.includes('computer')) return '💻';
@@ -131,15 +156,15 @@ function getEmojiForCourse(name) {
 
 function getAssessmentHint(assessmentType) {
   const hints = {
-    'oral': 'Prepare to discuss concepts clearly and demonstrate deep understanding through conversation.',
-    'written': 'Practice solving problems on paper with clear steps. Focus on time management.',
-    'written-oral': 'Study both written problem-solving and verbal explanation skills.',
-    'lab': 'Know procedures, safety protocols, and data analysis methods.',
-    'practical-oral': 'Be ready for hands-on work followed by defending your approach verbally.',
-    'project': 'Prepare to present your work and discuss your methodology and results.',
-    'written-lab': 'Expect both theoretical written exams and practical components.',
-    'written-project': 'Balance written problem-solving with project presentation skills.',
-    'project-presentation': 'Focus on clear presentation skills and ability to discuss your project.'
+    'oral': 'Prepare to discuss concepts clearly and demonstrate deep understanding.',
+    'written': 'Practice solving problems with clear mathematical steps.',
+    'written-oral': 'Study both written problem-solving and verbal explanation.',
+    'lab': 'Know procedures, safety, and data analysis methods.',
+    'practical-oral': 'Be ready for hands-on work plus verbal defense.',
+    'project': 'Prepare presentations and defend your methodology.',
+    'written-lab': 'Expect both theoretical exams and practical components.',
+    'written-project': 'Balance written work with project presentations.',
+    'project-presentation': 'Focus on clear presentation skills.'
   };
   return hints[assessmentType] || hints['oral'];
 }
@@ -157,19 +182,16 @@ function buildSystemPrompt(subject, uploadedMaterials, assessmentType) {
   }
 
   const assessmentHint = getAssessmentHint(assessmentType);
-
-  // Build knowledge foundation statement
-  const knowledgeFoundation = `
-KNOWLEDGE FOUNDATION - All Q&A must be grounded in:
-✓ PRIMARY: UCBM Piano degli Studi & Teaching Sheets for ${course.name}
-✓ TEXTBOOKS: ${course.references || 'Course-specific references'}
-✓ RESEARCH: PubMed, IEEE Xplore, Scholar.Google for peer-reviewed content
-✓ STANDARDS: ISO, IEC, IEEE standards relevant to biomedical engineering
-✗ NEVER: Invent content beyond official curriculum or unverified sources`;
+  const textbooks = courseTextbooks[subject] || 'Course-specific references';
 
   let prompt = `You are an UCBM Exam Tutor helping students prepare for ${course.name}.
 
-${knowledgeFoundation}
+KNOWLEDGE FOUNDATION (AUTHORITATIVE SOURCES):
+✓ PRIMARY: UCBM Piano degli Studi & Teaching Sheets for ${course.name}
+✓ TEXTBOOKS: ${textbooks}
+✓ RESEARCH: PubMed, IEEE Xplore, Scholar.Google for peer-reviewed content
+✓ STANDARDS: ISO, IEC, IEEE standards for biomedical engineering
+✗ NEVER: Invent content beyond official curriculum
 
 **COURSE DETAILS**
 Name: ${course.name}
@@ -184,23 +206,23 @@ ${course.objectives || 'Develop comprehensive understanding of the subject'}
 **PREREQUISITES**
 ${course.prerequisites || 'None specified'}
 
-**CRITICAL INSTRUCTIONS**
-1. Ground all questions in UCBM Teaching Sheets for this course
-2. Reference textbooks and peer-reviewed sources when explaining concepts
-3. Flag anything beyond standard curriculum as "emerging" or "advanced topic"
-4. Provide citations for factual claims when possible
-5. If unsure about accuracy, defer to: UCBM specs → textbooks → peer review
+**CRITICAL RULES**
+1. Base all questions on UCBM Teaching Sheets for this course
+2. Reference textbooks when explaining concepts
+3. Validate facts against peer-reviewed sources (PubMed, IEEE)
+4. Flag anything beyond standard curriculum as "emerging topic"
+5. Provide citations for factual claims
 
 **ASSESSMENT FOCUS**
 Type: ${assessmentType.replace(/-/g, '/')}
 Tip: ${assessmentHint}
 
-**EXAM TUTOR ROLE**
-- Ask realistic questions aligned with learning objectives
+**YOUR ROLE**
+- Ask realistic questions aligned with UCBM learning objectives
 - Provide feedback grounded in verified sources
 - Adapt difficulty based on performance
 - Help practice format-specific skills
-- Encourage deep understanding over memorization
+- Encourage deep understanding
 
 **SESSION FLOW**
 1. Ask one focused question from UCBM Teaching Sheets
