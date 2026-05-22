@@ -140,6 +140,30 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        #voiceSelect {
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: none;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+        }
+
+        #voiceSelect:hover {
+            background: white;
         }
 
         .subject-badge {
@@ -389,7 +413,13 @@
                 <div>
                     <span class="subject-badge" id="subjectBadge"></span>
                 </div>
-                <div class="question-counter">Question <span id="questionCount">1</span></div>
+                <div class="header-controls">
+                    <label for="voiceSelect" style="font-size: 14px; margin: 0;">Voice:</label>
+                    <select id="voiceSelect" onchange="setSelectedVoice()">
+                        <option value="">Default</option>
+                    </select>
+                    <div class="question-counter">Question <span id="questionCount">1</span></div>
+                </div>
             </div>
 
             <div id="speechStatus" class="speech-status listening" style="display: none;">
@@ -428,8 +458,35 @@
         let currentSessionId = null;
         let currentSubject = null;
         let isListening = false;
+        let selectedVoice = null;
         const recognition = window.webkitSpeechRecognition || window.SpeechRecognition;
         let speechRecognizer = null;
+
+        // Load available voices and populate dropdown
+        function loadVoices() {
+            const voices = speechSynthesis.getVoices();
+            const voiceSelect = document.getElementById('voiceSelect');
+            
+            voices.forEach((voice, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `${voice.name} (${voice.lang})`;
+                voiceSelect.appendChild(option);
+            });
+        }
+
+        function setSelectedVoice() {
+            const voiceSelect = document.getElementById('voiceSelect');
+            const voiceIndex = voiceSelect.value;
+            const voices = speechSynthesis.getVoices();
+            selectedVoice = voiceIndex ? voices[voiceIndex] : null;
+        }
+
+        // Load voices when they're available
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = loadVoices;
+        }
+        loadVoices();
 
         if (recognition) {
             speechRecognizer = new recognition();
@@ -685,24 +742,29 @@
             utterance.pitch = 1.0;
             utterance.volume = 1.0;
             
-            // Try to use a female voice if available
-            const voices = speechSynthesis.getVoices();
-            let femaleVoice = null;
-            
-            // Try common female voice names across different browsers
-            const femaleNames = ['female', 'woman', 'samantha', 'victoria', 'moira', 'zira', 'karen', 'susan', 'fiona'];
-            for (let name of femaleNames) {
-                femaleVoice = voices.find(v => v.name.toLowerCase().includes(name));
-                if (femaleVoice) break;
-            }
-            
-            // If no female voice found, try to pick a different voice (might be female)
-            if (!femaleVoice && voices.length > 1) {
-                femaleVoice = voices[1];
-            }
-            
-            if (femaleVoice) {
-                utterance.voice = femaleVoice;
+            // Use selected voice if available
+            if (selectedVoice) {
+                utterance.voice = selectedVoice;
+            } else {
+                // Fallback: try to use a female voice if available
+                const voices = speechSynthesis.getVoices();
+                let femaleVoice = null;
+                
+                // Try common female voice names across different browsers
+                const femaleNames = ['female', 'woman', 'samantha', 'victoria', 'moira', 'zira', 'karen', 'susan', 'fiona', 'sonia'];
+                for (let name of femaleNames) {
+                    femaleVoice = voices.find(v => v.name.toLowerCase().includes(name));
+                    if (femaleVoice) break;
+                }
+                
+                // If no female voice found, try to pick a different voice (might be female)
+                if (!femaleVoice && voices.length > 1) {
+                    femaleVoice = voices[1];
+                }
+                
+                if (femaleVoice) {
+                    utterance.voice = femaleVoice;
+                }
             }
             
             speechSynthesis.speak(utterance);
