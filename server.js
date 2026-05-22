@@ -47,10 +47,12 @@ try {
 
 const courseMap = {};
 const assessmentTypeMap = {};
+const instructorMap = {};
 
 courseSpecs.courses.forEach(course => {
   if (!course.id) return;
   courseMap[course.id] = course;
+  instructorMap[course.id] = course.instructor || 'UCBM Faculty';
   
   const assessment = (course.assessment || '').toLowerCase();
   let type = 'oral';
@@ -101,10 +103,9 @@ const client = new OpenAI({
   baseURL: 'https://api.x.ai/v1',
 });
 
-// Verified textbooks by course
 const courseTextbooks = {
   'anatomy': "Gray's Anatomy for Students, Netter's Atlas of Human Anatomy",
-  'physiology-and-anatomy': "Gray's Anatomy for Students, Netter's Atlas, Guyton & Hall Textbook of Medical Physiology",
+  'physiology': 'Guyton & Hall Textbook of Medical Physiology, Costanzo Physiology',
   'chemistry': 'Whitten Chemistry, Lausarot Stechiometria',
   'general-physics': 'Tipler Physics for Scientists and Engineers, Serway Physics',
   'advanced-physics': 'Tipler Modern Physics, Morrison Modern Physics',
@@ -114,7 +115,6 @@ const courseTextbooks = {
   'biomechanics': 'Ozkaya & Nordin Fundamentals of Biomechanics, Y.C. Fung',
   'biomedical-signal-processing': 'Semmlow Circuits and Systems for Bioengineers, Abood Digital Signal Processing',
   'electronics-and-electrotechnics': 'Alexander & Sadiku Fundamentals of Electric Circuits, Horowitz & Hill Art of Electronics',
-  'measurements-and-instrumentation-in-biomedical-engineering': 'Beckwith Mechanical Measurements, Figliola Theory and Design for Mechanical Measurements',
 };
 
 function getEmojiForCourse(name) {
@@ -159,7 +159,6 @@ function getAssessmentHint(assessmentType) {
   return hints[assessmentType] || hints['oral'];
 }
 
-// Clean markdown formatting from responses
 function cleanMarkdown(text) {
   return text
     .replace(/\*\*/g, '')
@@ -175,7 +174,7 @@ function generateSessionId() {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
 }
 
-function buildSystemPrompt(subject, uploadedMaterials, assessmentType) {
+function buildSystemPrompt(subject, uploadedMaterials, assessmentType, studentName, isFirstQuestion) {
   const course = courseMap[subject];
   if (!course) {
     return 'You are an UCBM Exam Tutor.';
@@ -183,81 +182,74 @@ function buildSystemPrompt(subject, uploadedMaterials, assessmentType) {
 
   const assessmentHint = getAssessmentHint(assessmentType);
   const textbooks = courseTextbooks[subject] || 'Course-specific references';
+  const instructor = instructorMap[subject] || 'UCBM Faculty';
 
-  let prompt = `You are an UCBM Exam Tutor helping students prepare for ${course.name}.
+  let prompt = `You are ${instructor}, an experienced professor at UCBM (Università Campus Bio-Medico di Roma), conducting an oral exam in ${course.name}.
 
-KNOWLEDGE FOUNDATION (AUTHORITATIVE SOURCES):
+STUDENT: ${studentName}
+
+KNOWLEDGE FOUNDATION:
 ✓ PRIMARY: UCBM Piano degli Studi & Teaching Sheets for ${course.name}
 ✓ TEXTBOOKS: ${textbooks}
-✓ RESEARCH: PubMed, IEEE Xplore, Scholar.Google for peer-reviewed content
-✓ STANDARDS: ISO, IEC, IEEE standards for biomedical engineering
-✗ NEVER: Invent content beyond official curriculum
+✓ RESEARCH: PubMed, IEEE Xplore, Scholar.Google
+✓ STANDARDS: ISO, IEC, IEEE standards
 
 **COURSE DETAILS**
 Name: ${course.name}
-Instructor: ${course.instructor || 'UCBM Faculty'}
 ECTS: ${course.ects || 'N/A'}
-Assessment: ${course.assessment || 'Standard exam'}
-Type: ${assessmentType.replace(/-/g, ' / ').toUpperCase()}
+Assessment: ${assessmentType.replace(/-/g, ' / ').toUpperCase()}
 
-**COURSE OBJECTIVES**
-${course.objectives || 'Develop comprehensive understanding of the subject'}
+**OBJECTIVES**
+${course.objectives || 'Develop comprehensive understanding'}
 
 **PREREQUISITES**
-${course.prerequisites || 'None specified'}
-
-**QUESTION GENERATION REQUIREMENTS**
-1. Generate ORIGINAL questions (not textbook rephrasing)
-2. Mix question types: conceptual, calculation, applied, discussion
-3. Match assessment format: ${assessmentType.replace(/-/g, '/')}
-4. Adapt difficulty: Start moderate, increase based on correct answers
-5. Base all questions on UCBM Teaching Sheets learning objectives
+${course.prerequisites || 'None'}
 
 **CRITICAL RULES**
-- Base all questions on UCBM Teaching Sheets for this course
-- Reference textbooks when explaining concepts
-- Validate facts against peer-reviewed sources
-- Flag anything beyond standard curriculum as "emerging topic"
-- Provide citations for factual claims
+- Generate ORIGINAL questions (not textbook rephrasing)
+- Mix question types: conceptual, calculation, applied
+- Adapt difficulty based on performance
+- Base all questions on UCBM Teaching Sheets
 - Do NOT use markdown formatting in responses
+- Address the student by name: ${studentName}`;
 
-**ASSESSMENT FOCUS**
-Type: ${assessmentType.replace(/-/g, '/')}
+  if (isFirstQuestion) {
+    prompt += `
+
+**FIRST QUESTION - INCLUDE INTRODUCTION**
+Start with a brief, warm introduction (1-2 sentences) including:
+1. Your name (${instructor})
+2. Course name (${course.name})
+3. Welcoming tone
+4. Then immediately ask the first realistic exam question for this course
+
+Example opening: "Good morning ${studentName}, I'm ${instructor}, and we'll be examining you today on ${course.name}. Let's begin..."`;
+  } else {
+    prompt += `
+
+**CONTINUE EXAM**
+Ask the next focused question aligned with learning objectives.`;
+  }
+
+  prompt += `\n\nAssessment: ${assessmentType.replace(/-/g, '/')}
 Tip: ${assessmentHint}
 
-**YOUR ROLE**
-- Ask realistic questions aligned with UCBM learning objectives
-- Provide feedback grounded in verified sources
-- Adapt difficulty based on performance
-- Help practice format-specific skills
-- Encourage deep understanding
-
-**SESSION FLOW**
-1. Ask one focused question from UCBM Teaching Sheets
-2. Evaluate response against course standards
-3. Provide detailed, evidence-based feedback
-4. Ask follow-up probing questions or next question
-5. Help with presentation skills if applicable
-
-Begin with your first question for ${course.name}. Base it on the official UCBM curriculum. Do NOT use markdown formatting.`;
+Begin now. Do NOT use markdown formatting.`;
 
   if (uploadedMaterials && uploadedMaterials.length > 0) {
     const materials = uploadedMaterials.map(m => m.filename).join(', ');
-    prompt += `\n\nSTUDENT MATERIALS: ${materials}\nPrioritize these in questions and feedback.`;
+    prompt += `\n\nSTUDENT MATERIALS: ${materials}`;
   }
 
   return prompt;
 }
 
 app.post('/api/exam/start', (req, res) => {
-  const { subject } = req.body;
+  const { subject, studentName } = req.body;
   const validSubjects = Object.keys(courseMap);
 
   if (!validSubjects.includes(subject)) {
-    return res.status(400).json({ 
-      error: `Invalid subject`,
-      availableCount: validSubjects.length
-    });
+    return res.status(400).json({ error: `Invalid subject` });
   }
 
   const sessionId = generateSessionId();
@@ -267,6 +259,7 @@ app.post('/api/exam/start', (req, res) => {
   
   examSessions[sessionId] = {
     subject,
+    studentName: studentName || 'Student',
     courseName: `${emoji} ${course.name}`,
     courseData: course,
     assessmentType,
@@ -274,6 +267,7 @@ app.post('/api/exam/start', (req, res) => {
     questionCount: 0,
     uploadedMaterials: [],
     scoreTracker: { correct: 0, total: 0 },
+    isFirstQuestion: true,
   };
 
   res.json({ 
@@ -281,8 +275,9 @@ app.post('/api/exam/start', (req, res) => {
     subject, 
     courseName: `${emoji} ${course.name}`,
     assessmentType,
+    studentName: studentName || 'Student',
     courseInfo: {
-      instructor: course.instructor,
+      instructor: instructorMap[subject],
       ects: course.ects,
       assessment: course.assessment
     }
@@ -324,7 +319,15 @@ app.post('/api/exam/question', async (req, res) => {
   }
 
   const session = examSessions[sessionId];
-  const systemPrompt = buildSystemPrompt(session.subject, session.uploadedMaterials, session.assessmentType);
+  const isFirst = session.isFirstQuestion;
+  
+  const systemPrompt = buildSystemPrompt(
+    session.subject, 
+    session.uploadedMaterials, 
+    session.assessmentType,
+    session.studentName,
+    isFirst
+  );
 
   try {
     if (studentAnswer && studentAnswer.trim()) {
@@ -347,8 +350,6 @@ app.post('/api/exam/question', async (req, res) => {
     });
 
     let professorMessage = response.choices[0].message.content;
-    
-    // Clean markdown formatting
     professorMessage = cleanMarkdown(professorMessage);
 
     session.messages.push({
@@ -358,17 +359,18 @@ app.post('/api/exam/question', async (req, res) => {
 
     session.questionCount += 1;
     session.scoreTracker.total += 1;
+    session.isFirstQuestion = false;
 
-    // Calculate hypothetical score every 10 questions
     let hypotheticalScore = null;
     if (session.questionCount % 10 === 0) {
       const percentage = (session.scoreTracker.correct / session.scoreTracker.total) * 100;
-      hypotheticalScore = Math.round(percentage * 3) / 10; // Scale to 30
+      hypotheticalScore = Math.round(percentage * 3) / 10;
     }
 
     res.json({
       response: professorMessage,
       questionNumber: session.questionCount,
+      shouldAutoRead: true,
       hypotheticalScore: hypotheticalScore,
       scoreTracker: session.scoreTracker
     });
@@ -400,7 +402,7 @@ app.post('/api/exam/feedback', async (req, res) => {
       return res.status(400).json({ error: 'No question' });
     }
 
-    const feedbackPrompt = `You are an UCBM professor providing detailed feedback on a student's answer.
+    const feedbackPrompt = `You are ${instructorMap[session.subject]}, providing detailed feedback on ${session.studentName}'s answer.
 
 Question: "${lastQuestion.substring(0, 300)}"
 
@@ -454,7 +456,6 @@ app.post('/api/exam/hint', async (req, res) => {
       return res.status(400).json({ error: 'No question' });
     }
 
-    // Extract key terms from the question for image search
     const keyTerms = lastQuestion
       .split(' ')
       .filter(w => w.length > 5)
@@ -526,6 +527,7 @@ app.get('/api/exam/session/:sessionId', (req, res) => {
   res.json({
     subject: session.subject,
     courseName: session.courseName,
+    studentName: session.studentName,
     assessmentType: session.assessmentType,
     questionCount: session.questionCount,
     scoreTracker: session.scoreTracker,
