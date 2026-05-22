@@ -3,341 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>Oral Exam Simulator - UCBM Bioengineering</title>
+    <title>UCBM Oral Exam Simulator - Biomedical Engineering</title>
     <style>
-        html, body {
-            width: 100%;
-            height: 100%;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 8px;
-            margin: 0;
-            overflow-x: hidden;
-            box-sizing: border-box;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        .container {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            width: 100%;
-            max-width: 900px;
-            padding: 16px;
-            max-height: 98vh;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 12px;
-                border-radius: 8px;
-                max-height: 99vh;
-            }
-        }
-
-        @media (max-width: 480px) {
-            body {
-                padding: 4px;
-            }
-            .container {
-                padding: 10px;
-                max-height: 100vh;
-                border-radius: 6px;
-            }
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        h1 {
-            color: #333;
-            margin-bottom: 5px;
-            font-size: 24px;
-        }
-
-        .subtitle {
-            color: #666;
-            font-size: 13px;
-        }
-
-        .start-screen, .exam-screen {
-            display: none;
-        }
-
-        .start-screen.active, .exam-screen.active {
-            display: block;
-        }
-
-        .subjects-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 10px;
-            margin-top: 12px;
-        }
-
-        @media (min-width: 480px) {
-            .subjects-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-
-        .subject-btn {
-            padding: 12px 10px;
-            border: none;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            color: white;
-        }
-
-        .subject-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .exam-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .subject-badge {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .chat-area {
-            border: 1px solid #e0e0e0;
-            border-radius: 6px;
-            padding: 10px;
-            height: 280px;
-            overflow-y: auto;
-            margin-bottom: 10px;
-            background: #f9f9f9;
-            font-size: 12px;
-        }
-
-        .message {
-            margin-bottom: 10px;
-            padding: 8px;
-            border-radius: 6px;
-        }
-
-        .message.professor {
-            background: #e8f0fe;
-            border-left: 4px solid #667eea;
-        }
-
-        .message.student {
-            background: #f0e8fe;
-            border-left: 4px solid #764ba2;
-        }
-
-        .message-label {
-            font-weight: 600;
-            font-size: 11px;
-            color: #666;
-            margin-bottom: 3px;
-            text-transform: uppercase;
-        }
-
-        .message-text {
-            color: #333;
-            font-size: 12px;
-            line-height: 1.4;
-        }
-
-        .input-area {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-
-        textarea {
-            flex: 1;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-family: inherit;
-            font-size: 12px;
-            resize: none;
-            min-height: 60px;
-        }
-
-        button {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-
-        .btn-secondary {
-            background: #764ba2;
-            color: white;
-        }
-
-        .btn-danger {
-            background: #e74c3c;
-            color: white;
-        }
-
-        .play-btn {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 4px 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 11px;
-            font-weight: 600;
-            margin-top: 4px;
-        }
-
-        .feature-list {
-            background: #f9f9f9;
-            padding: 10px;
-            border-radius: 6px;
-            margin: 10px 0;
-            font-size: 12px;
-        }
-
-        .feature-list h3 {
-            color: #333;
-            margin: 0 0 6px 0;
-            font-size: 13px;
-        }
-
-        .feature-list ul {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-        }
-
-        .feature-list li {
-            padding: 2px 0;
-            color: #666;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .feature-list li::before {
-            content: '✓';
-            color: #667eea;
-            font-weight: bold;
-        }
-
-        .sidebar {
-            position: fixed;
-            right: -90vw;
-            top: 0;
-            width: 90vw;
-            max-width: 350px;
-            height: 100vh;
-            background: white;
-            box-shadow: -5px 0 20px rgba(0, 0, 0, 0.2);
-            transition: right 0.3s ease;
-            overflow-y: auto;
-            z-index: 1000;
-        }
-
-        .sidebar.active {
-            right: 0;
-        }
-
-        .sidebar-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .sidebar-header h3 {
-            margin: 0;
-            font-size: 14px;
-        }
-
-        .sidebar-close {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 20px;
-            cursor: pointer;
-        }
-
-        .sidebar-content {
-            padding: 12px;
-        }
-
-        .sidebar-btn {
-            position: fixed;
-            right: 16px;
-            bottom: 16px;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: #667eea;
-            color: white;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-            z-index: 999;
-        }
-
-        .loading {
-            text-align: center;
-            color: #667eea;
-            font-weight: 600;
-            padding: 10px;
-            font-size: 12px;
-        }
+        html, body { width: 100%; height: 100%; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 8px; margin: 0; overflow-x: hidden; box-sizing: border-box; }
+        * { box-sizing: border-box; }
+        .container { background: white; border-radius: 12px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); width: 100%; max-width: 900px; padding: 16px; max-height: 98vh; overflow-y: auto; display: flex; flex-direction: column; }
+        @media (max-width: 768px) { .container { padding: 12px; border-radius: 8px; max-height: 99vh; } }
+        @media (max-width: 480px) { body { padding: 4px; } .container { padding: 10px; max-height: 100vh; border-radius: 6px; } }
+        header { text-align: center; margin-bottom: 20px; }
+        h1 { color: #333; margin-bottom: 5px; font-size: 24px; }
+        .subtitle { color: #666; font-size: 13px; }
+        .start-screen, .exam-screen { display: none; }
+        .start-screen.active, .exam-screen.active { display: block; }
+        .subjects-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 12px; }
+        @media (min-width: 480px) { .subjects-grid { grid-template-columns: 1fr 1fr; } }
+        .subject-btn { padding: 12px 10px; border: none; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; color: white; }
+        .subject-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); }
+        .exam-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px; border-radius: 6px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .subject-badge { background: rgba(255, 255, 255, 0.2); padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .chat-area { border: 1px solid #e0e0e0; border-radius: 6px; padding: 10px; height: 280px; overflow-y: auto; margin-bottom: 10px; background: #f9f9f9; font-size: 12px; }
+        .message { margin-bottom: 10px; padding: 8px; border-radius: 6px; }
+        .message.professor { background: #e8f0fe; border-left: 4px solid #667eea; }
+        .message.student { background: #f0e8fe; border-left: 4px solid #764ba2; }
+        .message-label { font-weight: 600; font-size: 11px; color: #666; margin-bottom: 3px; text-transform: uppercase; }
+        .message-text { color: #333; font-size: 12px; line-height: 1.4; }
+        .input-area { display: flex; gap: 8px; margin-bottom: 10px; }
+        textarea { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-family: inherit; font-size: 12px; resize: none; min-height: 60px; }
+        button { padding: 8px 16px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-secondary { background: #764ba2; color: white; }
+        .btn-danger { background: #e74c3c; color: white; }
+        .play-btn { background: #667eea; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 600; margin-top: 4px; }
+        .feature-list { background: #f9f9f9; padding: 10px; border-radius: 6px; margin: 10px 0; font-size: 12px; }
+        .feature-list h3 { color: #333; margin: 0 0 6px 0; font-size: 13px; }
+        .feature-list ul { list-style: none; margin: 0; padding: 0; }
+        .feature-list li { padding: 2px 0; color: #666; display: flex; align-items: center; gap: 6px; }
+        .feature-list li::before { content: '✓'; color: #667eea; font-weight: bold; }
+        .sidebar { position: fixed; right: -90vw; top: 0; width: 90vw; max-width: 350px; height: 100vh; background: white; box-shadow: -5px 0 20px rgba(0, 0, 0, 0.2); transition: right 0.3s ease; overflow-y: auto; z-index: 1000; }
+        .sidebar.active { right: 0; }
+        .sidebar-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .sidebar-header h3 { margin: 0; font-size: 14px; }
+        .sidebar-close { background: none; border: none; color: white; font-size: 20px; cursor: pointer; }
+        .sidebar-content { padding: 12px; }
+        .sidebar-btn { position: fixed; right: 16px; bottom: 16px; width: 50px; height: 50px; border-radius: 50%; background: #667eea; color: white; border: none; font-size: 20px; cursor: pointer; box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); z-index: 999; }
+        .loading { text-align: center; color: #667eea; font-weight: 600; padding: 10px; font-size: 12px; }
+        .upload-box { background: #fff3cd; border: 1px solid #ffc107; padding: 10px; border-radius: 6px; margin-bottom: 10px; font-size: 11px; }
+        #materialInput { font-size: 11px; }
+        #uploadStatus { display: none; color: #155724; margin-top: 4px; font-size: 11px; }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>🎓 Oral Exam</h1>
-            <p class="subtitle">AI professor oral exam practice</p>
+            <h1>🎓 UCBM Oral Exam</h1>
+            <p class="subtitle">Biomedical Engineering - Anno 2026-2027</p>
         </header>
 
         <!-- Start Screen -->
@@ -345,23 +65,25 @@
             <div class="feature-list">
                 <h3>Features</h3>
                 <ul>
-                    <li>AI professor asking realistic exam questions</li>
+                    <li>UCBM curriculum-aligned oral exams</li>
+                    <li>Upload your course materials (PDF, DOCX, slides)</li>
+                    <li>AI professor asks realistic questions</li>
                     <li>Speech recognition for oral practice</li>
-                    <li>AI professor voice responses</li>
-                    <li>Real-time feedback on answers</li>
+                    <li>Study hints from textbooks & materials</li>
                 </ul>
             </div>
 
             <p style="color: #666; text-align: center; margin: 12px 0; font-size: 12px;">Select a subject:</p>
 
             <div class="subjects-grid">
-                <button class="subject-btn" style="background: #667eea;" onclick="startExam('human-anatomy')">🦴 Anatomy</button>
-                <button class="subject-btn" style="background: #764ba2;" onclick="startExam('general-physics')">⚡ Physics</button>
-                <button class="subject-btn" style="background: #e74c3c;" onclick="startExam('physiology')">❤️ Physiology</button>
-                <button class="subject-btn" style="background: #f39c12;" onclick="startExam('biomechanics')">🏃 Biomechanics</button>
-                <button class="subject-btn" style="background: #16a085;" onclick="startExam('biomedical-instrumentation')">🔬 Biomedical</button>
-                <button class="subject-btn" style="background: #2980b9;" onclick="startExam('advanced-physics')">🌌 Advanced Physics</button>
-                <button class="subject-btn" style="background: #8e44ad;" onclick="startExam('economics-management')">💼 Econ & Mgmt</button>
+                <button class="subject-btn" style="background: #667eea;" onclick="startExam('anatomy')">🦴 Anatomy</button>
+                <button class="subject-btn" style="background: #764ba2;" onclick="startExam('physiology')">❤️ Physiology</button>
+                <button class="subject-btn" style="background: #e74c3c;" onclick="startExam('general-physics-i')">⚡ Gen. Physics I</button>
+                <button class="subject-btn" style="background: #f39c12;" onclick="startExam('advanced-physics')">🌌 Adv. Physics</button>
+                <button class="subject-btn" style="background: #16a085;" onclick="startExam('biomechanics')">🏃 Biomechanics</button>
+                <button class="subject-btn" style="background: #2980b9;" onclick="startExam('fundamentals-of-bioengineering')">🔧 Fund. Bio-Eng</button>
+                <button class="subject-btn" style="background: #8e44ad;" onclick="startExam('economics-and-management')">💼 Econ & Mgmt</button>
+                <button class="subject-btn" style="background: #27ae60;" onclick="startExam('italian-for-english-learners')">🇮🇹 Italian</button>
             </div>
         </div>
 
@@ -370,6 +92,12 @@
             <div class="exam-header">
                 <span class="subject-badge" id="subjectBadge"></span>
                 <span style="font-size: 11px;">Q<span id="questionCount">1</span></span>
+            </div>
+
+            <div class="upload-box">
+                <strong>📚 Upload Course Materials:</strong> (Optional)<br>
+                <input type="file" id="materialInput" accept=".pdf,.docx,.pptx,.txt,.jpg,.png,.gif,.webp" onchange="uploadMaterial()">
+                <span id="uploadStatus"></span>
             </div>
 
             <div class="chat-area" id="chatArea"></div>
@@ -411,40 +139,13 @@
         const recognition = window.webkitSpeechRecognition || window.SpeechRecognition;
         let speechRecognizer = null;
 
-        function loadVoices() {
-            const voices = speechSynthesis.getVoices();
-            const voiceSelect = document.getElementById('voiceSelect');
-            if (voiceSelect) {
-                voices.forEach((voice, index) => {
-                    const option = document.createElement('option');
-                    option.value = index;
-                    option.textContent = `${voice.name}`;
-                    voiceSelect.appendChild(option);
-                });
-            }
-        }
-
-        if (speechSynthesis.onvoiceschanged !== undefined) {
-            speechSynthesis.onvoiceschanged = loadVoices;
-        }
-        loadVoices();
-
         if (recognition) {
             speechRecognizer = new recognition();
             speechRecognizer.continuous = false;
             speechRecognizer.interimResults = true;
             speechRecognizer.lang = 'en-US';
-
-            speechRecognizer.onstart = () => {
-                isListening = true;
-                updateSpeechButton();
-            };
-
-            speechRecognizer.onend = () => {
-                isListening = false;
-                updateSpeechButton();
-            };
-
+            speechRecognizer.onstart = () => { isListening = true; updateSpeechButton(); };
+            speechRecognizer.onend = () => { isListening = false; updateSpeechButton(); };
             speechRecognizer.onresult = (event) => {
                 let transcript = '';
                 for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -459,25 +160,14 @@
 
         function updateSpeechButton() {
             const btn = document.getElementById('speechButton');
-            if (isListening) {
-                btn.style.background = '#e74c3c';
-                btn.textContent = '⏹️';
-            } else {
-                btn.style.background = '#764ba2';
-                btn.textContent = '🎤';
-            }
+            btn.style.background = isListening ? '#e74c3c' : '#764ba2';
+            btn.textContent = isListening ? '⏹️' : '🎤';
         }
 
         function toggleSpeech() {
-            if (!speechRecognizer) {
-                alert('Speech recognition not supported');
-                return;
-            }
-            if (isListening) {
-                speechRecognizer.stop();
-            } else {
-                speechRecognizer.start();
-            }
+            if (!speechRecognizer) { alert('Speech recognition not supported'); return; }
+            if (isListening) speechRecognizer.stop();
+            else speechRecognizer.start();
         }
 
         async function startExam(subject) {
@@ -494,9 +184,35 @@
                 document.querySelector('.exam-screen').classList.add('active');
                 document.getElementById('subjectBadge').textContent = subject.split('-').map(w => w.charAt(0).toUpperCase()).join('');
                 document.getElementById('chatArea').innerHTML = '';
+                document.getElementById('uploadStatus').style.display = 'none';
                 getQuestion('');
             } catch (error) {
                 alert('Error: ' + error.message);
+            }
+        }
+
+        async function uploadMaterial() {
+            const file = document.getElementById('materialInput').files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch(`${API_BASE}/api/exam/upload/${currentSessionId}`, {
+                    method: 'POST',
+                    body: formData,
+                });
+                const data = await response.json();
+                const status = document.getElementById('uploadStatus');
+                status.textContent = `✓ ${data.filename} loaded (${data.materialsCount} total)`;
+                status.style.display = 'block';
+                status.style.color = '#155724';
+            } catch (error) {
+                const status = document.getElementById('uploadStatus');
+                status.textContent = `✗ Upload failed: ${error.message}`;
+                status.style.display = 'block';
+                status.style.color = '#721c24';
             }
         }
 
@@ -577,24 +293,15 @@
         let lastHintQuestion = null;
 
         async function generateHint() {
-            if (!currentSessionId) {
-                alert('Start an exam first');
-                return;
-            }
-
+            if (!currentSessionId) { alert('Start an exam first'); return; }
             toggleSidebar();
             const hintResult = document.getElementById('hintResult');
-
-            // Check if hint is already cached for this question
             const currentQuestion = document.querySelector('.message.professor:last-child .message-text')?.textContent;
             if (currentHintData && lastHintQuestion === currentQuestion) {
-                // Use cached hint
                 displayTextHint(currentHintData);
                 return;
             }
-
             hintResult.innerHTML = '<p style="text-align: center; color: #667eea; font-size: 12px;">Generating hint...</p>';
-
             try {
                 const response = await fetch(`${API_BASE}/api/exam/hint`, {
                     method: 'POST',
@@ -625,7 +332,6 @@
             if (!currentHintData) return;
             const hintResult = document.getElementById('hintResult');
             hintResult.innerHTML = '<p style="text-align: center; color: #667eea; font-size: 12px;">Searching for images...</p>';
-
             try {
                 const response = await fetch(`${API_BASE}/api/search-image?query=${encodeURIComponent(currentHintData.searchTerms)}`);
                 const data = await response.json();
@@ -637,7 +343,7 @@
                     `;
                 } else {
                     hintResult.innerHTML = `
-                        <p style="color: #e74c3c; font-size: 12px; margin-bottom: 8px;">No images found. Try searching for a related term.</p>
+                        <p style="color: #e74c3c; font-size: 12px; margin-bottom: 8px;">No images found.</p>
                         <button class="btn-secondary" onclick="displayTextHint(currentHintData)" style="width: 100%; padding: 6px;">📝 Back to Hint</button>
                     `;
                 }
