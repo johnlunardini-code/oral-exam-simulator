@@ -62,23 +62,20 @@
         .message.answer { background: #f0e8fe; border-left: 4px solid #764ba2; align-self: flex-end; max-width: 85%; }
         .message-label { font-weight: 600; font-size: 11px; color: #666; margin-bottom: 3px; text-transform: uppercase; }
         .message-text { color: #333; font-size: 12px; white-space: pre-wrap; word-wrap: break-word; }
-        .message-actions { display: flex; gap: 4px; margin-top: 6px; }
+        .message-actions { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
         .action-btn { background: #667eea; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 10px; font-weight: 600; }
         .action-btn:hover { background: #764ba2; }
         
         .input-area { display: flex; gap: 8px; margin-bottom: 10px; flex-shrink: 0; align-items: flex-end; }
-        .text-editor { display: flex; flex-direction: column; gap: 4px; flex: 1; }
-        .formatting-toolbar { background: #f0f0f0; border: 1px solid #ddd; border-radius: 4px 4px 0 0; padding: 4px; display: flex; gap: 2px; font-size: 11px; }
-        .format-btn { background: white; border: 1px solid #ddd; padding: 2px 4px; border-radius: 2px; cursor: pointer; font-weight: 600; }
-        .format-btn:hover { background: #e8f0fe; }
-        textarea { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 0 0 4px 4px; font-family: 'Courier New', monospace; font-size: 12px; resize: none; min-height: 60px; }
+        .text-editor { display: flex; flex-direction: column; gap: 0; flex: 1; }
+        textarea { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 12px; resize: none; min-height: 60px; }
         
         button { padding: 8px 16px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
         .btn-primary { background: #667eea; color: white; }
         .btn-secondary { background: #764ba2; color: white; }
         .btn-danger { background: #e74c3c; color: white; }
         .btn-success { background: #27ae60; color: white; }
-        .play-btn { background: #667eea; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 600; }
+        .icon-btn { width: 44px; height: 44px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
         
         .sidebar { position: fixed; right: -90vw; top: 0; width: 90vw; max-width: 350px; height: 100vh; background: white; box-shadow: -5px 0 20px rgba(0, 0, 0, 0.2); transition: right 0.3s ease; overflow-y: auto; z-index: 1000; }
         .sidebar.active { right: 0; }
@@ -90,6 +87,20 @@
         .loading { text-align: center; color: #667eea; font-weight: 600; padding: 10px; font-size: 12px; }
         
         .upload-box { background: #fff3cd; border: 1px solid #ffc107; padding: 10px; border-radius: 6px; margin-bottom: 10px; font-size: 11px; flex-shrink: 0; }
+        
+        .voice-select { background: #f0f4ff; padding: 12px; border-radius: 8px; margin: 10px 0; font-size: 11px; flex-shrink: 0; }
+        .voice-select label { display: block; color: #333; font-weight: 600; margin-bottom: 6px; }
+        .voice-select select { width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 11px; }
+        
+        .feedback-history { max-height: 400px; overflow-y: auto; }
+        .feedback-item { background: white; border: 1px solid #ddd; padding: 8px; border-radius: 4px; margin-bottom: 8px; cursor: pointer; }
+        .feedback-item:hover { background: #f0f4ff; border-color: #667eea; }
+        .feedback-item-q { font-weight: 600; font-size: 11px; color: #333; margin-bottom: 4px; }
+        .feedback-item-a { font-size: 10px; color: #666; }
+        
+        .tooltip { position: relative; display: inline-block; }
+        .tooltip .tooltiptext { visibility: hidden; width: 120px; background-color: #333; color: #fff; text-align: center; padding: 5px; border-radius: 6px; position: absolute; z-index: 1001; bottom: 125%; left: 50%; margin-left: -60px; opacity: 0; transition: opacity 0.3s; font-size: 10px; }
+        .tooltip:hover .tooltiptext { visibility: visible; opacity: 1; }
     </style>
 </head>
 <body>
@@ -111,7 +122,7 @@
                     <li>27 UCBM BEN courses</li>
                     <li>Assessment-matched questions</li>
                     <li>Question-by-question feedback</li>
-                    <li>Speech + text support</li>
+                    <li>Continuous speech support</li>
                     <li>Hypothetical scoring (every 10 Q)</li>
                 </ul>
             </div>
@@ -121,6 +132,18 @@
                 <p>Upload syllabi, notes, or slides before starting.</p>
                 <input type="file" id="homeUploadInput" accept=".pdf,.docx,.pptx,.txt,.jpg,.png,.gif,.webp" multiple onchange="preloadMaterials()" style="font-size: 11px;">
                 <div id="homeUploadStatus" style="font-size: 11px; margin-top: 4px; display: none;"></div>
+            </div>
+
+            <div class="voice-select">
+                <label>🎤 Voice Language:</label>
+                <select id="voiceLanguage" onchange="changeVoiceLanguage()">
+                    <option value="en-US">English (US)</option>
+                    <option value="en-GB">English (UK)</option>
+                    <option value="it-IT">Italian</option>
+                    <option value="es-ES">Spanish</option>
+                    <option value="fr-FR">French</option>
+                    <option value="de-DE">German</option>
+                </select>
             </div>
 
             <div style="background: #f0f4ff; padding: 12px; border-radius: 8px; margin: 10px 0; font-size: 12px; flex-shrink: 0;">
@@ -157,20 +180,16 @@
 
             <div class="input-area">
                 <div class="text-editor">
-                    <div class="formatting-toolbar">
-                        <button class="format-btn" onclick="insertFormula()">𝑥²</button>
-                        <button class="format-btn" onclick="insertBold()" title="Bold">B</button>
-                        <button class="format-btn" onclick="insertItalic()" title="Italic">I</button>
-                        <button class="format-btn" onclick="insertSubscript()" title="Subscript">H₂O</button>
-                    </div>
                     <textarea id="answerInput" placeholder="Type your answer or use speech..."></textarea>
                 </div>
                 <div style="display: flex; gap: 4px; flex-direction: column;">
-                    <button class="btn-primary" onclick="submitAnswer()" style="padding: 6px 10px;">Send</button>
-                    <button class="btn-secondary" onclick="toggleSpeech()" id="speechButton" style="padding: 6px 10px;">🎤</button>
-                    <button class="btn-secondary" onclick="document.getElementById('imageInput').click()" style="padding: 6px 10px;">📷</button>
-                    <button class="btn-success" onclick="askForFeedback()" style="padding: 6px 10px;">💬</button>
+                    <button class="btn-primary icon-btn tooltip" onclick="submitAnswer()" style="padding: 6px 10px;"><span class="tooltiptext">Send Answer</span>Send</button>
+                    <button class="btn-secondary icon-btn tooltip" onclick="toggleSpeech()" id="speechButton" style="padding: 6px 10px;"><span class="tooltiptext">Record Voice</span>🎤</button>
+                    <button class="btn-secondary icon-btn tooltip" onclick="document.getElementById('imageInput').click()" style="padding: 6px 10px;"><span class="tooltiptext">Attach Image</span>📷</button>
+                    <button class="btn-success icon-btn tooltip" onclick="openFeedbackHistory()" style="padding: 6px 10px;"><span class="tooltiptext">Get Feedback</span>💬</button>
+                    <button class="btn-secondary icon-btn tooltip" onclick="document.getElementById('docInput').click()" style="padding: 6px 10px;"><span class="tooltiptext">Upload Document</span>📎</button>
                     <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+                    <input type="file" id="docInput" accept=".pdf,.docx,.txt,.jpg,.png" style="display: none;" onchange="handleDocUpload(event)">
                 </div>
             </div>
 
@@ -180,16 +199,16 @@
         <!-- Hint Sidebar -->
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <h3>Study Hint</h3>
+                <h3 id="sidebarTitle">Study Hint</h3>
                 <button class="sidebar-close" onclick="toggleSidebar()">×</button>
             </div>
             <div class="sidebar-content">
                 <div id="hintResult">
-                    <p style="color: #999; font-size: 12px;">Click 💡 for hints.</p>
+                    <p style="color: #999; font-size: 12px;">Loading...</p>
                 </div>
             </div>
         </div>
-        <button class="sidebar-btn" onclick="generateHint()" title="Get Study Hint">💡</button>
+        <button class="sidebar-btn tooltip" onclick="generateHint()" title="Get Study Hint"><span class="tooltiptext">Study Hints</span>💡</button>
     </div>
 
     <script>
@@ -201,6 +220,8 @@
         const recognition = window.webkitSpeechRecognition || window.SpeechRecognition;
         let speechRecognizer = null;
         let currentQuestion = '';
+        let messageHistory = [];
+        let voiceLanguage = 'en-US';
 
         const yearStructure = {
             'Year 1': [
@@ -235,6 +256,13 @@
                 { id: 'healthcare-robotics', name: 'Healthcare Robotics', color: '#1e90ff' },
             ]
         };
+
+        function changeVoiceLanguage() {
+            voiceLanguage = document.getElementById('voiceLanguage').value;
+            if (speechRecognizer) {
+                speechRecognizer.lang = voiceLanguage;
+            }
+        }
 
         function initializeCourses() {
             const container = document.getElementById('coursesContainer');
@@ -280,7 +308,7 @@
             speechRecognizer = new recognition();
             speechRecognizer.continuous = true;
             speechRecognizer.interimResults = true;
-            speechRecognizer.lang = 'en-US';
+            speechRecognizer.lang = voiceLanguage;
             
             let silenceTimer = null;
             const SILENCE_THRESHOLD = 2000;
@@ -322,36 +350,6 @@
             if (!speechRecognizer) { alert('Speech recognition not supported'); return; }
             if (isListening) speechRecognizer.stop();
             else speechRecognizer.start();
-        }
-
-        function insertFormula() {
-            const textarea = document.getElementById('answerInput');
-            const start = textarea.selectionStart;
-            const end = textarea.selectionEnd;
-            const text = textarea.value;
-            textarea.value = text.substring(0, start) + '𝑥²' + text.substring(end);
-            textarea.focus();
-        }
-
-        function insertBold() {
-            insertText('**text**');
-        }
-
-        function insertItalic() {
-            insertText('*text*');
-        }
-
-        function insertSubscript() {
-            insertText('text₂');
-        }
-
-        function insertText(placeholder) {
-            const textarea = document.getElementById('answerInput');
-            const start = textarea.selectionStart;
-            const end = textarea.selectionEnd;
-            const text = textarea.value;
-            textarea.value = text.substring(0, start) + placeholder + text.substring(end);
-            textarea.focus();
         }
 
         async function preloadMaterials() {
@@ -397,6 +395,7 @@
                 const data = await response.json();
                 currentSessionId = data.sessionId;
                 currentCourseName = data.courseName;
+                messageHistory = [];
                 
                 document.querySelector('.start-screen').classList.remove('active');
                 document.querySelector('.exam-screen').classList.add('active');
@@ -465,6 +464,8 @@
                     msg.innerHTML = `<div class="message-label">You</div><div class="message-text">${studentAnswer}</div>`;
                     group.appendChild(msg);
                     chatArea.appendChild(group);
+                    
+                    messageHistory.push({ role: 'user', text: studentAnswer });
                 }
 
                 const loadingDiv = document.createElement('div');
@@ -491,10 +492,12 @@
                 currentQuestion = data.response;
                 msg.innerHTML = `<div class="message-label">Professor</div><div class="message-text">${data.response}</div>
                     <div class="message-actions">
-                        <button class="action-btn" onclick="speakText('${data.response.replace(/'/g, "\\'")}')">🔊</button>
+                        <button class="action-btn" onclick="speakText('${data.response.replace(/'/g, "\\'")}')">🔊 Speak</button>
                     </div>`;
                 group.appendChild(msg);
                 chatArea.appendChild(group);
+                
+                messageHistory.push({ role: 'professor', text: data.response, index: messageHistory.filter(m => m.role === 'professor').length });
                 
                 if (data.shouldAutoRead) {
                     setTimeout(() => speakText(data.response), 500);
@@ -531,33 +534,49 @@
             await getQuestion(answer);
         }
 
-        async function askForFeedback() {
-            const answer = document.getElementById('answerInput').value.trim();
-            if (!answer) {
-                alert('Please answer the question first');
+        async function openFeedbackHistory() {
+            if (messageHistory.length === 0) {
+                alert('No answers to provide feedback on yet.');
                 return;
             }
 
+            toggleSidebar();
+            const hintResult = document.getElementById('hintResult');
+            const sidebarTitle = document.getElementById('sidebarTitle');
+            sidebarTitle.textContent = 'Feedback History';
+            
+            let html = '<div class="feedback-history">';
+            
+            const answers = messageHistory.filter(m => m.role === 'user');
+            answers.forEach((answer, i) => {
+                html += `<div class="feedback-item" onclick="getFeedbackForAnswer(${i})">
+                    <div class="feedback-item-q">Q${i + 1}: ${messageHistory[messageHistory.findIndex(m => m.role === 'professor' && m.index === i)].text.substring(0, 50)}...</div>
+                    <div class="feedback-item-a">Your answer: ${answer.text.substring(0, 40)}...</div>
+                </div>`;
+            });
+            
+            html += '</div>';
+            hintResult.innerHTML = html;
+        }
+
+        async function getFeedbackForAnswer(index) {
             try {
                 const response = await fetch(`${API_BASE}/api/exam/feedback`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ sessionId: currentSessionId, studentAnswer: answer }),
+                    body: JSON.stringify({ sessionId: currentSessionId, questionIndex: index }),
                 });
                 const data = await response.json();
 
-                const chatArea = document.getElementById('chatArea');
-                const group = document.createElement('div');
-                group.className = 'message-group';
-                
-                const msg = document.createElement('div');
-                msg.className = 'message question';
-                msg.innerHTML = `<div class="message-label">Professor Feedback</div><div class="message-text">${data.feedback}</div>`;
-                group.appendChild(msg);
-                chatArea.appendChild(group);
-                chatArea.scrollTop = chatArea.scrollHeight;
+                const hintResult = document.getElementById('hintResult');
+                hintResult.innerHTML = `
+                    <div style="background: #f0f4ff; padding: 10px; border-radius: 6px; margin-bottom: 10px;">
+                        <p style="color: #333; font-size: 12px; line-height: 1.5; margin: 0;"><strong>Feedback:</strong> ${data.feedback}</p>
+                    </div>
+                    <button class="btn-secondary" onclick="openFeedbackHistory()" style="width: 100%; padding: 6px;">← Back to History</button>
+                `;
             } catch (error) {
-                alert('Error getting feedback: ' + error.message);
+                alert('Error: ' + error.message);
             }
         }
 
@@ -566,9 +585,16 @@
             if (file) {
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    getQuestion('Image uploaded - analyze it');
+                    getQuestion('Image uploaded - please analyze it');
                 };
                 reader.readAsDataURL(file);
+            }
+        }
+
+        function handleDocUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                getQuestion(`Document uploaded (${file.name}) - please analyze or reference it in your feedback`);
             }
         }
 
@@ -576,6 +602,7 @@
             speechSynthesis.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.rate = 0.9;
+            utterance.lang = voiceLanguage;
             speechSynthesis.speak(utterance);
         }
 
@@ -583,11 +610,10 @@
             document.getElementById('sidebar').classList.toggle('active');
         }
 
-        let currentHintData = null;
-
         async function generateHint() {
             if (!currentSessionId) { alert('Start an exam first'); return; }
             toggleSidebar();
+            document.getElementById('sidebarTitle').textContent = 'Study Hint';
             const hintResult = document.getElementById('hintResult');
             hintResult.innerHTML = '<p style="text-align: center; color: #667eea; font-size: 12px;">Generating hint...</p>';
             try {
@@ -597,10 +623,14 @@
                     body: JSON.stringify({ sessionId: currentSessionId }),
                 });
                 const data = await response.json();
-                currentHintData = data;
+                
+                if (!data.textHint || data.textHint === 'undefined') {
+                    throw new Error('Hint generation failed');
+                }
+                
                 displayTextHint(data);
             } catch (error) {
-                hintResult.innerHTML = '<p style="color: #e74c3c; font-size: 12px;">Error generating hint.</p>';
+                hintResult.innerHTML = '<p style="color: #e74c3c; font-size: 12px;">Error generating hint. Try again.</p>';
             }
         }
 
@@ -610,34 +640,34 @@
                 <div style="background: #f0f4ff; padding: 10px; border-radius: 6px; margin-bottom: 10px;">
                     <p style="color: #333; font-size: 12px; line-height: 1.5; margin: 0;">${data.textHint}</p>
                 </div>
-                <button class="btn-primary" onclick="getHintImage()" style="width: 100%; margin-bottom: 6px; padding: 6px;">🔍 Search Images</button>
+                <button class="btn-primary" onclick="getHintImage('${encodeURIComponent(data.searchTerms)}')" style="width: 100%; margin-bottom: 6px; padding: 6px;">🔍 Search Images</button>
                 <button class="btn-secondary" onclick="toggleSidebar()" style="width: 100%; padding: 6px;">Close</button>
             `;
         }
 
-        function getHintImage() {
-            if (!currentHintData || !currentHintData.searchTerms) return;
-            const searchQuery = encodeURIComponent(currentHintData.searchTerms);
-            const googleImagesUrl = `https://www.google.com/search?tbm=isch&q=${searchQuery}`;
+        function getHintImage(searchTermsEncoded) {
+            const searchQuery = decodeURIComponent(searchTermsEncoded);
+            const googleImagesUrl = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(searchQuery)}`;
             window.open(googleImagesUrl, '_blank');
             const hintResult = document.getElementById('hintResult');
             hintResult.innerHTML = `
-                <p style="color: #333; font-size: 12px; margin-bottom: 8px;">✓ Google Images: <strong>${currentHintData.searchTerms}</strong></p>
-                <button class="btn-secondary" onclick="displayTextHint(currentHintData)" style="width: 100%; padding: 6px;">📝 Back</button>
+                <p style="color: #333; font-size: 12px; margin-bottom: 8px;">✓ Google Images: <strong>${searchQuery}</strong></p>
+                <p style="color: #999; font-size: 11px; margin-bottom: 8px;">Opened in new window</p>
+                <button class="btn-secondary" onclick="toggleSidebar()" style="width: 100%; padding: 6px;">Close</button>
             `;
         }
 
-        async function endExam() {
+        function endExam() {
             if (confirm('End exam?')) {
                 try {
-                    await fetch(`${API_BASE}/api/exam/session/${currentSessionId}`, { method: 'DELETE' });
+                    fetch(`${API_BASE}/api/exam/session/${currentSessionId}`, { method: 'DELETE' });
                 } catch (e) {}
                 document.querySelector('.exam-screen').classList.remove('active');
                 document.querySelector('.start-screen').classList.add('active');
                 currentSessionId = null;
             }
         }
-        
+
         function saveSessionScore(sessionId, scoreTracker) {
             const scores = JSON.parse(localStorage.getItem('examScores') || '{}');
             const courseName = document.getElementById('courseName').textContent;
@@ -646,16 +676,16 @@
                 scores[courseName] = [];
             }
             
-            scores[courseName].push({
+            scores[courseName][scores[courseName].length - 1] = {
                 date: new Date().toLocaleString(),
                 correct: scoreTracker.correct,
                 total: scoreTracker.total,
                 percentage: Math.round((scoreTracker.correct / scoreTracker.total) * 100)
-            });
+            };
             
             localStorage.setItem('examScores', JSON.stringify(scores));
         }
-        
+
         function viewPastScores() {
             const scores = JSON.parse(localStorage.getItem('examScores') || '{}');
             
@@ -664,18 +694,20 @@
                 return;
             }
             
-            let html = '<div style="max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.2);">';
+            let html = '<div style="max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.2);z-index: 2001;">';
             html += '<h2 style="color: #333; text-align: center; margin-bottom: 20px;">📊 Past Exam Scores</h2>';
             html += '<div style="max-height: 600px; overflow-y: auto;">';
             
             Object.entries(scores).forEach(([course, attempts]) => {
-                const avg = Math.round(attempts.reduce((sum, a) => sum + a.percentage, 0) / attempts.length);
+                const validAttempts = attempts.filter(a => a && a.percentage);
+                if (validAttempts.length === 0) return;
+                const avg = Math.round(validAttempts.reduce((sum, a) => sum + a.percentage, 0) / validAttempts.length);
                 html += `<div style="background: #f9f9f9; padding: 12px; border-radius: 6px; margin-bottom: 10px; border-left: 4px solid #667eea;">`;
                 html += `<h4 style="margin: 0 0 8px 0; color: #333;">${course}</h4>`;
                 html += `<p style="margin: 0 0 8px 0; color: #666; font-size: 12px;"><strong>Average:</strong> ${avg}%</p>`;
                 html += `<div style="font-size: 11px; color: #999;">`;
                 
-                attempts.forEach((attempt, i) => {
+                validAttempts.forEach((attempt, i) => {
                     html += `<div style="margin: 4px 0; padding: 4px; background: white; border-radius: 3px;">`;
                     html += `Attempt ${i + 1}: ${attempt.percentage}% (${attempt.correct}/${attempt.total}) - ${attempt.date}`;
                     html += `</div>`;
@@ -694,12 +726,12 @@
             modal.innerHTML = html;
             document.body.appendChild(modal);
         }
-        
+
         function closePastScoresModal() {
             const modal = document.getElementById('pastScoresModal');
             if (modal) modal.remove();
         }
-        
+
         function clearAllData() {
             if (confirm('Delete all saved scores and data? This cannot be undone.')) {
                 localStorage.removeItem('examScores');

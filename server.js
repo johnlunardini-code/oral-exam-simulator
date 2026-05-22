@@ -381,7 +381,7 @@ app.post('/api/exam/question', async (req, res) => {
 });
 
 app.post('/api/exam/feedback', async (req, res) => {
-  const { sessionId, studentAnswer } = req.body;
+  const { sessionId, questionIndex } = req.body;
 
   if (!sessionId || !examSessions[sessionId]) {
     return res.status(404).json({ error: 'Not found' });
@@ -390,23 +390,49 @@ app.post('/api/exam/feedback', async (req, res) => {
   const session = examSessions[sessionId];
   
   try {
-    let lastQuestion = '';
-    for (let i = session.messages.length - 1; i >= 0; i--) {
-      if (session.messages[i].role === 'assistant') {
-        lastQuestion = session.messages[i].content;
-        break;
+    let targetQuestion = '';
+    let targetAnswer = '';
+    
+    if (questionIndex !== undefined && questionIndex >= 0) {
+      const messages = session.messages;
+      let qCount = 0;
+      for (let i = 0; i < messages.length; i++) {
+        if (messages[i].role === 'assistant') {
+          if (qCount === questionIndex) {
+            targetQuestion = messages[i].content;
+            if (i + 1 < messages.length && messages[i + 1].role === 'user') {
+              targetAnswer = messages[i + 1].content;
+            }
+            break;
+          }
+          qCount++;
+        }
+      }
+    } else {
+      for (let i = session.messages.length - 1; i >= 0; i--) {
+        if (session.messages[i].role === 'assistant') {
+          targetQuestion = session.messages[i].content;
+          if (i + 1 < session.messages.length && session.messages[i + 1].role === 'user') {
+            targetAnswer = session.messages[i + 1].content;
+          }
+          break;
+        }
       }
     }
 
-    if (!lastQuestion) {
-      return res.status(400).json({ error: 'No question' });
+    if (!targetQuestion) {
+      return res.status(400).json({ error: 'No question found' });
+    }
+
+    if (!targetAnswer) {
+      return res.status(400).json({ error: 'No answer provided for this question' });
     }
 
     const feedbackPrompt = `You are ${instructorMap[session.subject]}, providing detailed feedback on ${session.studentName}'s answer.
 
-Question: "${lastQuestion.substring(0, 300)}"
+Question: "${targetQuestion.substring(0, 300)}"
 
-Student Answer: "${studentAnswer.substring(0, 500)}"
+Student Answer: "${targetAnswer.substring(0, 500)}"
 
 Provide constructive feedback covering:
 1. Accuracy of the answer
@@ -456,29 +482,42 @@ app.post('/api/exam/hint', async (req, res) => {
       return res.status(400).json({ error: 'No question' });
     }
 
-    const keyTerms = lastQuestion
-      .split(' ')
-      .filter(w => w.length > 5)
-      .slice(0, 3)
-      .join(' ');
-
-    const hintPrompt = `Question: "${lastQuestion.substring(0, 150)}"
+    const hintPrompt = `Question: "${lastQuestion.substring(0, 200)}"
     
 Provide a brief hint (2 sentences, no spoilers). Do NOT use markdown formatting.`;
 
-    const hintResponse = await client.chat.completions.create({
-      model: 'grok-4.3',
-      messages: [{ role: 'user', content: hintPrompt }],
-      temperature: 0.7,
-      max_tokens: 200,
-    });
+    const searchTermsPrompt = `Extract 2-3 key technical terms (NOT professor names) from this question that would be useful for image search.
+    Question: "${lastQuestion.substring(0, 200)}"
+    
+    Return ONLY the search terms separated by spaces (e.g., "mitochondria structure energy" or "supply demand curve"). Do NOT include professor names or course names.`;
+
+    const [hintResponse, termsResponse] = await Promise.all([
+      client.chat.completions.create({
+        model: 'grok-4.3',
+        messages: [{ role: 'user', content: hintPrompt }],
+        temperature: 0.7,
+        max_tokens: 200,
+      }),
+      client.chat.completions.create({
+        model: 'grok-4.3',
+        messages: [{ role: 'user', content: searchTermsPrompt }],
+        temperature: 0.3,
+        max_tokens: 50,
+      })
+    ]);
 
     let textHint = hintResponse.choices[0].message.content;
     textHint = cleanMarkdown(textHint);
+    
+    let searchTerms = termsResponse.choices[0].message.content.trim();
+    if (!searchTerms || searchTerms.includes('professor') || searchTerms.length < 3) {
+      const words = lastQuestion.split(/\s+/).filter(w => w.length > 5 && !['question', 'explain', 'describe', 'professor', 'course', 'exam'].includes(w.toLowerCase())).slice(0, 3);
+      searchTerms = words.join(' ') || 'course concepts';
+    }
 
     res.json({ 
       textHint,
-      searchTerms: keyTerms || 'general topic'
+      searchTerms: searchTerms || 'general topic'
     });
   } catch (error) {
     console.error('Hint error:', error);
@@ -531,6 +570,7 @@ app.get('/api/exam/session/:sessionId', (req, res) => {
     assessmentType: session.assessmentType,
     questionCount: session.questionCount,
     scoreTracker: session.scoreTracker,
+    messages: session.messages.filter(m => m.role === 'assistant').map((q, i) => ({ index: i, question: q.content }))
   });
 });
 
