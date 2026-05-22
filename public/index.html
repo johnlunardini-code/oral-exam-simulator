@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oral Exam Simulator - UCBM Bioengineering</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .start-screen, .exam-screen {
+            display: none;
+        }
+
+        .start-screen.active, .exam-screen.active {
+            display: block;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #764ba2;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #683a94;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(118, 75, 162, 0.4);
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .btn-icon {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .recording-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 10px;
+            color: #e74c3c;
+            font-weight: 600;
+        }
+
+        .recording-indicator.active::before {
+            content: '';
+            width: 10px;
+            height: 10px;
+            background: #e74c3c;
+            border-radius: 50%;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .exam-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .subject-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .question-counter {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .chat-area {
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 20px;
+            height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            background: #f9f9f9;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 6px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.professor {
+            background: #e8f0fe;
+            border-left: 4px solid #667eea;
+            text-align: left;
+        }
+
+        .message.student {
+            background: #f0e8fe;
+            border-left: 4px solid #764ba2;
+            text-align: left;
+            margin-left: 40px;
+        }
+
+        .message-label {
+            font-weight: 600;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .message-text {
+            color: #333;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        textarea {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 50px;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-submit {
+            padding: 12px 20px;
+            align-self: flex-end;
+        }
+
+        .speech-status {
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        .speech-status.listening {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .speech-status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .feature-list {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+
+        .feature-list h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .feature-list ul {
+            list-style: none;
+        }
+
+        .feature-list li {
+            padding: 8px 0;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .feature-list li::before {
+            content: '✓';
+            color: #667eea;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-weight: 600;
+            padding: 20px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            border: 1px solid #f5c6cb;
+        }
+
+        .audio-player {
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .audio-player audio {
+            height: 28px;
+            flex: 1;
+        }
+
+        .play-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .play-btn:hover {
+            background: #5568d3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎓 Oral Exam Simulator</h1>
+            <p class="subtitle">Practice for your bioengineering exams with AI professors</p>
+        </header>
+
+        <!-- Start Screen -->
+        <div class="start-screen active">
+            <div class="feature-list">
+                <h3>Features</h3>
+                <ul>
+                    <li>AI-powered professor asking realistic exam questions</li>
+                    <li>Speech recognition for natural oral practice</li>
+                    <li>AI professor voice responses (Text-to-Speech)</li>
+                    <li>Real-time feedback on your answers</li>
+                    <li>Choose between Anatomy or Physics</li>
+                    <li>Unlimited practice sessions</li>
+                </ul>
+            </div>
+
+            <p style="color: #666; text-align: center; margin: 20px 0;">Select a subject to begin your exam:</p>
+
+            <div class="button-group">
+                <button class="btn-primary" onclick="startExam('anatomy')">
+                    <span class="btn-icon">🦴 Anatomy</span>
+                </button>
+                <button class="btn-secondary" onclick="startExam('physics')">
+                    <span class="btn-icon">⚡ Physics</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Exam Screen -->
+        <div class="exam-screen">
+            <div class="exam-header">
+                <div>
+                    <span class="subject-badge" id="subjectBadge"></span>
+                </div>
+                <div class="question-counter">Question <span id="questionCount">1</span></div>
+            </div>
+
+            <div id="speechStatus" class="speech-status listening" style="display: none;">
+                Listening...
+            </div>
+
+            <div id="errorMessage" class="error-message" style="display: none;"></div>
+
+            <div class="chat-area" id="chatArea"></div>
+
+            <div class="input-area">
+                <textarea id="answerInput" placeholder="Type your answer here or use the speech button..." spellcheck="true"></textarea>
+                <div style="display: flex; gap: 8px; flex-direction: column;">
+                    <button class="btn-primary btn-submit" onclick="submitAnswer()">
+                        Send
+                    </button>
+                    <button class="btn-secondary btn-submit" onclick="toggleSpeech()" id="speechButton">
+                        🎤
+                    </button>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-danger" onclick="endExam()">End Exam</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '';
+        let currentSessionId = null;
+        let currentSubject = null;
+        let isListening = false;
+        const recognition = window.webkitSpeechRecognition || window.SpeechRecognition;
+        let speechRecognizer = null;
+
+        if (recognition) {
+            speechRecognizer = new recognition();
+            speechRecognizer.continuous = false;
+            speechRecognizer.interimResults = true;
+            speechRecognizer.lang = 'en-US';
+
+            speechRecognizer.onstart = () => {
+                isListening = true;
+                document.getElementById('speechStatus').style.display = 'block';
+                updateSpeechButton();
+            };
+
+            speechRecognizer.onend = () => {
+                isListening = false;
+                document.getElementById('speechStatus').style.display = 'none';
+                updateSpeechButton();
+            };
+
+            speechRecognizer.onresult = (event) => {
+                let transcript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    transcript += event.results[i][0].transcript;
+                }
+                if (event.results[event.results.length - 1].isFinal) {
+                    document.getElementById('answerInput').value = transcript;
+                    // Auto-submit after speech recognition finishes
+                    setTimeout(() => submitAnswer(), 500);
+                }
+            };
+
+            speechRecognizer.onerror = (event) => {
+                showError(`Speech recognition error: ${event.error}`);
+            };
+        }
+
+        function updateSpeechButton() {
+            const btn = document.getElementById('speechButton');
+            if (isListening) {
+                btn.style.background = '#e74c3c';
+                btn.textContent = '⏹️';
+            } else {
+                btn.style.background = '#764ba2';
+                btn.textContent = '🎤';
+            }
+        }
+
+        function toggleSpeech() {
+            if (!speechRecognizer) {
+                showError('Speech recognition not supported in your browser');
+                return;
+            }
+
+            if (isListening) {
+                speechRecognizer.stop();
+            } else {
+                speechRecognizer.start();
+            }
+        }
+
+        async function startExam(subject) {
+            try {
+                const response = await fetch(`${API_BASE}/api/exam/start`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ subject }),
+                });
+
+                const data = await response.json();
+                currentSessionId = data.sessionId;
+                currentSubject = subject;
+
+                document.querySelector('.start-screen').classList.remove('active');
+                document.querySelector('.exam-screen').classList.add('active');
+                document.getElementById('subjectBadge').textContent = subject.charAt(0).toUpperCase() + subject.slice(1);
+                document.getElementById('answerInput').value = '';
+                document.getElementById('chatArea').innerHTML = '';
+                document.getElementById('questionCount').textContent = '1';
+
+                // Get first question
+                getQuestion('');
+            } catch (error) {
+                showError('Failed to start exam: ' + error.message);
+            }
+        }
+
+        async function getQuestion(studentAnswer) {
+            try {
+                showLoading();
+                const response = await fetch(`${API_BASE}/api/exam/question`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sessionId: currentSessionId, studentAnswer }),
+                });
+
+                const data = await response.json();
+                hideLoading();
+
+                // Add student answer if provided
+                if (studentAnswer.trim()) {
+                    addMessage(studentAnswer, 'student');
+                }
+
+                // Add professor response (speech synthesis handled in addMessage)
+                addMessage(data.response, 'professor');
+                document.getElementById('questionCount').textContent = data.questionNumber;
+                document.getElementById('answerInput').value = '';
+            } catch (error) {
+                hideLoading();
+                showError('Failed to get question: ' + error.message);
+            }
+        }
+
+        async function submitAnswer() {
+            const answer = document.getElementById('answerInput').value.trim();
+            if (!answer) {
+                showError('Please provide an answer');
+                return;
+            }
+            await getQuestion(answer);
+        }
+
+        function addMessage(text, type, audioUrl = null) {
+            const chatArea = document.getElementById('chatArea');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+
+            const label = document.createElement('div');
+            label.className = 'message-label';
+            label.textContent = type === 'professor' ? 'Professor' : 'Your Answer';
+
+            const textDiv = document.createElement('div');
+            textDiv.className = 'message-text';
+            textDiv.textContent = text;
+
+            messageDiv.appendChild(label);
+            messageDiv.appendChild(textDiv);
+
+            // Add speak button for professor responses
+            if (type === 'professor') {
+                const audioDiv = document.createElement('div');
+                audioDiv.className = 'audio-player';
+                const speakBtn = document.createElement('button');
+                speakBtn.className = 'play-btn';
+                speakBtn.textContent = '🔊 Speak';
+                speakBtn.onclick = () => speakText(text);
+                audioDiv.appendChild(speakBtn);
+                messageDiv.appendChild(audioDiv);
+                
+                // Auto-speak after a delay
+                setTimeout(() => speakText(text), 500);
+            }
+
+            chatArea.appendChild(messageDiv);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        function speakText(text) {
+            // Cancel any ongoing speech
+            speechSynthesis.cancel();
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 1.25;  // Moderate speed
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+            
+            // Try to use a female voice if available
+            const voices = speechSynthesis.getVoices();
+            let femaleVoice = null;
+            
+            // Try common female voice names across different browsers
+            const femaleNames = ['female', 'woman', 'samantha', 'victoria', 'moira', 'zira', 'karen', 'susan', 'fiona'];
+            for (let name of femaleNames) {
+                femaleVoice = voices.find(v => v.name.toLowerCase().includes(name));
+                if (femaleVoice) break;
+            }
+            
+            // If no female voice found, try to pick a different voice (might be female)
+            if (!femaleVoice && voices.length > 1) {
+                femaleVoice = voices[1];
+            }
+            
+            if (femaleVoice) {
+                utterance.voice = femaleVoice;
+            }
+            
+            speechSynthesis.speak(utterance);
+        }
+
+        function showLoading() {
+            const chatArea = document.getElementById('chatArea');
+            const loadingDiv = document.createElement('div');
+            loadingDiv.id = 'loadingMessage';
+            loadingDiv.className = 'loading';
+            loadingDiv.innerHTML = '<span class="spinner"></span>Professor is thinking...';
+            chatArea.appendChild(loadingDiv);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        function hideLoading() {
+            const loadingDiv = document.getElementById('loadingMessage');
+            if (loadingDiv) loadingDiv.remove();
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        async function endExam() {
+            if (confirm('End exam? Your progress will not be saved.')) {
+                try {
+                    await fetch(`${API_BASE}/api/exam/session/${currentSessionId}`, { method: 'DELETE' });
+                } catch (e) {}
+
+                document.querySelector('.exam-screen').classList.remove('active');
+                document.querySelector('.start-screen').classList.add('active');
+                currentSessionId = null;
+                currentSubject = null;
+            }
+        }
+
+        // Keyboard shortcut for submit
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('answerInput')?.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && e.ctrlKey) {
+                    submitAnswer();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
