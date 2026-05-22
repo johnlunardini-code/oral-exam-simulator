@@ -1,7 +1,8 @@
 # Oral Exam Simulator
 
-## Overview
-An AI-powered oral exam simulator designed to help bioengineering students prepare for their exams. The app simulates realistic oral exam scenarios with professor-like questions for Anatomy and Physics.
+AI-powered oral exam simulator for bioengineering students at UCBM Rome.
+
+**Live:** https://oral-exam-simulator-production.up.railway.app
 
 ## Getting Started
 
