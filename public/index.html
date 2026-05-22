@@ -574,14 +574,25 @@
         }
 
         let currentHintData = null;
+        let lastHintQuestion = null;
 
         async function generateHint() {
             if (!currentSessionId) {
                 alert('Start an exam first');
                 return;
             }
+
             toggleSidebar();
             const hintResult = document.getElementById('hintResult');
+
+            // Check if hint is already cached for this question
+            const currentQuestion = document.querySelector('.message.professor:last-child .message-text')?.textContent;
+            if (currentHintData && lastHintQuestion === currentQuestion) {
+                // Use cached hint
+                displayTextHint(currentHintData);
+                return;
+            }
+
             hintResult.innerHTML = '<p style="text-align: center; color: #667eea; font-size: 12px;">Generating hint...</p>';
 
             try {
@@ -592,16 +603,22 @@
                 });
                 const data = await response.json();
                 currentHintData = data;
-                hintResult.innerHTML = `
-                    <div style="background: #f0f4ff; padding: 10px; border-radius: 6px; margin-bottom: 10px;">
-                        <p style="color: #333; font-size: 12px; line-height: 1.5; margin: 0;">${data.textHint}</p>
-                    </div>
-                    <button class="btn-primary" onclick="getHintImage()" style="width: 100%; margin-bottom: 6px; padding: 6px;">📷 Show Image</button>
-                    <button class="btn-secondary" onclick="toggleSidebar()" style="width: 100%; padding: 6px;">Close</button>
-                `;
+                lastHintQuestion = currentQuestion;
+                displayTextHint(data);
             } catch (error) {
                 hintResult.innerHTML = '<p style="color: #e74c3c; font-size: 12px;">Error generating hint.</p>';
             }
+        }
+
+        function displayTextHint(data) {
+            const hintResult = document.getElementById('hintResult');
+            hintResult.innerHTML = `
+                <div style="background: #f0f4ff; padding: 10px; border-radius: 6px; margin-bottom: 10px;">
+                    <p style="color: #333; font-size: 12px; line-height: 1.5; margin: 0;">${data.textHint}</p>
+                </div>
+                <button class="btn-primary" onclick="getHintImage()" style="width: 100%; margin-bottom: 6px; padding: 6px;">📷 Show Image</button>
+                <button class="btn-secondary" onclick="toggleSidebar()" style="width: 100%; padding: 6px;">Close</button>
+            `;
         }
 
         async function getHintImage() {
@@ -614,18 +631,21 @@
                 const data = await response.json();
                 if (data.imageUrl) {
                     hintResult.innerHTML = `
-                        <img src="${data.imageUrl}" style="width: 100%; border-radius: 6px; margin-bottom: 8px;">
-                        <p style="color: #999; font-size: 11px;">Source: ${data.source}</p>
-                        <button class="btn-secondary" onclick="generateHint()" style="width: 100%; padding: 6px; margin-top: 6px;">📝 Back</button>
+                        <img src="${data.imageUrl}" style="width: 100%; border-radius: 6px; margin-bottom: 8px; max-height: 250px; object-fit: cover;">
+                        <p style="color: #999; font-size: 11px; margin: 0;">Source: ${data.source}</p>
+                        <button class="btn-secondary" onclick="displayTextHint(currentHintData)" style="width: 100%; padding: 6px; margin-top: 8px;">📝 Back to Hint</button>
                     `;
                 } else {
                     hintResult.innerHTML = `
-                        <p style="color: #e74c3c; font-size: 12px;">No images found.</p>
-                        <button class="btn-secondary" onclick="generateHint()" style="width: 100%; padding: 6px; margin-top: 6px;">Back</button>
+                        <p style="color: #e74c3c; font-size: 12px; margin-bottom: 8px;">No images found. Try searching for a related term.</p>
+                        <button class="btn-secondary" onclick="displayTextHint(currentHintData)" style="width: 100%; padding: 6px;">📝 Back to Hint</button>
                     `;
                 }
             } catch (error) {
-                hintResult.innerHTML = '<p style="color: #e74c3c; font-size: 12px;">Error fetching image.</p>';
+                hintResult.innerHTML = `
+                    <p style="color: #e74c3c; font-size: 12px; margin-bottom: 8px;">Error fetching image.</p>
+                    <button class="btn-secondary" onclick="displayTextHint(currentHintData)" style="width: 100%; padding: 6px;">Back</button>
+                `;
             }
         }
 
