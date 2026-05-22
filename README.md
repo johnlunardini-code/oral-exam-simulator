@@ -1,106 +1,163 @@
-# Oral Exam Simulator
+# 🎓 UCBM Exam Tutor
 
-AI-powered oral exam simulator for bioengineering students at UCBM Rome.
+Authoritative exam preparation system for Università Campus Bio-Medico di Roma (UCBM) Biomedical Engineering students.
 
-**Live:** https://oral-exam-simulator-production.up.railway.app
+## Knowledge Foundation
 
-## Getting Started
+All Q&A, feedback, and suggestions are **grounded in authoritative sources**:
 
-### Prerequisites
-- Node.js 16+ 
-- Docker (optional, for containerization)
-- Xai API key (from https://console.x.ai/)
+### 1. **Primary Source: UCBM Teaching Sheets** ⭐
+- Course objectives from official Piano degli Studi 2025-2026
+- Learning outcomes and Dublin Descriptors
+- Assessment methods and grading criteria
+- Prerequisites and course sequencing
 
-### Setup
+### 2. **Verified Textbooks**
+Each course references key textbooks used globally for that subject:
+- **Anatomy**: Gray's Anatomy for Students, Netter's Atlas
+- **Physiology**: Guyton & Hall, Costanzo
+- **Physics**: Tipler, Serway
+- **Mathematics**: Lay, Stewart
+- **Electronics**: Alexander & Sadiku, Horowitz & Hill
+- **Signal Processing**: Semmlow, Abood
+- And more...
 
-1. Clone/extract this project
-2. Copy `.env.example` to `.env` and add your Xai API key:
-   ```bash
-   cp .env.example .env
-   ```
-   Edit `.env` and replace `your_xai_api_key_here` with your actual key
+### 3. **Academic Research**
+The tutor uses verified academic sources:
+- **PubMed** - Biomedical research
+- **IEEE Xplore** - Engineering standards
+- **Scholar.Google** - Peer-reviewed papers
+- **OpenStax** - Open textbooks
+- **NIH/NLM** - Medical information
 
-3. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-4. Start the server:
-   ```bash
-   npm run dev
-   ```
-
-5. Open `http://localhost:3000` in your browser
-
-### Using with Docker
-
-Build the image:
-```bash
-docker build -t oral-exam-simulator .
-```
-
-Run the container:
-```bash
-docker run -p 3000:3000 -e XAI_API_KEY=your_key_here oral-exam-simulator
-```
-
-Or with docker-compose:
-```bash
-docker compose up
-```
+### 4. **Standards & Best Practices**
+- ISO/IEC standards for medical devices
+- IEEE standards for engineering
+- Healthcare regulatory frameworks (FDA, CE Mark)
 
 ## How It Works
 
-1. **Select Subject**: Choose between Anatomy or Physics
-2. **Start Exam**: The AI professor will introduce the exam topic
-3. **Answer Questions**: Type your answer or use the speech recognition button (🎤)
-4. **Get Feedback**: Receive immediate feedback on your answers
-5. **Continue**: The professor will ask follow-up questions based on your responses
-6. **End Exam**: Click "End Exam" to finish
+### Question Generation
+1. ✅ Questions are based on UCBM Teaching Sheets learning objectives
+2. ✅ Examples drawn from recommended textbooks
+3. ✅ Content validated against peer-reviewed literature
+4. ✅ Appropriate difficulty for course level
+
+### Feedback & Suggestions
+1. ✅ Technical accuracy grounded in authoritative sources
+2. ✅ References provided to textbooks and research
+3. ✅ Clinical/practical applications sourced from verified material
+4. ✅ Emerging topics flagged as "beyond standard curriculum"
+
+### Student Materials
+- Upload lecture notes, syllabi, or slides
+- Tutor prioritizes these as primary sources
+- Ensures alignment with your actual course content
+
+## Courses Available (27 total)
+
+### Foundation Courses (Year 1)
+- 💻 Fundamentals of Computer Science
+- 📐 Mathematics
+- ⚗️ Chemistry
+- ⚡ General Physics
+- 💼 Economics and Management
+- 🌍 General English / Italian
+- ❤️ Physiology & Anatomy
+
+### Advanced Courses (Year 2+)
+- 🌌 Advanced Physics
+- 📊 Mathematics II
+- 📈 Probability and Statistics
+- 🏥 Healthcare Information Systems & Telemedicine
+- 🔌 Electronics and Electrotechnics
+- 🏗️ Mechanics of Solids
+- 🌡️ Transport Phenomena and Thermodynamics
+- 📡 Biomedical Signal Processing
+- 🎛️ Fundamental of Automatic Control
+- 🏃 Biomechanics
+- 🔧 Fundamentals of Bioengineering
+- 🔬 Measurements and Instrumentation
+- 🎭 Humanities for Bioengineering
+- ⚙️ Biomechatronics and Biomaterials
+- 🤖 Healthcare Robotics
+- 🧪 Laboratory of Measurements
+- 📝 Technical English
+- 🎭 Ethics & Anthropology
+
+## Assessment Types
+
+The tutor adapts to each course's assessment method:
+- **Oral**: Verbal clarity, conceptual depth
+- **Written**: Problem-solving, mathematical steps
+- **Lab/Practical**: Procedures, safety, data analysis
+- **Project**: Presentation skills, methodology
+- **Combinations**: Balanced approach to multiple components
 
 ## Features
 
-- ✅ AI-powered professors with deep knowledge of anatomy and physics
-- ✅ Speech recognition for natural oral practice (works in modern browsers)
-- ✅ Real-time feedback on answers
-- ✅ Contextual follow-up questions
-- ✅ Unlimited practice sessions
-- ✅ No answer tracking (perfect for practicing without judgment)
+✅ **Authoritative Content** - All grounded in UCBM teaching specs + vetted sources  
+✅ **Assessment Matching** - Questions adapted to exam format  
+✅ **Material Upload** - Ground questions in your actual course materials  
+✅ **Real Textbooks** - References to Gray's, Guyton & Hall, etc.  
+✅ **Academic Sources** - PubMed, IEEE, Scholar.Google integration  
+✅ **Speech Recognition** - Speak your answers naturally  
+✅ **Study Hints** - Guidance without spoilers  
+✅ **Italian Support** - Beginner to technical Italian courses  
 
-## Supported Subjects
+## Using the Tutor
 
-- **Anatomy**: Questions on skeletal, muscular, nervous, cardiovascular, respiratory, digestive, and endocrine systems
-- **Physics**: Mechanics, thermodynamics, electromagnetism, optics, and biomedical applications
+1. **Select a course** from the 27 available
+2. **Upload materials (optional)** - Syllabi, notes, slides
+3. **Answer questions** - Type or speak your responses
+4. **Get feedback** - Grounded in official curriculum + research
+5. **Access hints** - Guided learning without giving away answers
+6. **Practice format** - Tailored to your exam type
 
-## Browser Compatibility
+## Knowledge Quality Standards
 
-- Chrome/Edge: Full support including speech recognition
-- Firefox: Supported (speech recognition may require additional setup)
-- Safari: Supported (speech recognition available on macOS/iOS 14+)
+### ✅ Sources We Trust
+- UCBM official curriculum (primary)
+- Recommended textbooks
+- Peer-reviewed journals (PubMed, IEEE)
+- Academic institutions (MIT OCW, NIH, OpenStax)
+- Standards bodies (ISO, IEC, IEEE)
 
-## Tips for Best Results
+### ❌ Sources We Avoid
+- Unverified websites
+- Personal blogs or forums
+- Non-peer-reviewed content
+- Outdated material
+- Content outside the official curriculum
 
-1. Speak clearly if using speech recognition
-2. Try to answer questions in complete sentences
-3. Don't worry about perfect answers—this is practice!
-4. Use follow-up questions to deepen your understanding
-5. Take multiple exams on different topics
+## Getting Started
 
-## API Endpoints
+```bash
+npm install
+npm start
+```
 
-- `POST /api/exam/start` - Start a new exam session
-- `POST /api/exam/question` - Submit answer and get next question
-- `GET /api/exam/session/:sessionId` - Get session info
-- `DELETE /api/exam/session/:sessionId` - End exam session
+Visit: http://localhost:3000
 
-## Troubleshooting
+## Tech Stack
 
-**"Speech recognition not supported"**: Use a modern browser like Chrome or Edge
+- **Frontend**: HTML5, CSS3, JavaScript (speech recognition)
+- **Backend**: Node.js + Express
+- **LLM**: Grok AI (knowledge-grounded responses)
+- **Database**: In-memory sessions
+- **Hosting**: Railway
 
-**API key errors**: Ensure your Xai API key is valid and has available credits
+## Transparency
 
-**No questions appearing**: Check that the API key is set and the server is running
+This tutor is **not a replacement for your professors**. It's a:
+- Study partner grounded in official curriculum
+- Source of practice questions
+- Feedback mechanism aligned with course standards
+- Way to practice presentation skills
 
-## License
+All content is validated against UCBM teaching sheets and academic sources to ensure accuracy and relevance.
 
-Created for educational purposes.
+---
+
+**Made with ❤️ for UCBM Biomedical Engineering students**  
+Foundation: UCBM Piano degli Studi 2025-2026 & Teaching Sheets
