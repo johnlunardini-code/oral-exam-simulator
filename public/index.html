@@ -29,7 +29,9 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            padding: 10px;
+            margin: 0;
+            overflow-x: hidden;
         }
 
         .container {
@@ -38,23 +40,41 @@
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
             max-width: 800px;
             width: 100%;
-            padding: 40px;
+            padding: 20px;
+            max-height: 95vh;
+            overflow-y: auto;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+                border-radius: 8px;
+            }
         }
 
         header {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 20px;
         }
 
         h1 {
             color: #333;
-            margin-bottom: 10px;
-            font-size: 28px;
+            margin-bottom: 5px;
+            font-size: 24px;
         }
 
         .subtitle {
             color: #666;
-            font-size: 14px;
+            font-size: 13px;
+        }
+
+        @media (max-width: 768px) {
+            header {
+                margin-bottom: 15px;
+            }
+            h1 {
+                font-size: 20px;
+            }
         }
 
         .start-screen, .exam-screen {
@@ -193,11 +213,19 @@
         .chat-area {
             border: 1px solid #e0e0e0;
             border-radius: 6px;
-            padding: 20px;
-            height: 400px;
+            padding: 12px;
+            height: 300px;
             overflow-y: auto;
-            margin-bottom: 20px;
+            margin-bottom: 12px;
             background: #f9f9f9;
+            font-size: 13px;
+        }
+
+        @media (max-width: 768px) {
+            .chat-area {
+                height: 250px;
+                padding: 10px;
+            }
         }
 
         .message {
@@ -295,15 +323,15 @@
 
         .feature-list {
             background: #f9f9f9;
-            padding: 20px;
+            padding: 12px;
             border-radius: 6px;
-            margin: 20px 0;
+            margin: 12px 0;
         }
 
         .feature-list h3 {
             color: #333;
-            margin-bottom: 10px;
-            font-size: 16px;
+            margin-bottom: 8px;
+            font-size: 14px;
         }
 
         .feature-list ul {
@@ -311,18 +339,19 @@
         }
 
         .feature-list li {
-            padding: 8px 0;
+            padding: 4px 0;
             color: #666;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+            font-size: 12px;
         }
 
         .feature-list li::before {
             content: '✓';
             color: #667eea;
             font-weight: bold;
-            font-size: 16px;
+            font-size: 14px;
         }
 
         .loading {
@@ -388,7 +417,8 @@
             position: fixed;
             right: -350px;
             top: 0;
-            width: 350px;
+            width: 100%;
+            max-width: 350px;
             height: 100vh;
             background: white;
             box-shadow: -5px 0 20px rgba(0, 0, 0, 0.2);
@@ -399,6 +429,12 @@
 
         .sidebar.active {
             right: 0;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                max-width: 90vw;
+            }
         }
 
         .sidebar-header {
@@ -458,16 +494,22 @@
 
         .subjects-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-top: 20px;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        @media (min-width: 480px) {
+            .subjects-grid {
+                grid-template-columns: 1fr 1fr;
+            }
         }
 
         .subject-btn {
-            padding: 16px 12px;
+            padding: 12px 10px;
             border: none;
             border-radius: 8px;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
