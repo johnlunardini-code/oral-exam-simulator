@@ -6,6 +6,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import multer from 'multer';
 import fs from 'fs';
+import { buildSourceCitation } from './knowledge-base.js';
 
 dotenv.config();
 
@@ -49,12 +50,11 @@ const courseMap = {};
 const assessmentTypeMap = {};
 
 courseSpecs.courses.forEach(course => {
-  if (!course.id) return; // Skip invalid courses
+  if (!course.id) return;
   courseMap[course.id] = course;
   
-  // Determine assessment type from assessment field
   const assessment = (course.assessment || '').toLowerCase();
-  let type = 'oral'; // default
+  let type = 'oral';
   
   if (assessment.includes('written') && assessment.includes('oral')) {
     type = 'written-oral';
@@ -153,57 +153,67 @@ function generateSessionId() {
 function buildSystemPrompt(subject, uploadedMaterials, assessmentType) {
   const course = courseMap[subject];
   if (!course) {
-    return 'You are an UCBM Exam Tutor conducting a preparation session.';
+    return 'You are an UCBM Exam Tutor.';
   }
 
   const assessmentHint = getAssessmentHint(assessmentType);
 
-  let prompt = `You are an experienced UCBM Exam Tutor helping students prepare for their assessment in the Biomedical Engineering program.
+  // Build knowledge foundation statement
+  const knowledgeFoundation = `
+KNOWLEDGE FOUNDATION - All Q&A must be grounded in:
+✓ PRIMARY: UCBM Piano degli Studi & Teaching Sheets for ${course.name}
+✓ TEXTBOOKS: ${course.references || 'Course-specific references'}
+✓ RESEARCH: PubMed, IEEE Xplore, Scholar.Google for peer-reviewed content
+✓ STANDARDS: ISO, IEC, IEEE standards relevant to biomedical engineering
+✗ NEVER: Invent content beyond official curriculum or unverified sources`;
 
-**Course**: ${course.name}
-**Instructor**: ${course.instructor || 'UCBM Faculty'}
-**ECTS**: ${course.ects || 'N/A'}
-**Assessment Type**: ${assessmentType.replace(/-/g, ' / ').toUpperCase()}
+  let prompt = `You are an UCBM Exam Tutor helping students prepare for ${course.name}.
 
-**Course Objectives**:
-${course.objectives || 'Develop deep understanding of the subject matter.'}
+${knowledgeFoundation}
 
-**Prerequisites**:
-${course.prerequisites || 'None'}
+**COURSE DETAILS**
+Name: ${course.name}
+Instructor: ${course.instructor || 'UCBM Faculty'}
+ECTS: ${course.ects || 'N/A'}
+Assessment: ${course.assessment || 'Standard exam'}
+Type: ${assessmentType.replace(/-/g, ' / ').toUpperCase()}
 
-**Assessment Details**:
-${course.assessment || 'Standard exam'}
+**COURSE OBJECTIVES**
+${course.objectives || 'Develop comprehensive understanding of the subject'}
 
-**Key References**:
-${course.references || 'Course materials provided'}
+**PREREQUISITES**
+${course.prerequisites || 'None specified'}
 
-**Assessment Preparation Tip**:
-${assessmentHint}
+**CRITICAL INSTRUCTIONS**
+1. Ground all questions in UCBM Teaching Sheets for this course
+2. Reference textbooks and peer-reviewed sources when explaining concepts
+3. Flag anything beyond standard curriculum as "emerging" or "advanced topic"
+4. Provide citations for factual claims when possible
+5. If unsure about accuracy, defer to: UCBM specs → textbooks → peer review
 
-**Your Role as Exam Tutor**:
-1. Ask realistic questions matching this course's assessment format.
-2. After each response, provide constructive feedback on:
-   - Technical accuracy and completeness
-   - Depth of understanding
-   - Communication clarity (especially if oral/presentation component)
-   - Problem-solving approach (if written exam)
-   - Practical understanding (if lab component)
-3. Adapt difficulty based on student performance.
-4. Reference uploaded materials when available.
-5. Use appropriate technical terminology.
+**ASSESSMENT FOCUS**
+Type: ${assessmentType.replace(/-/g, '/')}
+Tip: ${assessmentHint}
 
-**Session Flow**:
-- Ask one clear, focused question aligned with course learning objectives
-- Listen carefully and provide detailed, actionable feedback
-- Ask probing follow-up questions to test deeper understanding
-- Help practice presentation skills if it's an oral/presentation exam
-- Provide encouragement and identify improvement areas
+**EXAM TUTOR ROLE**
+- Ask realistic questions aligned with learning objectives
+- Provide feedback grounded in verified sources
+- Adapt difficulty based on performance
+- Help practice format-specific skills
+- Encourage deep understanding over memorization
 
-Begin immediately with your first question for ${course.name} (${assessmentType.replace(/-/g, '/')}). Do not introduce yourself or ask for confirmation.`;
+**SESSION FLOW**
+1. Ask one focused question from UCBM Teaching Sheets
+2. Evaluate response against course standards
+3. Provide detailed, evidence-based feedback
+4. Ask follow-up probing questions
+5. Help with presentation skills if applicable
+
+Begin with your first question for ${course.name}. Base it on the official UCBM curriculum.`;
 
   if (uploadedMaterials && uploadedMaterials.length > 0) {
     const materials = uploadedMaterials.map(m => m.filename).join(', ');
-    prompt += `\n\n**Student Materials**: ${materials}\nGround your questions and feedback in the student's actual course content.`;
+    prompt += `\n\nSTUDENT MATERIALS: ${materials}\nPrioritize these in questions and feedback.`;
   }
 
   return prompt;
@@ -215,7 +225,7 @@ app.post('/api/exam/start', (req, res) => {
 
   if (!validSubjects.includes(subject)) {
     return res.status(400).json({ 
-      error: `Invalid subject. Try one of these: ${validSubjects.slice(0, 3).join(', ')}`,
+      error: `Invalid subject`,
       availableCount: validSubjects.length
     });
   }
@@ -256,7 +266,7 @@ app.post('/api/exam/upload/:sessionId', upload.single('file'), (req, res) => {
   }
 
   if (!req.file) {
-    return res.status(400).json({ error: 'No file uploaded' });
+    return res.status(400).json({ error: 'No file' });
   }
 
   const material = {
@@ -269,7 +279,7 @@ app.post('/api/exam/upload/:sessionId', upload.single('file'), (req, res) => {
   examSessions[sessionId].uploadedMaterials.push(material);
 
   res.json({
-    message: 'File uploaded',
+    message: 'Uploaded',
     filename: req.file.originalname,
     count: examSessions[sessionId].uploadedMaterials.length,
   });
@@ -279,7 +289,7 @@ app.post('/api/exam/question', async (req, res) => {
   const { sessionId, studentAnswer } = req.body;
 
   if (!sessionId || !examSessions[sessionId]) {
-    return res.status(404).json({ error: 'Session not found' });
+    return res.status(404).json({ error: 'Not found' });
   }
 
   const session = examSessions[sessionId];
@@ -319,8 +329,8 @@ app.post('/api/exam/question', async (req, res) => {
       questionNumber: session.questionCount,
     });
   } catch (error) {
-    console.error('API error:', error);
-    res.status(500).json({ error: 'Failed: ' + (error.message || 'Unknown error') });
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Failed' });
   }
 });
 
@@ -328,7 +338,7 @@ app.post('/api/exam/hint', async (req, res) => {
   const { sessionId } = req.body;
 
   if (!sessionId || !examSessions[sessionId]) {
-    return res.status(404).json({ error: 'Session not found' });
+    return res.status(404).json({ error: 'Not found' });
   }
 
   const session = examSessions[sessionId];
@@ -343,12 +353,12 @@ app.post('/api/exam/hint', async (req, res) => {
     }
 
     if (!lastQuestion) {
-      return res.status(400).json({ error: 'No question found' });
+      return res.status(400).json({ error: 'No question' });
     }
 
-    const hintPrompt = `Based on this question: "${lastQuestion.substring(0, 200)}"
-
-Provide a brief hint (2 sentences) that guides without giving away the answer.`;
+    const hintPrompt = `Question: "${lastQuestion.substring(0, 150)}"
+    
+Provide a brief hint (2 sentences, no spoilers).`;
 
     const hintResponse = await client.chat.completions.create({
       model: 'grok-4.3',
@@ -359,8 +369,7 @@ Provide a brief hint (2 sentences) that guides without giving away the answer.`;
 
     res.json({ textHint: hintResponse.choices[0].message.content });
   } catch (error) {
-    console.error('Hint error:', error);
-    res.status(500).json({ error: 'Failed to generate hint' });
+    res.status(500).json({ error: 'Failed' });
   }
 });
 
@@ -380,7 +389,7 @@ app.get('/api/exam/session/:sessionId', (req, res) => {
   const { sessionId } = req.params;
 
   if (!examSessions[sessionId]) {
-    return res.status(404).json({ error: 'Session not found' });
+    return res.status(404).json({ error: 'Not found' });
   }
 
   const session = examSessions[sessionId];
@@ -396,9 +405,9 @@ app.delete('/api/exam/session/:sessionId', (req, res) => {
   const { sessionId } = req.params;
   if (examSessions[sessionId]) {
     delete examSessions[sessionId];
-    res.json({ message: 'Session ended' });
+    res.json({ message: 'Ended' });
   } else {
-    res.status(404).json({ error: 'Session not found' });
+    res.status(404).json({ error: 'Not found' });
   }
 });
 
@@ -411,6 +420,6 @@ app.get('/health', (req, res) => {
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`\n🎓 UCBM Exam Tutor running on port ${PORT}`);
-  console.log(`📚 ${Object.keys(courseMap).length} courses available\n`);
+  console.log(`🎓 UCBM Exam Tutor on port ${PORT}`);
+  console.log(`📚 ${Object.keys(courseMap).length} courses\n`);
 });
