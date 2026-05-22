@@ -1,0 +1,448 @@
+{
+  "courses": [
+    {
+      "id": "fundamentals-of-computer-science",
+      "name": "Fundamentals of Computer Science",
+      "emoji": "💻",
+      "year": 1,
+      "difficulty": "beginner",
+      "language": "english",
+      "learningObjectives": [
+        "Understand basic programming concepts (variables, loops, conditionals)",
+        "Grasp algorithm design and analysis",
+        "Apply computational thinking to biomedical problems"
+      ],
+      "references": "Cormen et al., Silberschatz",
+      "exampleQuestions": [
+        "Explain the difference between an algorithm and a program, and provide an example from biomedical engineering.",
+        "What is the time complexity of binary search, and why is it important for large medical datasets?"
+      ],
+      "questionDifficulty": "intermediate",
+      "priorKnowledge": "Basic mathematics"
+    },
+    {
+      "id": "mathematics",
+      "name": "Mathematics",
+      "emoji": "📐",
+      "year": 1,
+      "difficulty": "beginner",
+      "language": "english",
+      "learningObjectives": [
+        "Master calculus fundamentals (derivatives, integrals)",
+        "Understand linear algebra and matrix operations",
+        "Apply mathematical concepts to biomedical systems"
+      ],
+      "references": "Standard calculus and linear algebra textbooks",
+      "exampleQuestions": [
+        "Define the derivative and explain its physical meaning in the context of biomedical signals.",
+        "Show how to solve a system of linear equations and relate it to circuit analysis."
+      ],
+      "questionDifficulty": "intermediate",
+      "priorKnowledge": "High school algebra and geometry"
+    },
+    {
+      "id": "chemistry",
+      "name": "Chemistry",
+      "emoji": "⚗️",
+      "year": 1,
+      "difficulty": "beginner",
+      "language": "english",
+      "learningObjectives": [
+        "Understand atomic structure and chemical bonding",
+        "Master organic and inorganic reaction mechanisms",
+        "Apply chemistry to biomedical contexts (biochemistry)"
+      ],
+      "references": "Standard chemistry textbooks (organic, inorganic, biochemistry)",
+      "exampleQuestions": [
+        "Explain peptide bonding and its role in protein structure.",
+        "What is an enzyme, and how does it catalyze biochemical reactions?"
+      ],
+      "questionDifficulty": "intermediate",
+      "priorKnowledge": "Basic chemistry"
+    },
+    {
+      "id": "general-physics",
+      "name": "General Physics",
+      "emoji": "⚡",
+      "year": 1,
+      "difficulty": "intermediate",
+      "language": "english",
+      "learningObjectives": [
+        "Master mechanics (kinematics, dynamics, energy)",
+        "Understand waves, oscillations, and sound",
+        "Apply physics principles to biomedical devices"
+      ],
+      "references": "Halliday/Resnick/Walker, Serway",
+      "exampleQuestions": [
+        "Explain Newton's second law and how it applies to muscle contraction.",
+        "Describe the properties of ultrasound waves used in medical imaging."
+      ],
+      "questionDifficulty": "intermediate",
+      "priorKnowledge": "High school physics"
+    },
+    {
+      "id": "economics-and-management",
+      "name": "Economics and Management",
+      "emoji": "💼",
+      "year": 2,
+      "difficulty": "intermediate",
+      "language": "english",
+      "learningObjectives": [
+        "Understand healthcare economics and cost-benefit analysis",
+        "Apply project management to biomedical device development",
+        "Grasp regulatory and business frameworks for medical devices"
+      ],
+      "references": "Healthcare economics and medical device management texts",
+      "exampleQuestions": [
+        "What are the main regulatory frameworks (FDA, CE Mark) for medical device approval?",
+        "How would you conduct a cost-benefit analysis for a new diagnostic device?"
+      ],
+      "questionDifficulty": "intermediate",
+      "priorKnowledge": "Basic economics and business concepts"
+    },
+    {
+      "id": "general-english-italian",
+      "name": "General English/Italian",
+      "emoji": "🌍",
+      "year": 1,
+      "difficulty": "beginner",
+      "language": "italian",
+      "learningObjectives": [
+        "Develop conversational Italian skills for biomedical contexts",
+        "Build professional communication vocabulary",
+        "Practice presenting scientific concepts in Italian"
+      ],
+      "references": "UCBM language and professional communication guidelines",
+      "exampleQuestions": [
+        "Parla di te: qual è il tuo nome, dove vieni, e perché studi ingegneria biomedica?",
+        "Descrivi i tuoi interessi e i tuoi obiettivi nel campo della bioingegneria."
+      ],
+      "questionDifficulty": "beginner",
+      "priorKnowledge": "Minimal Italian (A1 level expected)",
+      "isBeginner": true,
+      "mixLanguage": true
+    },
+    {
+      "id": "physiology",
+      "name": "Physiology",
+      "emoji": "❤️",
+      "year": 1,
+      "difficulty": "intermediate",
+      "language": "english",
+      "learningObjectives": [
+        "Understand organ system functions and homeostasis",
+        "Master physiological mechanisms (cardiovascular, respiratory, nervous systems)",
+        "Connect physiology to biomedical device design"
+      ],
+      "references": "Guyton & Hall, Costanzo Physiology",
+      "exampleQuestions": [
+        "Explain the cardiac action potential and its role in heartbeat generation.",
+        "Describe the regulation of blood pressure and how antihypertensive drugs work."
+      ],
+      "questionDifficulty": "intermediate",
+      "priorKnowledge": "Basic biology and anatomy"
+    },
+    {
+      "id": "anatomy",
+      "name": "Anatomy",
+      "emoji": "🦴",
+      "year": 1,
+      "difficulty": "beginner",
+      "language": "english",
+      "learningObjectives": [
+        "Understand human body structure and organization",
+        "Master anatomical terminology and relationships",
+        "Connect anatomy to physiological function and device design"
+      ],
+      "references": "Gray's Anatomy for Students, Netter's Atlas",
+      "exampleQuestions": [
+        "Describe the anatomy of the heart, including chambers, valves, and major vessels.",
+        "Explain the location and function of the major bones in the human skeleton."
+      ],
+      "questionDifficulty": "beginner",
+      "priorKnowledge": "Basic biology"
+    },
+    {
+      "id": "advanced-physics",
+      "name": "Advanced Physics",
+      "emoji": "🌌",
+      "year": 2,
+      "difficulty": "advanced",
+      "language": "english",
+      "learningObjectives": [
+        "Master quantum mechanics and wave-particle duality",
+        "Understand optics and applications in medical imaging",
+        "Apply modern physics to diagnostic technologies"
+      ],
+      "references": "Advanced physics texts, biomedical imaging applications",
+      "exampleQuestions": [
+        "Explain the photoelectric effect and its application in medical imaging detectors.",
+        "Describe how X-ray generation involves quantum transitions."
+      ],
+      "questionDifficulty": "advanced",
+      "priorKnowledge": "General Physics and Calculus"
+    },
+    {
+      "id": "mathematics-ii",
+      "name": "Mathematics II",
+      "emoji": "📊",
+      "year": 2,
+      "difficulty": "advanced",
+      "language": "english",
+      "learningObjectives": [
+        "Master differential equations and their solutions",
+        "Understand vector calculus and multivariable analysis",
+        "Apply transforms (Fourier, Laplace) to biomedical signals"
+      ],
+      "references": "Advanced calculus, differential equations, vector calculus",
+      "exampleQuestions": [
+        "Solve the differential equation for RC circuit charging and explain its biological analogue.",
+        "What is the Fourier transform and how is it used in biomedical signal analysis?"
+      ],
+      "questionDifficulty": "advanced",
+      "priorKnowledge": "Mathematics I"
+    },
+    {
+      "id": "probability-and-statistics",
+      "name": "Probability and Statistics",
+      "emoji": "📈",
+      "year": 2,
+      "difficulty": "intermediate",
+      "language": "english",
+      "learningObjectives": [
+        "Master probability distributions and their applications",
+        "Understand hypothesis testing and confidence intervals",
+        "Apply statistical methods to biomedical research and clinical trials"
+      ],
+      "references": "Standard statistics and biomedical data analysis texts",
+      "exampleQuestions": [
+        "What is a confidence interval, and how would you interpret a 95% CI for a drug efficacy study?",
+        "Explain Type I and Type II errors in the context of a medical diagnostic test."
+      ],
+      "questionDifficulty": "intermediate",
+      "priorKnowledge": "Mathematics I"
+    },
+    {
+      "id": "healthcare-information-systems",
+      "name": "Healthcare Information Systems and Telemedicine",
+      "emoji": "🏥",
+      "year": 2,
+      "difficulty": "intermediate",
+      "language": "english",
+      "learningObjectives": [
+        "Understand EHR systems and healthcare IT architecture",
+        "Master telemedicine platforms and remote patient monitoring",
+        "Apply IT standards (HL7, DICOM) in clinical settings"
+      ],
+      "references": "EHR systems, telemedicine platforms, healthcare IT standards",
+      "exampleQuestions": [
+        "What is HL7, and how does it enable interoperability between hospital systems?",
+        "Describe the security and privacy requirements for patient data in HIPAA compliance."
+      ],
+      "questionDifficulty": "intermediate",
+      "priorKnowledge": "Basic IT concepts"
+    },
+    {
+      "id": "electronics-and-electrotechnics",
+      "name": "Electronics and Electrotechnics",
+      "emoji": "🔌",
+      "year": 2,
+      "difficulty": "intermediate",
+      "language": "english",
+      "learningObjectives": [
+        "Master circuit analysis and Kirchhoff's laws",
+        "Understand electronic components (resistors, capacitors, transistors)",
+        "Apply circuits to biomedical instrumentation design"
+      ],
+      "references": "Circuit theory, electronics textbooks, biomedical instrumentation",
+      "exampleQuestions": [
+        "Analyze a simple RC circuit and derive its transfer function.",
+        "Explain how an operational amplifier (op-amp) is used in biomedical sensor conditioning."
+      ],
+      "questionDifficulty": "intermediate",
+      "priorKnowledge": "General Physics"
+    },
+    {
+      "id": "mechanics-of-solids",
+      "name": "Mechanics of Solids",
+      "emoji": "🏗️",
+      "year": 2,
+      "difficulty": "intermediate",
+      "language": "english",
+      "learningObjectives": [
+        "Master stress, strain, and material properties",
+        "Understand deformation and elasticity in biological tissues",
+        "Apply mechanics to implant design and tissue engineering"
+      ],
+      "references": "Mechanics and materials science textbooks",
+      "exampleQuestions": [
+        "Define stress and strain, and explain Young's modulus in the context of bone mechanics.",
+        "How does material failure occur in orthopedic implants?"
+      ],
+      "questionDifficulty": "intermediate",
+      "priorKnowledge": "General Physics"
+    },
+    {
+      "id": "transport-phenomena-and-thermodynamics",
+      "name": "Transport Phenomena and Thermodynamics",
+      "emoji": "🌡️",
+      "year": 2,
+      "difficulty": "advanced",
+      "language": "english",
+      "learningObjectives": [
+        "Master heat and mass transport phenomena",
+        "Understand thermodynamic principles in biological systems",
+        "Apply transport models to drug delivery and perfusion"
+      ],
+      "references": "Transport phenomena and thermodynamics textbooks, biological applications",
+      "exampleQuestions": [
+        "Derive the heat diffusion equation and explain its application to thermal therapy.",
+        "Describe mass transport in biological membranes and its role in drug delivery."
+      ],
+      "questionDifficulty": "advanced",
+      "priorKnowledge": "General Physics, Mathematics II"
+    },
+    {
+      "id": "technical-english-italian",
+      "name": "Technical English/Italian",
+      "emoji": "📝",
+      "year": 2,
+      "difficulty": "intermediate",
+      "language": "italian",
+      "learningObjectives": [
+        "Master technical vocabulary in biomedical engineering Italian",
+        "Present research and technical concepts in Italian",
+        "Develop professional communication for international collaboration"
+      ],
+      "references": "UCBM technical language and professional communication guidelines",
+      "exampleQuestions": [
+        "Spiega un articolo di ricerca biomedica in italiano: cos'è la ricerca, quali sono i metodi e i risultati?",
+        "Descrivi un dispositivo medico (ad esempio, un pacemaker) e il suo funzionamento in italiano."
+      ],
+      "questionDifficulty": "intermediate",
+      "priorKnowledge": "General English/Italian (A1-A2 level)",
+      "isBeginner": false,
+      "mixLanguage": true
+    },
+    {
+      "id": "biomedical-signal-processing",
+      "name": "Biomedical Signal Processing",
+      "emoji": "📡",
+      "year": 3,
+      "difficulty": "advanced",
+      "language": "english",
+      "learningObjectives": [
+        "Master signal acquisition and digitization",
+        "Understand filtering and spectral analysis",
+        "Apply signal processing to ECG, EEG, and EMG analysis"
+      ],
+      "references": "Signal processing textbooks, biomedical signal analysis",
+      "exampleQuestions": [
+        "Explain the Nyquist theorem and its importance in ECG sampling.",
+        "Design a low-pass filter to remove 60 Hz noise from a biomedical signal."
+      ],
+      "questionDifficulty": "advanced",
+      "priorKnowledge": "Mathematics II, General Physics"
+    },
+    {
+      "id": "fundamentals-of-automatic-control",
+      "name": "Fundamental of Automatic Control",
+      "emoji": "🎛️",
+      "year": 3,
+      "difficulty": "advanced",
+      "language": "english",
+      "learningObjectives": [
+        "Master feedback control systems and stability analysis",
+        "Understand PID control and tuning",
+        "Apply control theory to biomedical devices (pacemakers, infusion pumps)"
+      ],
+      "references": "Control theory textbooks, feedback systems",
+      "exampleQuestions": [
+        "Explain what makes a control system stable, and apply the Routh-Hurwitz criterion.",
+        "Design a PID controller for insulin delivery in an artificial pancreas."
+      ],
+      "questionDifficulty": "advanced",
+      "priorKnowledge": "Mathematics II, Electronics"
+    },
+    {
+      "id": "biomechanics",
+      "name": "Biomechanics",
+      "emoji": "🏃",
+      "year": 3,
+      "difficulty": "advanced",
+      "language": "english",
+      "learningObjectives": [
+        "Master kinematics and kinetics of human movement",
+        "Understand tissue mechanics and viscoelasticity",
+        "Apply biomechanics to rehabilitation and prosthetics design"
+      ],
+      "references": "Ozkaya/Knudson Biomechanics, Y.C. Fung",
+      "exampleQuestions": [
+        "Analyze the gait cycle using biomechanical principles and identify key joint angles.",
+        "Explain the viscoelastic properties of biological tissues and their measurement."
+      ],
+      "questionDifficulty": "advanced",
+      "priorKnowledge": "Anatomy, Physiology, Mechanics of Solids"
+    },
+    {
+      "id": "fundamentals-of-bioengineering",
+      "name": "Fundamentals of Bioengineering",
+      "emoji": "🔧",
+      "year": 3,
+      "difficulty": "advanced",
+      "language": "english",
+      "learningObjectives": [
+        "Integrate all bioengineering disciplines (anatomy, physics, electronics, materials)",
+        "Understand biomedical device design and development process",
+        "Apply systems thinking to complex biomedical problems"
+      ],
+      "references": "Enderle & Bronzino, biomedical engineering principles",
+      "exampleQuestions": [
+        "Design a simple ECG monitoring system: describe the electrode, signal conditioning, and analysis stages.",
+        "Walk through the development process of a new medical device, from concept to market."
+      ],
+      "questionDifficulty": "advanced",
+      "priorKnowledge": "All prerequisite courses"
+    },
+    {
+      "id": "measurements-and-instrumentation",
+      "name": "Measurements and Instrumentation in Biomedical Engineering and Standards for Medical Devices",
+      "emoji": "🔬",
+      "year": 3,
+      "difficulty": "advanced",
+      "language": "english",
+      "learningObjectives": [
+        "Master measurement principles and sensor technology",
+        "Understand biomedical device standards (ISO/IEC)",
+        "Apply regulatory requirements (FDA, CE Mark) in device development"
+      ],
+      "references": "Instrumentation texts, ISO/IEC medical device standards",
+      "exampleQuestions": [
+        "Explain measurement uncertainty and how it is propagated through a measurement chain.",
+        "What are the key requirements of IEC 60601 for electrical safety in medical devices?"
+      ],
+      "questionDifficulty": "advanced",
+      "priorKnowledge": "Electronics, Probability and Statistics"
+    },
+    {
+      "id": "humanities-for-bioengineering",
+      "name": "Humanities for Bioengineering",
+      "emoji": "🎭",
+      "year": 3,
+      "difficulty": "intermediate",
+      "language": "english",
+      "learningObjectives": [
+        "Understand ethics in medical device design and use",
+        "Grasp the social, economic, and healthcare system context",
+        "Develop critical thinking on bioengineering's societal impact"
+      ],
+      "references": "Ethics, professional responsibility, healthcare innovation",
+      "exampleQuestions": [
+        "Discuss the ethical considerations in developing an AI diagnostic tool that could replace human radiologists.",
+        "How should biomedical engineers balance innovation with patient safety and cost considerations?"
+      ],
+      "questionDifficulty": "intermediate",
+      "priorKnowledge": "General knowledge of biomedical engineering"
+    }
+  ]
+}

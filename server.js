@@ -5,12 +5,20 @@ import { OpenAI } from 'openai';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import multer from 'multer';
+import fs from 'fs';
 
 dotenv.config();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = 3000;
+
+// Load course specifications
+const courseSpecs = JSON.parse(fs.readFileSync(path.join(__dirname, 'course-specs.json'), 'utf-8'));
+const courseMap = {};
+courseSpecs.courses.forEach(course => {
+  courseMap[course.id] = course;
+});
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
@@ -36,98 +44,6 @@ const client = new OpenAI({
   apiKey: process.env.XAI_API_KEY || 'sk-placeholder',
   baseURL: 'https://api.x.ai/v1',
 });
-
-// Subject-specific context mapping
-const subjectContext = {
-  'fundamentals-of-computer-science': {
-    name: 'Fundamentals of Computer Science',
-    references: 'Cormen et al., Silberschatz',
-  },
-  'mathematics': {
-    name: 'Mathematics',
-    references: 'Standard calculus and linear algebra textbooks',
-  },
-  'chemistry': {
-    name: 'Chemistry',
-    references: 'Standard chemistry textbooks (organic, inorganic, biochemistry)',
-  },
-  'general-physics': {
-    name: 'General Physics',
-    references: 'Halliday/Resnick/Walker, Serway',
-  },
-  'economics-and-management': {
-    name: 'Economics and Management',
-    references: 'Healthcare economics and medical device management texts',
-  },
-  'general-english-italian': {
-    name: 'General English/Italian',
-    references: 'UCBM language and professional communication guidelines',
-  },
-  'physiology': {
-    name: 'Physiology',
-    references: 'Guyton & Hall, Costanzo Physiology',
-  },
-  'anatomy': {
-    name: 'Anatomy',
-    references: 'Gray\'s Anatomy for Students, Netter\'s Atlas',
-  },
-  'advanced-physics': {
-    name: 'Advanced Physics',
-    references: 'Advanced physics texts, biomedical imaging applications',
-  },
-  'mathematics-ii': {
-    name: 'Mathematics II',
-    references: 'Advanced calculus, differential equations, vector calculus',
-  },
-  'probability-and-statistics': {
-    name: 'Probability and Statistics',
-    references: 'Standard statistics and biomedical data analysis texts',
-  },
-  'healthcare-information-systems': {
-    name: 'Healthcare Information Systems and Telemedicine',
-    references: 'EHR systems, telemedicine platforms, healthcare IT standards',
-  },
-  'electronics-and-electrotechnics': {
-    name: 'Electronics and Electrotechnics',
-    references: 'Circuit theory, electronics textbooks, biomedical instrumentation',
-  },
-  'mechanics-of-solids': {
-    name: 'Mechanics of Solids',
-    references: 'Mechanics and materials science textbooks',
-  },
-  'transport-phenomena-and-thermodynamics': {
-    name: 'Transport Phenomena and Thermodynamics',
-    references: 'Transport phenomena and thermodynamics textbooks, biological applications',
-  },
-  'technical-english-italian': {
-    name: 'Technical English/Italian',
-    references: 'UCBM technical language and professional communication guidelines',
-  },
-  'biomedical-signal-processing': {
-    name: 'Biomedical Signal Processing',
-    references: 'Signal processing textbooks, biomedical signal analysis',
-  },
-  'fundamentals-of-automatic-control': {
-    name: 'Fundamental of Automatic Control',
-    references: 'Control theory textbooks, feedback systems',
-  },
-  'biomechanics': {
-    name: 'Biomechanics',
-    references: 'Ozkaya/Knudson Biomechanics, Y.C. Fung',
-  },
-  'fundamentals-of-bioengineering': {
-    name: 'Fundamentals of Bioengineering',
-    references: 'Enderle & Bronzino, biomedical engineering principles',
-  },
-  'measurements-and-instrumentation': {
-    name: 'Measurements and Instrumentation in Biomedical Engineering and Standards for Medical Devices',
-    references: 'Instrumentation texts, ISO/IEC medical device standards',
-  },
-  'humanities-for-bioengineering': {
-    name: 'Humanities for Bioengineering',
-    references: 'Ethics, professional responsibility, healthcare innovation',
-  },
-};
 
 // Course full names with emojis
 const courseNames = {
@@ -162,37 +78,55 @@ function generateSessionId() {
 }
 
 function buildSystemPrompt(subject, uploadedMaterials) {
-  const context = subjectContext[subject];
-  if (!context) {
+  const course = courseMap[subject];
+  if (!course) {
     return 'You are an UCBM professor conducting an oral exam.';
   }
 
+  const isBeginner = course.isBeginner || false;
+  const mixLanguage = course.mixLanguage || false;
+
   let prompt = `You are an experienced UCBM (Università Campus Bio-Medico di Roma) professor in the Biomedical Engineering (BEN) program, conducting realistic oral exams for students in Years 1–3.
 
-You are currently in an oral exam practice session for **${context.name}**. Stay strictly on this subject throughout the session.
+You are currently in an oral exam practice session for **${course.name}** (Year ${course.year}, ${course.difficulty} level).
+Stay strictly on this subject throughout the session.`;
 
-**Session Flow**:
-1. You have begun the session. Immediately start with one strong, realistic oral exam-style question for ${context.name}.
+  if (mixLanguage) {
+    if (isBeginner) {
+      prompt += `\n\n**LANGUAGE NOTE**: This is a beginner Italian course for English speakers. Mix English and Italian naturally (code-switching). Start with simpler Italian and include English explanations. Correct gently and expand vocabulary.`;
+    } else {
+      prompt += `\n\n**LANGUAGE NOTE**: This is an intermediate technical Italian course. Use mostly Italian, but switch to English for complex technical terms if needed. Encourage the student to use technical Italian vocabulary.`;
+    }
+  }
+
+  prompt += `\n\n**Session Flow**:
+1. You have begun the session. Immediately start with one strong, realistic oral exam-style question for ${course.name}.
 2. After the student's response (voice or text), give detailed, constructive feedback on accuracy, depth, clarity, integration, and oral exam technique.
 3. Then ask the next question or probe deeper on the same subject.
 
+**Learning Objectives for This Course**:
+${course.learningObjectives.map(obj => `- ${obj}`).join('\n')}
+
+**Question Difficulty**: ${course.questionDifficulty} (Expected prior knowledge: ${course.priorKnowledge})
+
 **Foundational Knowledge**:
-- Base all questions and feedback on: UCBM Piano degli Studi 2026-2027 and Schede Didattiche 2025-2026 for ${context.name}.
-- Reference core textbooks: ${context.references}
+- Base all questions and feedback on: UCBM Piano degli Studi 2026-2027 and Schede Didattiche 2025-2026 for ${course.name}.
+- Reference core textbooks: ${course.references}
 - Prioritize any student-uploaded materials (lecture notes, slides, syllabi) as primary sources for grounding.
 - Clearly label any recent developments as "emerging" or "beyond standard curriculum".
 
 **Response Style**:
 - Professional, supportive but rigorous UCBM professor tone.
+- Tailor difficulty to ${course.difficulty} level.
 - Use appropriate technical terminology (English + standard Italian terms where applicable).
 - Focus on both technical accuracy and strong oral exam presentation skills.
 - Never hallucinate or invent knowledge beyond the standard curriculum and uploaded materials.
 
-Begin immediately with your first question for ${context.name}. Do not introduce yourself or ask for confirmation of the subject.`;
+Begin immediately with your first question for ${course.name}. Do not introduce yourself or ask for confirmation of the subject.`;
 
   if (uploadedMaterials && uploadedMaterials.length > 0) {
     const materials = uploadedMaterials.map(m => m.filename).join(', ');
-    prompt += `\n\n**Student-Uploaded Materials Available**:\n${materials}\n\nAlways reference and prioritize these materials when providing feedback and grounding your questions and feedback.`;
+    prompt += `\n\n**Student-Uploaded Materials Available**:\n${materials}\n\nAlways reference and prioritize these materials when providing feedback and grounding your questions.`;
   }
 
   return prompt;
@@ -200,7 +134,7 @@ Begin immediately with your first question for ${context.name}. Do not introduce
 
 app.post('/api/exam/start', (req, res) => {
   const { subject } = req.body;
-  const validSubjects = Object.keys(subjectContext);
+  const validSubjects = Object.keys(courseMap);
 
   if (!validSubjects.includes(subject)) {
     return res.status(400).json({ error: `Invalid subject. Choose from: ${validSubjects.join(', ')}` });
@@ -415,5 +349,5 @@ app.get('/health', (req, res) => {
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`UCBM Oral Exam Simulator running on http://0.0.0.0:${PORT}`);
   console.log(`XAI_API_KEY set: ${!!process.env.XAI_API_KEY}`);
-  console.log('22 UCBM courses loaded');
+  console.log(`${courseSpecs.courses.length} UCBM courses loaded from course-specs.json`);
 });
