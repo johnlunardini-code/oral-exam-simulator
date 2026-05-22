@@ -1,4 +1,7 @@
-import express from 'express';
+// Health check
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok' });
+});import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { OpenAI } from 'openai';
@@ -229,9 +232,113 @@ app.delete('/api/exam/session/:sessionId', (req, res) => {
   }
 });
 
-// Health check
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok' });
+// POST /api/exam/hint - Generate hint based on current question
+app.post('/api/exam/hint', async (req, res) => {
+  const { sessionId } = req.body;
+
+  if (!sessionId || !examSessions[sessionId]) {
+    return res.status(404).json({ error: 'Exam session not found' });
+  }
+
+  const session = examSessions[sessionId];
+  
+  try {
+    // Find the last professor message (the current question)
+    let lastQuestion = '';
+    for (let i = session.messages.length - 1; i >= 0; i--) {
+      if (session.messages[i].role === 'assistant') {
+        lastQuestion = session.messages[i].content;
+        break;
+      }
+    }
+
+    if (!lastQuestion) {
+      return res.status(400).json({ error: 'No question found' });
+    }
+
+    // Use AI to extract key terms and generate a hint
+    const hintPrompt = `Based on this exam question: "${lastQuestion}"
+
+Provide a concise hint (2-3 sentences) that helps the student without directly answering the question. Focus on key concepts or approach.
+
+Also extract 1-2 key search terms (comma-separated) that could be used to find relevant images (e.g., "heart anatomy", "muscle fiber").`;
+
+    const hintResponse = await client.chat.completions.create({
+      model: 'grok-4.3',
+      messages: [
+        {
+          role: 'user',
+          content: hintPrompt,
+        },
+      ],
+      temperature: 0.7,
+      max_tokens: 200,
+    });
+
+    const hintContent = hintResponse.choices[0].message.content;
+    
+    // Parse hint and search terms
+    const lines = hintContent.split('\n');
+    let textHint = hintContent;
+    let searchTerms = 'study hint';
+
+    // Try to extract search terms if they're on a separate line
+    if (lines.length > 1) {
+      textHint = lines.slice(0, -1).join('\n');
+      const lastLine = lines[lines.length - 1];
+      if (lastLine.toLowerCase().includes('search') || lastLine.includes(',')) {
+        searchTerms = lastLine.replace(/search term[s]?:\s*/i, '').trim();
+      }
+    }
+
+    res.json({
+      textHint,
+      searchTerms,
+    });
+  } catch (error) {
+    console.error('Hint generation error:', error);
+    res.status(500).json({ error: 'Failed to generate hint' });
+  }
+});
+
+// GET /api/search-image - Search for hint images
+app.get('/api/search-image', async (req, res) => {
+  const { query } = req.query;
+  
+  if (!query) {
+    return res.status(400).json({ error: 'Query required' });
+  }
+
+  try {
+    // Try Unsplash first
+    const unsplashResponse = await fetch(
+      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=1&client_id=uFzL-W4V_ELqsXJ4R7bXXsLz2sLU8i37sTdF3FNz3Ew`
+    );
+    const unsplashData = await unsplashResponse.json();
+    
+    if (unsplashData.results && unsplashData.results.length > 0) {
+      const imageUrl = unsplashData.results[0].urls.regular;
+      return res.json({ imageUrl, source: 'Unsplash' });
+    }
+
+    // Fallback: Try Wikimedia
+    const wikiResponse = await fetch(
+      `https://commons.wikimedia.org/w/api.php?action=query&format=json&prop=imageinfo&iiprop=url&titles=File:${encodeURIComponent(query)}&origin=*`
+    );
+    const wikiData = await wikiResponse.json();
+    const pages = wikiData.query.pages;
+    const page = Object.values(pages)[0];
+
+    if (page.imageinfo) {
+      const imageUrl = page.imageinfo[0].url;
+      return res.json({ imageUrl, source: 'Wikimedia Commons' });
+    }
+
+    res.status(404).json({ error: 'No images found' });
+  } catch (error) {
+    console.error('Image search error:', error);
+    res.status(500).json({ error: 'Failed to search images' });
+  }
 });
 
 app.listen(PORT, '0.0.0.0', () => {
