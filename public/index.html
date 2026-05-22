@@ -1,25 +1,15 @@
-        async function endExam() {
-            if (confirm('End exam? Your progress will not be saved.')) {
-                try {
-                    await fetch(`${API_BASE}/api/exam/session/${currentSessionId}`, { method: 'DELETE' });
-                } catch (e) {}
-
-                document.querySelector('.exam-screen').classList.remove('active');
-                document.querySelector('.start-screen').classList.add('active');
-                currentSessionId = null;
-                currentSubject = null;
-            }
-        }<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>Oral Exam Simulator - UCBM Bioengineering</title>
     <style>
-        * {
+        html, body {
+            width: 100%;
+            height: 100%;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
         }
 
         body {
@@ -29,26 +19,45 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 10px;
+            padding: 8px;
             margin: 0;
             overflow-x: hidden;
+            box-sizing: border-box;
+        }
+
+        * {
+            box-sizing: border-box;
         }
 
         .container {
             background: white;
             border-radius: 12px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-            max-width: 800px;
             width: 100%;
-            padding: 20px;
-            max-height: 95vh;
+            max-width: 900px;
+            padding: 16px;
+            max-height: 98vh;
             overflow-y: auto;
+            display: flex;
+            flex-direction: column;
         }
 
         @media (max-width: 768px) {
             .container {
-                padding: 15px;
+                padding: 12px;
                 border-radius: 8px;
+                max-height: 99vh;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 4px;
+            }
+            .container {
+                padding: 10px;
+                max-height: 100vh;
+                border-radius: 6px;
             }
         }
 
@@ -68,428 +77,12 @@
             font-size: 13px;
         }
 
-        @media (max-width: 768px) {
-            header {
-                margin-bottom: 15px;
-            }
-            h1 {
-                font-size: 20px;
-            }
-        }
-
         .start-screen, .exam-screen {
             display: none;
         }
 
         .start-screen.active, .exam-screen.active {
             display: block;
-        }
-
-        .button-group {
-            display: flex;
-            gap: 15px;
-            margin-top: 30px;
-            justify-content: center;
-        }
-
-        button {
-            padding: 12px 30px;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #5568d3;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-secondary {
-            background: #764ba2;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #683a94;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(118, 75, 162, 0.4);
-        }
-
-        .btn-danger {
-            background: #e74c3c;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #c0392b;
-        }
-
-        .btn-icon {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .recording-indicator {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            margin-left: 10px;
-            color: #e74c3c;
-            font-weight: 600;
-        }
-
-        .recording-indicator.active::before {
-            content: '';
-            width: 10px;
-            height: 10px;
-            background: #e74c3c;
-            border-radius: 50%;
-            animation: pulse 1s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        .exam-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .header-controls {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        #voiceSelect {
-            padding: 8px 12px;
-            border-radius: 4px;
-            border: none;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            background: rgba(255, 255, 255, 0.9);
-            color: #333;
-        }
-
-        #voiceSelect:hover {
-            background: white;
-        }
-
-        .subject-badge {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .question-counter {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-
-        .chat-area {
-            border: 1px solid #e0e0e0;
-            border-radius: 6px;
-            padding: 12px;
-            height: 300px;
-            overflow-y: auto;
-            margin-bottom: 12px;
-            background: #f9f9f9;
-            font-size: 13px;
-        }
-
-        @media (max-width: 768px) {
-            .chat-area {
-                height: 250px;
-                padding: 10px;
-            }
-        }
-
-        .message {
-            margin-bottom: 15px;
-            padding: 12px;
-            border-radius: 6px;
-            animation: slideIn 0.3s ease;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .message.professor {
-            background: #e8f0fe;
-            border-left: 4px solid #667eea;
-            text-align: left;
-        }
-
-        .message.student {
-            background: #f0e8fe;
-            border-left: 4px solid #764ba2;
-            text-align: left;
-            margin-left: 40px;
-        }
-
-        .message-label {
-            font-weight: 600;
-            font-size: 12px;
-            color: #666;
-            margin-bottom: 5px;
-            text-transform: uppercase;
-        }
-
-        .message-text {
-            color: #333;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        .input-area {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        textarea {
-            flex: 1;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-family: inherit;
-            font-size: 14px;
-            resize: vertical;
-            min-height: 50px;
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .btn-submit {
-            padding: 12px 20px;
-            align-self: flex-end;
-        }
-
-        .speech-status {
-            padding: 10px 15px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-            font-size: 13px;
-            text-align: center;
-        }
-
-        .speech-status.listening {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .speech-status.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .feature-list {
-            background: #f9f9f9;
-            padding: 12px;
-            border-radius: 6px;
-            margin: 12px 0;
-        }
-
-        .feature-list h3 {
-            color: #333;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-
-        .feature-list ul {
-            list-style: none;
-        }
-
-        .feature-list li {
-            padding: 4px 0;
-            color: #666;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 12px;
-        }
-
-        .feature-list li::before {
-            content: '✓';
-            color: #667eea;
-            font-weight: bold;
-            font-size: 14px;
-        }
-
-        .loading {
-            text-align: center;
-            color: #667eea;
-            font-weight: 600;
-            padding: 20px;
-        }
-
-        .spinner {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid #f3f3f3;
-            border-top: 2px solid #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-right: 8px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .error-message {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-            border: 1px solid #f5c6cb;
-        }
-
-        .audio-player {
-            margin-top: 8px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .audio-player audio {
-            height: 28px;
-            flex: 1;
-        }
-
-        .play-btn {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .play-btn:hover {
-            background: #5568d3;
-        }
-
-        .sidebar {
-            position: fixed;
-            right: -350px;
-            top: 0;
-            width: 100%;
-            max-width: 350px;
-            height: 100vh;
-            background: white;
-            box-shadow: -5px 0 20px rgba(0, 0, 0, 0.2);
-            transition: right 0.3s ease;
-            overflow-y: auto;
-            z-index: 1000;
-        }
-
-        .sidebar.active {
-            right: 0;
-        }
-
-        @media (max-width: 768px) {
-            .sidebar {
-                max-width: 90vw;
-            }
-        }
-
-        .sidebar-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .sidebar-close {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-        }
-
-        .sidebar-content {
-            padding: 20px;
-        }
-
-        .hint-image {
-            width: 100%;
-            border-radius: 6px;
-            margin-bottom: 15px;
-            max-height: 300px;
-            object-fit: cover;
-        }
-
-        .hint-text {
-            color: #666;
-            font-size: 13px;
-            line-height: 1.5;
-        }
-
-        .sidebar-btn {
-            position: fixed;
-            right: 20px;
-            bottom: 20px;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: #667eea;
-            color: white;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-            z-index: 999;
-        }
-
-        .sidebar-btn:hover {
-            background: #5568d3;
         }
 
         .subjects-grid {
@@ -513,19 +106,238 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
+            color: white;
         }
 
         .subject-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
+
+        .exam-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .subject-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .chat-area {
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 10px;
+            height: 280px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            background: #f9f9f9;
+            font-size: 12px;
+        }
+
+        .message {
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 6px;
+        }
+
+        .message.professor {
+            background: #e8f0fe;
+            border-left: 4px solid #667eea;
+        }
+
+        .message.student {
+            background: #f0e8fe;
+            border-left: 4px solid #764ba2;
+        }
+
+        .message-label {
+            font-weight: 600;
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 3px;
+            text-transform: uppercase;
+        }
+
+        .message-text {
+            color: #333;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        textarea {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 12px;
+            resize: none;
+            min-height: 60px;
+        }
+
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #764ba2;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .play-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        .feature-list {
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-size: 12px;
+        }
+
+        .feature-list h3 {
+            color: #333;
+            margin: 0 0 6px 0;
+            font-size: 13px;
+        }
+
+        .feature-list ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .feature-list li {
+            padding: 2px 0;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .feature-list li::before {
+            content: '✓';
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .sidebar {
+            position: fixed;
+            right: -90vw;
+            top: 0;
+            width: 90vw;
+            max-width: 350px;
+            height: 100vh;
+            background: white;
+            box-shadow: -5px 0 20px rgba(0, 0, 0, 0.2);
+            transition: right 0.3s ease;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .sidebar.active {
+            right: 0;
+        }
+
+        .sidebar-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-header h3 {
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .sidebar-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .sidebar-content {
+            padding: 12px;
+        }
+
+        .sidebar-btn {
+            position: fixed;
+            right: 16px;
+            bottom: 16px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            z-index: 999;
+        }
+
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-weight: 600;
+            padding: 10px;
+            font-size: 12px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>🎓 Oral Exam Simulator</h1>
-            <p class="subtitle">Practice for your bioengineering exams with AI professors</p>
+            <h1>🎓 Oral Exam</h1>
+            <p class="subtitle">AI professor oral exam practice</p>
         </header>
 
         <!-- Start Screen -->
@@ -533,96 +345,57 @@
             <div class="feature-list">
                 <h3>Features</h3>
                 <ul>
-                    <li>AI-powered professor asking realistic exam questions</li>
-                    <li>Speech recognition for natural oral practice</li>
-                    <li>AI professor voice responses (Text-to-Speech)</li>
-                    <li>Real-time feedback on your answers</li>
-                    <li>Choose between Anatomy or Physics</li>
-                    <li>Unlimited practice sessions</li>
+                    <li>AI professor asking realistic exam questions</li>
+                    <li>Speech recognition for oral practice</li>
+                    <li>AI professor voice responses</li>
+                    <li>Real-time feedback on answers</li>
                 </ul>
             </div>
 
-            <p style="color: #666; text-align: center; margin: 20px 0;">Select a subject to begin your exam:</p>
+            <p style="color: #666; text-align: center; margin: 12px 0; font-size: 12px;">Select a subject:</p>
 
             <div class="subjects-grid">
-                <button class="subject-btn" style="background: #667eea; color: white;" onclick="startExam('human-anatomy')">
-                    🦴 Human Anatomy
-                </button>
-                <button class="subject-btn" style="background: #764ba2; color: white;" onclick="startExam('general-physics')">
-                    ⚡ General Physics
-                </button>
-                <button class="subject-btn" style="background: #e74c3c; color: white;" onclick="startExam('physiology')">
-                    ❤️ Physiology
-                </button>
-                <button class="subject-btn" style="background: #f39c12; color: white;" onclick="startExam('biomechanics')">
-                    🏃 Biomechanics
-                </button>
-                <button class="subject-btn" style="background: #16a085; color: white;" onclick="startExam('biomedical-instrumentation')">
-                    🔬 Biomedical Instrumentation
-                </button>
-                <button class="subject-btn" style="background: #2980b9; color: white;" onclick="startExam('advanced-physics')">
-                    🌌 Advanced Physics
-                </button>
-                <button class="subject-btn" style="background: #8e44ad; color: white;" onclick="startExam('economics-management')">
-                    💼 Economics & Management
-                </button>
+                <button class="subject-btn" style="background: #667eea;" onclick="startExam('human-anatomy')">🦴 Anatomy</button>
+                <button class="subject-btn" style="background: #764ba2;" onclick="startExam('general-physics')">⚡ Physics</button>
+                <button class="subject-btn" style="background: #e74c3c;" onclick="startExam('physiology')">❤️ Physiology</button>
+                <button class="subject-btn" style="background: #f39c12;" onclick="startExam('biomechanics')">🏃 Biomechanics</button>
+                <button class="subject-btn" style="background: #16a085;" onclick="startExam('biomedical-instrumentation')">🔬 Biomedical</button>
+                <button class="subject-btn" style="background: #2980b9;" onclick="startExam('advanced-physics')">🌌 Advanced Physics</button>
+                <button class="subject-btn" style="background: #8e44ad;" onclick="startExam('economics-management')">💼 Econ & Mgmt</button>
             </div>
         </div>
 
         <!-- Exam Screen -->
         <div class="exam-screen">
             <div class="exam-header">
-                <div>
-                    <span class="subject-badge" id="subjectBadge"></span>
-                </div>
-                <div class="header-controls">
-                    <label for="voiceSelect" style="font-size: 14px; margin: 0;">Voice:</label>
-                    <select id="voiceSelect" onchange="setSelectedVoice()">
-                        <option value="">Default</option>
-                    </select>
-                    <div class="question-counter">Question <span id="questionCount">1</span></div>
-                </div>
+                <span class="subject-badge" id="subjectBadge"></span>
+                <span style="font-size: 11px;">Q<span id="questionCount">1</span></span>
             </div>
-
-            <div id="speechStatus" class="speech-status listening" style="display: none;">
-                Listening...
-            </div>
-
-            <div id="errorMessage" class="error-message" style="display: none;"></div>
 
             <div class="chat-area" id="chatArea"></div>
 
             <div class="input-area">
-                <textarea id="answerInput" placeholder="Type your answer here or use the speech button..." spellcheck="true"></textarea>
-                <div style="display: flex; gap: 8px; flex-direction: column;">
-                    <button class="btn-primary btn-submit" onclick="submitAnswer()">
-                        Send
-                    </button>
-                    <button class="btn-secondary btn-submit" onclick="toggleSpeech()" id="speechButton">
-                        🎤
-                    </button>
-                    <button class="btn-secondary btn-submit" onclick="document.getElementById('imageInput').click()">
-                        🖼️
-                    </button>
+                <textarea id="answerInput" placeholder="Type or speak..."></textarea>
+                <div style="display: flex; gap: 4px; flex-direction: column;">
+                    <button class="btn-primary" onclick="submitAnswer()" style="padding: 6px 10px;">Send</button>
+                    <button class="btn-secondary" onclick="toggleSpeech()" id="speechButton" style="padding: 6px 10px;">🎤</button>
+                    <button class="btn-secondary" onclick="document.getElementById('imageInput').click()" style="padding: 6px 10px;">📷</button>
                     <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
                 </div>
             </div>
-            <div id="imagePreview" style="margin-bottom: 10px;"></div>
 
-            <div class="button-group">
-                <button class="btn-danger" onclick="endExam()">End Exam</button>
-            </div>
+            <button class="btn-danger" onclick="endExam()" style="width: 100%;">End Exam</button>
         </div>
 
         <!-- Hint Sidebar -->
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <h3 style="margin: 0;">Study Hint</h3>
+                <h3>Study Hint</h3>
                 <button class="sidebar-close" onclick="toggleSidebar()">×</button>
             </div>
             <div class="sidebar-content">
-                <div id="hintResult" style="margin-top: 15px;">
-                    <p style="color: #999; text-align: center; font-size: 13px;">Click the light bulb again to generate a hint based on the current question.</p>
+                <div id="hintResult">
+                    <p style="color: #999; font-size: 12px;">Click 💡 for hints.</p>
                 </div>
             </div>
         </div>
@@ -638,27 +411,19 @@
         const recognition = window.webkitSpeechRecognition || window.SpeechRecognition;
         let speechRecognizer = null;
 
-        // Load available voices and populate dropdown
         function loadVoices() {
             const voices = speechSynthesis.getVoices();
             const voiceSelect = document.getElementById('voiceSelect');
-            
-            voices.forEach((voice, index) => {
-                const option = document.createElement('option');
-                option.value = index;
-                option.textContent = `${voice.name} (${voice.lang})`;
-                voiceSelect.appendChild(option);
-            });
+            if (voiceSelect) {
+                voices.forEach((voice, index) => {
+                    const option = document.createElement('option');
+                    option.value = index;
+                    option.textContent = `${voice.name}`;
+                    voiceSelect.appendChild(option);
+                });
+            }
         }
 
-        function setSelectedVoice() {
-            const voiceSelect = document.getElementById('voiceSelect');
-            const voiceIndex = voiceSelect.value;
-            const voices = speechSynthesis.getVoices();
-            selectedVoice = voiceIndex ? voices[voiceIndex] : null;
-        }
-
-        // Load voices when they're available
         if (speechSynthesis.onvoiceschanged !== undefined) {
             speechSynthesis.onvoiceschanged = loadVoices;
         }
@@ -672,13 +437,11 @@
 
             speechRecognizer.onstart = () => {
                 isListening = true;
-                document.getElementById('speechStatus').style.display = 'block';
                 updateSpeechButton();
             };
 
             speechRecognizer.onend = () => {
                 isListening = false;
-                document.getElementById('speechStatus').style.display = 'none';
                 updateSpeechButton();
             };
 
@@ -689,13 +452,8 @@
                 }
                 if (event.results[event.results.length - 1].isFinal) {
                     document.getElementById('answerInput').value = transcript;
-                    // Auto-submit after speech recognition finishes
                     setTimeout(() => submitAnswer(), 500);
                 }
-            };
-
-            speechRecognizer.onerror = (event) => {
-                showError(`Speech recognition error: ${event.error}`);
             };
         }
 
@@ -712,10 +470,9 @@
 
         function toggleSpeech() {
             if (!speechRecognizer) {
-                showError('Speech recognition not supported in your browser');
+                alert('Speech recognition not supported');
                 return;
             }
-
             if (isListening) {
                 speechRecognizer.stop();
             } else {
@@ -730,244 +487,86 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ subject }),
                 });
-
                 const data = await response.json();
                 currentSessionId = data.sessionId;
                 currentSubject = subject;
-
                 document.querySelector('.start-screen').classList.remove('active');
                 document.querySelector('.exam-screen').classList.add('active');
-                document.getElementById('subjectBadge').textContent = subject.charAt(0).toUpperCase() + subject.slice(1);
-                document.getElementById('answerInput').value = '';
+                document.getElementById('subjectBadge').textContent = subject.split('-').map(w => w.charAt(0).toUpperCase()).join('');
                 document.getElementById('chatArea').innerHTML = '';
-                document.getElementById('questionCount').textContent = '1';
-
-                // Get first question
                 getQuestion('');
             } catch (error) {
-                showError('Failed to start exam: ' + error.message);
+                alert('Error: ' + error.message);
             }
         }
 
         async function getQuestion(studentAnswer) {
             try {
-                showLoading();
+                const chatArea = document.getElementById('chatArea');
+                if (studentAnswer.trim()) {
+                    const msg = document.createElement('div');
+                    msg.className = 'message student';
+                    msg.innerHTML = `<div class="message-label">You</div><div class="message-text">${studentAnswer}</div>`;
+                    chatArea.appendChild(msg);
+                }
+
+                const loadingDiv = document.createElement('div');
+                loadingDiv.id = 'loadingMessage';
+                loadingDiv.className = 'loading';
+                loadingDiv.textContent = 'Professor thinking...';
+                chatArea.appendChild(loadingDiv);
+                chatArea.scrollTop = chatArea.scrollHeight;
+
                 const response = await fetch(`${API_BASE}/api/exam/question`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ sessionId: currentSessionId, studentAnswer }),
                 });
-
                 const data = await response.json();
-                hideLoading();
 
-                // Add student answer if provided
-                if (studentAnswer.trim()) {
-                    addMessage(studentAnswer, 'student');
-                }
+                loadingDiv.remove();
 
-                // Add professor response (speech synthesis handled in addMessage)
-                addMessage(data.response, 'professor');
+                const msg = document.createElement('div');
+                msg.className = 'message professor';
+                msg.innerHTML = `<div class="message-label">Professor</div><div class="message-text">${data.response}</div><button class="play-btn" onclick="speakText(\`${data.response.replace(/`/g, '\\`')}\`)">🔊 Speak</button>`;
+                chatArea.appendChild(msg);
+
+                setTimeout(() => speakText(data.response), 500);
+
                 document.getElementById('questionCount').textContent = data.questionNumber;
                 document.getElementById('answerInput').value = '';
+                chatArea.scrollTop = chatArea.scrollHeight;
             } catch (error) {
-                hideLoading();
-                showError('Failed to get question: ' + error.message);
+                alert('Error: ' + error.message);
             }
         }
 
         async function submitAnswer() {
             const answer = document.getElementById('answerInput').value.trim();
-            const imageInput = document.getElementById('imageInput');
-            const imageFile = imageInput.files[0];
-            
-            if (!answer && !imageFile) {
-                showError('Please provide an answer or upload an image');
-                return;
-            }
-            
-            if (imageFile) {
-                // Convert image to base64
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const imageData = e.target.result;
-                    getQuestionWithImage(answer, imageData);
-                    imageInput.value = '';
-                    document.getElementById('imagePreview').innerHTML = '';
-                };
-                reader.readAsDataURL(imageFile);
-            } else {
-                await getQuestion(answer);
-            }
+            if (!answer) return;
+            await getQuestion(answer);
         }
-        
+
         function handleImageUpload(event) {
             const file = event.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    const preview = document.getElementById('imagePreview');
-                    preview.innerHTML = `<img src="${e.target.result}" style="max-width: 200px; max-height: 150px; border-radius: 6px;">`;
+                    getQuestion('Image uploaded - analyze it');
                 };
                 reader.readAsDataURL(file);
             }
         }
-        
-        async function getQuestionWithImage(studentAnswer, imageData) {
-            try {
-                showLoading();
-                const response = await fetch(`${API_BASE}/api/exam/question`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        sessionId: currentSessionId, 
-                        studentAnswer,
-                        imageData
-                    }),
-                });
-
-                const data = await response.json();
-                hideLoading();
-
-                // Add student answer with image
-                addMessageWithImage(studentAnswer, 'student', imageData);
-
-                // Add professor response
-                addMessage(data.response, 'professor');
-                document.getElementById('questionCount').textContent = data.questionNumber;
-                document.getElementById('answerInput').value = '';
-            } catch (error) {
-                hideLoading();
-                showError('Failed to get question: ' + error.message);
-            }
-        }
-        
-        function addMessageWithImage(text, type, imageData) {
-            const chatArea = document.getElementById('chatArea');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${type}`;
-
-            const label = document.createElement('div');
-            label.className = 'message-label';
-            label.textContent = type === 'professor' ? 'Professor' : 'Your Answer';
-
-            const textDiv = document.createElement('div');
-            textDiv.className = 'message-text';
-            textDiv.textContent = text;
-
-            messageDiv.appendChild(label);
-            messageDiv.appendChild(textDiv);
-            
-            if (imageData && type === 'student') {
-                const imgDiv = document.createElement('div');
-                imgDiv.style.marginTop = '8px';
-                const img = document.createElement('img');
-                img.src = imageData;
-                img.style.maxWidth = '200px';
-                img.style.maxHeight = '150px';
-                img.style.borderRadius = '4px';
-                imgDiv.appendChild(img);
-                messageDiv.appendChild(imgDiv);
-            }
-
-            chatArea.appendChild(messageDiv);
-            chatArea.scrollTop = chatArea.scrollHeight;
-        }
-
-        function addMessage(text, type, audioUrl = null) {
-            const chatArea = document.getElementById('chatArea');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${type}`;
-
-            const label = document.createElement('div');
-            label.className = 'message-label';
-            label.textContent = type === 'professor' ? 'Professor' : 'Your Answer';
-
-            const textDiv = document.createElement('div');
-            textDiv.className = 'message-text';
-            textDiv.textContent = text;
-
-            messageDiv.appendChild(label);
-            messageDiv.appendChild(textDiv);
-
-            // Add speak button for professor responses
-            if (type === 'professor') {
-                const audioDiv = document.createElement('div');
-                audioDiv.className = 'audio-player';
-                const speakBtn = document.createElement('button');
-                speakBtn.className = 'play-btn';
-                speakBtn.textContent = '🔊 Speak';
-                speakBtn.onclick = () => speakText(text);
-                audioDiv.appendChild(speakBtn);
-                messageDiv.appendChild(audioDiv);
-                
-                // Auto-speak after a delay
-                setTimeout(() => speakText(text), 500);
-            }
-
-            chatArea.appendChild(messageDiv);
-            chatArea.scrollTop = chatArea.scrollHeight;
-        }
 
         function speakText(text) {
-            // Cancel any ongoing speech
             speechSynthesis.cancel();
-            
             const utterance = new SpeechSynthesisUtterance(text);
-            utterance.rate = 1.0;  // Normal speed
-            utterance.pitch = 1.0;
-            utterance.volume = 1.0;
-            
-            // Use selected voice if available
-            if (selectedVoice) {
-                utterance.voice = selectedVoice;
-            } else {
-                // Fallback: try to use a female voice if available
-                const voices = speechSynthesis.getVoices();
-                let femaleVoice = null;
-                
-                // Try common female voice names across different browsers
-                const femaleNames = ['female', 'woman', 'samantha', 'victoria', 'moira', 'zira', 'karen', 'susan', 'fiona', 'sonia'];
-                for (let name of femaleNames) {
-                    femaleVoice = voices.find(v => v.name.toLowerCase().includes(name));
-                    if (femaleVoice) break;
-                }
-                
-                // If no female voice found, try to pick a different voice (might be female)
-                if (!femaleVoice && voices.length > 1) {
-                    femaleVoice = voices[1];
-                }
-                
-                if (femaleVoice) {
-                    utterance.voice = femaleVoice;
-                }
-            }
-            
+            utterance.rate = 1.0;
+            const voices = speechSynthesis.getVoices();
+            let femaleVoice = voices.find(v => v.name.toLowerCase().includes('sonia') || v.name.toLowerCase().includes('female'));
+            if (!femaleVoice && voices.length > 1) femaleVoice = voices[1];
+            if (femaleVoice) utterance.voice = femaleVoice;
             speechSynthesis.speak(utterance);
-        }
-
-        function showLoading() {
-            const chatArea = document.getElementById('chatArea');
-            const loadingDiv = document.createElement('div');
-            loadingDiv.id = 'loadingMessage';
-            loadingDiv.className = 'loading';
-            loadingDiv.innerHTML = '<span class="spinner"></span>Professor is thinking...';
-            chatArea.appendChild(loadingDiv);
-            chatArea.scrollTop = chatArea.scrollHeight;
-        }
-
-        function hideLoading() {
-            const loadingDiv = document.getElementById('loadingMessage');
-            if (loadingDiv) loadingDiv.remove();
-        }
-
-        function showError(message) {
-            const errorDiv = document.getElementById('errorMessage');
-            errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
-            setTimeout(() => {
-                errorDiv.style.display = 'none';
-            }, 5000);
         }
 
         function toggleSidebar() {
@@ -981,109 +580,65 @@
                 alert('Start an exam first');
                 return;
             }
-
             toggleSidebar();
             const hintResult = document.getElementById('hintResult');
-            hintResult.innerHTML = '<p style="text-align: center; color: #667eea; font-weight: 600;">Generating hint...</p>';
+            hintResult.innerHTML = '<p style="text-align: center; color: #667eea; font-size: 12px;">Generating hint...</p>';
 
             try {
-                // Get hint from backend
                 const response = await fetch(`${API_BASE}/api/exam/hint`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ sessionId: currentSessionId }),
                 });
-
                 const data = await response.json();
                 currentHintData = data;
-
-                // Display text hint with option to get image
                 hintResult.innerHTML = `
-                    <div style="background: #f0f4ff; padding: 15px; border-radius: 6px; margin-bottom: 12px;">
-                        <p style="color: #333; font-size: 13px; line-height: 1.6; margin: 0;">${data.textHint}</p>
+                    <div style="background: #f0f4ff; padding: 10px; border-radius: 6px; margin-bottom: 10px;">
+                        <p style="color: #333; font-size: 12px; line-height: 1.5; margin: 0;">${data.textHint}</p>
                     </div>
-                    <button class="btn-primary" onclick="getHintImage()" style="width: 100%; margin-bottom: 10px;">📷 Show Related Image</button>
-                    <button class="btn-secondary" onclick="toggleSidebar()" style="width: 100%;">Close</button>
+                    <button class="btn-primary" onclick="getHintImage()" style="width: 100%; margin-bottom: 6px; padding: 6px;">📷 Show Image</button>
+                    <button class="btn-secondary" onclick="toggleSidebar()" style="width: 100%; padding: 6px;">Close</button>
                 `;
             } catch (error) {
-                hintResult.innerHTML = '<p style="color: #e74c3c; font-size: 13px;">Error generating hint. Try again.</p>';
-                console.error('Hint error:', error);
+                hintResult.innerHTML = '<p style="color: #e74c3c; font-size: 12px;">Error generating hint.</p>';
             }
         }
 
         async function getHintImage() {
             if (!currentHintData) return;
-
             const hintResult = document.getElementById('hintResult');
-            hintResult.innerHTML = '<p style="text-align: center; color: #667eea; font-weight: 600;">Searching for images...</p>';
+            hintResult.innerHTML = '<p style="text-align: center; color: #667eea; font-size: 12px;">Searching for images...</p>';
 
             try {
                 const response = await fetch(`${API_BASE}/api/search-image?query=${encodeURIComponent(currentHintData.searchTerms)}`);
                 const data = await response.json();
-
                 if (data.imageUrl) {
                     hintResult.innerHTML = `
-                        <img src="${data.imageUrl}" class="hint-image" alt="hint">
-                        <p style="color: #999; font-size: 12px; margin-top: 8px;">Image source: ${data.source}</p>
-                        <button class="btn-secondary" onclick="generateHint()" style="width: 100%; margin-top: 10px;">📝 Back to Text Hint</button>
+                        <img src="${data.imageUrl}" style="width: 100%; border-radius: 6px; margin-bottom: 8px;">
+                        <p style="color: #999; font-size: 11px;">Source: ${data.source}</p>
+                        <button class="btn-secondary" onclick="generateHint()" style="width: 100%; padding: 6px; margin-top: 6px;">📝 Back</button>
                     `;
                 } else {
                     hintResult.innerHTML = `
-                        <div style="background: #f0f4ff; padding: 15px; border-radius: 6px; margin-bottom: 12px;">
-                            <p style="color: #333; font-size: 13px; line-height: 1.6; margin: 0;">${currentHintData.textHint}</p>
-                        </div>
-                        <p style="color: #e74c3c; font-size: 12px; text-align: center;">No images found for this topic.</p>
-                        <button class="btn-secondary" onclick="toggleSidebar()" style="width: 100%; margin-top: 10px;">Close</button>
+                        <p style="color: #e74c3c; font-size: 12px;">No images found.</p>
+                        <button class="btn-secondary" onclick="generateHint()" style="width: 100%; padding: 6px; margin-top: 6px;">Back</button>
                     `;
                 }
             } catch (error) {
-                hintResult.innerHTML = `
-                    <div style="background: #f0f4ff; padding: 15px; border-radius: 6px; margin-bottom: 12px;">
-                        <p style="color: #333; font-size: 13px; line-height: 1.6; margin: 0;">${currentHintData.textHint}</p>
-                    </div>
-                    <p style="color: #e74c3c; font-size: 12px; text-align: center;">Error fetching image.</p>
-                `;
-                console.error('Image fetch error:', error);
+                hintResult.innerHTML = '<p style="color: #e74c3c; font-size: 12px;">Error fetching image.</p>';
             }
         }
 
-        async function searchHintImage() {
-            const searchTerm = document.getElementById('hintSearch').value.trim();
-            if (!searchTerm) {
-                alert('Enter a search term');
-                return;
-            }
-
-            const hintResult = document.getElementById('hintResult');
-            hintResult.innerHTML = '<p style="text-align: center; color: #667eea; font-weight: 600;">Searching...</p>';
-
-            try {
-                const response = await fetch(`${API_BASE}/api/search-image?query=${encodeURIComponent(searchTerm)}`);
-                const data = await response.json();
-
-                if (data.imageUrl) {
-                    hintResult.innerHTML = `
-                        <img src="${data.imageUrl}" class="hint-image" alt="${searchTerm}">
-                        <p class="hint-text"><strong>Image source:</strong> ${data.source}</p>
-                        <p class="hint-text">Use this to study the concept during your exam preparation.</p>
-                    `;
-                } else {
-                    hintResult.innerHTML = '<p style="color: #e74c3c; font-size: 13px;">No images found. Try a different search term.</p>';
-                }
-            } catch (error) {
-                hintResult.innerHTML = '<p style="color: #e74c3c; font-size: 13px;">Error fetching images. Please try again.</p>';
-                console.error('Image search error:', error);
+        async function endExam() {
+            if (confirm('End exam?')) {
+                try {
+                    await fetch(`${API_BASE}/api/exam/session/${currentSessionId}`, { method: 'DELETE' });
+                } catch (e) {}
+                document.querySelector('.exam-screen').classList.remove('active');
+                document.querySelector('.start-screen').classList.add('active');
+                currentSessionId = null;
             }
         }
-
-        // Keyboard shortcut for submit
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('answerInput')?.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter' && e.ctrlKey) {
-                    submitAnswer();
-                }
-            });
-        });
     </script>
 </body>
 </html>
