@@ -104,7 +104,7 @@ const client = new OpenAI({
 // Verified textbooks by course
 const courseTextbooks = {
   'anatomy': "Gray's Anatomy for Students, Netter's Atlas of Human Anatomy",
-  'physiology': 'Guyton & Hall Textbook of Medical Physiology, Costanzo Physiology',
+  'physiology-and-anatomy': "Gray's Anatomy for Students, Netter's Atlas, Guyton & Hall Textbook of Medical Physiology",
   'chemistry': 'Whitten Chemistry, Lausarot Stechiometria',
   'general-physics': 'Tipler Physics for Scientists and Engineers, Serway Physics',
   'advanced-physics': 'Tipler Modern Physics, Morrison Modern Physics',
@@ -115,16 +115,6 @@ const courseTextbooks = {
   'biomedical-signal-processing': 'Semmlow Circuits and Systems for Bioengineers, Abood Digital Signal Processing',
   'electronics-and-electrotechnics': 'Alexander & Sadiku Fundamentals of Electric Circuits, Horowitz & Hill Art of Electronics',
   'measurements-and-instrumentation-in-biomedical-engineering': 'Beckwith Mechanical Measurements, Figliola Theory and Design for Mechanical Measurements',
-};
-
-// Verified academic sources
-const verifiedSources = {
-  'pubmed': 'https://pubmed.ncbi.nlm.nih.gov/',
-  'ieee': 'https://ieeexplore.ieee.org/',
-  'scholar': 'https://scholar.google.com/',
-  'openstax': 'https://openstax.org/',
-  'nih': 'https://www.nlm.nih.gov/',
-  'sciencedirect': 'https://www.sciencedirect.com/',
 };
 
 function getEmojiForCourse(name) {
@@ -169,6 +159,16 @@ function getAssessmentHint(assessmentType) {
   return hints[assessmentType] || hints['oral'];
 }
 
+// Clean markdown formatting from responses
+function cleanMarkdown(text) {
+  return text
+    .replace(/\*\*/g, '')
+    .replace(/\*/g, '')
+    .replace(/__|__/g, '')
+    .replace(/~~(.*?)~~/g, '$1')
+    .replace(/`/g, '');
+}
+
 const examSessions = {};
 
 function generateSessionId() {
@@ -206,12 +206,20 @@ ${course.objectives || 'Develop comprehensive understanding of the subject'}
 **PREREQUISITES**
 ${course.prerequisites || 'None specified'}
 
+**QUESTION GENERATION REQUIREMENTS**
+1. Generate ORIGINAL questions (not textbook rephrasing)
+2. Mix question types: conceptual, calculation, applied, discussion
+3. Match assessment format: ${assessmentType.replace(/-/g, '/')}
+4. Adapt difficulty: Start moderate, increase based on correct answers
+5. Base all questions on UCBM Teaching Sheets learning objectives
+
 **CRITICAL RULES**
-1. Base all questions on UCBM Teaching Sheets for this course
-2. Reference textbooks when explaining concepts
-3. Validate facts against peer-reviewed sources (PubMed, IEEE)
-4. Flag anything beyond standard curriculum as "emerging topic"
-5. Provide citations for factual claims
+- Base all questions on UCBM Teaching Sheets for this course
+- Reference textbooks when explaining concepts
+- Validate facts against peer-reviewed sources
+- Flag anything beyond standard curriculum as "emerging topic"
+- Provide citations for factual claims
+- Do NOT use markdown formatting in responses
 
 **ASSESSMENT FOCUS**
 Type: ${assessmentType.replace(/-/g, '/')}
@@ -228,10 +236,10 @@ Tip: ${assessmentHint}
 1. Ask one focused question from UCBM Teaching Sheets
 2. Evaluate response against course standards
 3. Provide detailed, evidence-based feedback
-4. Ask follow-up probing questions
+4. Ask follow-up probing questions or next question
 5. Help with presentation skills if applicable
 
-Begin with your first question for ${course.name}. Base it on the official UCBM curriculum.`;
+Begin with your first question for ${course.name}. Base it on the official UCBM curriculum. Do NOT use markdown formatting.`;
 
   if (uploadedMaterials && uploadedMaterials.length > 0) {
     const materials = uploadedMaterials.map(m => m.filename).join(', ');
@@ -265,6 +273,7 @@ app.post('/api/exam/start', (req, res) => {
     messages: [],
     questionCount: 0,
     uploadedMaterials: [],
+    scoreTracker: { correct: 0, total: 0 },
   };
 
   res.json({ 
@@ -337,7 +346,10 @@ app.post('/api/exam/question', async (req, res) => {
       max_tokens: 600,
     });
 
-    const professorMessage = response.choices[0].message.content;
+    let professorMessage = response.choices[0].message.content;
+    
+    // Clean markdown formatting
+    professorMessage = cleanMarkdown(professorMessage);
 
     session.messages.push({
       role: 'assistant',
@@ -345,13 +357,77 @@ app.post('/api/exam/question', async (req, res) => {
     });
 
     session.questionCount += 1;
+    session.scoreTracker.total += 1;
+
+    // Calculate hypothetical score every 10 questions
+    let hypotheticalScore = null;
+    if (session.questionCount % 10 === 0) {
+      const percentage = (session.scoreTracker.correct / session.scoreTracker.total) * 100;
+      hypotheticalScore = Math.round(percentage * 3) / 10; // Scale to 30
+    }
 
     res.json({
       response: professorMessage,
       questionNumber: session.questionCount,
+      hypotheticalScore: hypotheticalScore,
+      scoreTracker: session.scoreTracker
     });
   } catch (error) {
     console.error('Error:', error);
+    res.status(500).json({ error: 'Failed' });
+  }
+});
+
+app.post('/api/exam/feedback', async (req, res) => {
+  const { sessionId, studentAnswer } = req.body;
+
+  if (!sessionId || !examSessions[sessionId]) {
+    return res.status(404).json({ error: 'Not found' });
+  }
+
+  const session = examSessions[sessionId];
+  
+  try {
+    let lastQuestion = '';
+    for (let i = session.messages.length - 1; i >= 0; i--) {
+      if (session.messages[i].role === 'assistant') {
+        lastQuestion = session.messages[i].content;
+        break;
+      }
+    }
+
+    if (!lastQuestion) {
+      return res.status(400).json({ error: 'No question' });
+    }
+
+    const feedbackPrompt = `You are an UCBM professor providing detailed feedback on a student's answer.
+
+Question: "${lastQuestion.substring(0, 300)}"
+
+Student Answer: "${studentAnswer.substring(0, 500)}"
+
+Provide constructive feedback covering:
+1. Accuracy of the answer
+2. Completeness and depth
+3. Clarity of explanation
+4. Key points missed or well explained
+5. Suggestions for improvement
+
+Keep feedback concise but thorough (3-4 sentences). Do NOT use markdown formatting.`;
+
+    const feedbackResponse = await client.chat.completions.create({
+      model: 'grok-4.3',
+      messages: [{ role: 'user', content: feedbackPrompt }],
+      temperature: 0.7,
+      max_tokens: 300,
+    });
+
+    let feedback = feedbackResponse.choices[0].message.content;
+    feedback = cleanMarkdown(feedback);
+
+    res.json({ feedback });
+  } catch (error) {
+    console.error('Feedback error:', error);
     res.status(500).json({ error: 'Failed' });
   }
 });
@@ -378,9 +454,16 @@ app.post('/api/exam/hint', async (req, res) => {
       return res.status(400).json({ error: 'No question' });
     }
 
+    // Extract key terms from the question for image search
+    const keyTerms = lastQuestion
+      .split(' ')
+      .filter(w => w.length > 5)
+      .slice(0, 3)
+      .join(' ');
+
     const hintPrompt = `Question: "${lastQuestion.substring(0, 150)}"
     
-Provide a brief hint (2 sentences, no spoilers).`;
+Provide a brief hint (2 sentences, no spoilers). Do NOT use markdown formatting.`;
 
     const hintResponse = await client.chat.completions.create({
       model: 'grok-4.3',
@@ -389,10 +472,35 @@ Provide a brief hint (2 sentences, no spoilers).`;
       max_tokens: 200,
     });
 
-    res.json({ textHint: hintResponse.choices[0].message.content });
+    let textHint = hintResponse.choices[0].message.content;
+    textHint = cleanMarkdown(textHint);
+
+    res.json({ 
+      textHint,
+      searchTerms: keyTerms || 'general topic'
+    });
   } catch (error) {
+    console.error('Hint error:', error);
     res.status(500).json({ error: 'Failed' });
   }
+});
+
+app.post('/api/exam/score-answer', (req, res) => {
+  const { sessionId, isCorrect } = req.body;
+
+  if (!sessionId || !examSessions[sessionId]) {
+    return res.status(404).json({ error: 'Not found' });
+  }
+
+  const session = examSessions[sessionId];
+  if (isCorrect) {
+    session.scoreTracker.correct += 1;
+  }
+
+  res.json({
+    scoreTracker: session.scoreTracker,
+    percentage: Math.round((session.scoreTracker.correct / session.scoreTracker.total) * 100)
+  });
 });
 
 app.get('/api/courses', (req, res) => {
@@ -420,6 +528,7 @@ app.get('/api/exam/session/:sessionId', (req, res) => {
     courseName: session.courseName,
     assessmentType: session.assessmentType,
     questionCount: session.questionCount,
+    scoreTracker: session.scoreTracker,
   });
 });
 
