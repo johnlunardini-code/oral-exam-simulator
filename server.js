@@ -13,8 +13,16 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = 3000;
 
-// Load course specifications
-const courseSpecs = JSON.parse(fs.readFileSync(path.join(__dirname, 'course-specs.json'), 'utf-8'));
+// Load real UCBM course data
+let courseSpecs;
+try {
+  courseSpecs = JSON.parse(fs.readFileSync(path.join(__dirname, 'courses-extracted.json'), 'utf-8'));
+  console.log('✅ Loaded real UCBM courses from courses-extracted.json');
+} catch (e) {
+  courseSpecs = JSON.parse(fs.readFileSync(path.join(__dirname, 'course-specs.json'), 'utf-8'));
+  console.log('⚠️  Loaded fallback course-specs.json');
+}
+
 const courseMap = {};
 courseSpecs.courses.forEach(course => {
   courseMap[course.id] = course;
@@ -45,31 +53,31 @@ const client = new OpenAI({
   baseURL: 'https://api.x.ai/v1',
 });
 
-// Course full names with emojis
-const courseNames = {
-  'fundamentals-of-computer-science': '💻 Fundamentals of Computer Science',
-  'mathematics': '📐 Mathematics',
-  'chemistry': '⚗️ Chemistry',
-  'general-physics': '⚡ General Physics',
-  'economics-and-management': '💼 Economics and Management',
-  'general-english-italian': '🌍 General English/Italian',
-  'physiology': '❤️ Physiology',
-  'anatomy': '🦴 Anatomy',
-  'advanced-physics': '🌌 Advanced Physics',
-  'mathematics-ii': '📊 Mathematics II',
-  'probability-and-statistics': '📈 Probability and Statistics',
-  'healthcare-information-systems': '🏥 Healthcare Information Systems and Telemedicine',
-  'electronics-and-electrotechnics': '🔌 Electronics and Electrotechnics',
-  'mechanics-of-solids': '🏗️ Mechanics of Solids',
-  'transport-phenomena-and-thermodynamics': '🌡️ Transport Phenomena and Thermodynamics',
-  'technical-english-italian': '📝 Technical English/Italian',
-  'biomedical-signal-processing': '📡 Biomedical Signal Processing',
-  'fundamentals-of-automatic-control': '🎛️ Fundamental of Automatic Control',
-  'biomechanics': '🏃 Biomechanics',
-  'fundamentals-of-bioengineering': '🔧 Fundamentals of Bioengineering',
-  'measurements-and-instrumentation': '🔬 Measurements and Instrumentation in Biomedical Engineering',
-  'humanities-for-bioengineering': '🎭 Humanities for Bioengineering',
-};
+function getEmojiForCourse(name) {
+  const lowerName = name.toLowerCase();
+  if (lowerName.includes('computer')) return '💻';
+  if (lowerName.includes('math')) return '📐';
+  if (lowerName.includes('chemistry')) return '⚗️';
+  if (lowerName.includes('physics')) return '⚡';
+  if (lowerName.includes('economics') || lowerName.includes('management')) return '💼';
+  if (lowerName.includes('english') || lowerName.includes('italian')) return '🌍';
+  if (lowerName.includes('physiology')) return '❤️';
+  if (lowerName.includes('anatomy')) return '🦴';
+  if (lowerName.includes('signal')) return '📡';
+  if (lowerName.includes('robotics')) return '🤖';
+  if (lowerName.includes('control')) return '🎛️';
+  if (lowerName.includes('biomechanics')) return '🏃';
+  if (lowerName.includes('bioengineering')) return '🔧';
+  if (lowerName.includes('measurement') || lowerName.includes('instrumentation')) return '🔬';
+  if (lowerName.includes('electronics')) return '🔌';
+  if (lowerName.includes('mechanics')) return '🏗️';
+  if (lowerName.includes('transport') || lowerName.includes('thermodynamics')) return '🌡️';
+  if (lowerName.includes('healthcare') || lowerName.includes('telemedicine')) return '🏥';
+  if (lowerName.includes('ethics') || lowerName.includes('anthropology')) return '🎭';
+  if (lowerName.includes('humanities')) return '📚';
+  if (lowerName.includes('probability') || lowerName.includes('statistics')) return '📈';
+  return '📖';
+}
 
 const examSessions = {};
 
@@ -83,50 +91,45 @@ function buildSystemPrompt(subject, uploadedMaterials) {
     return 'You are an UCBM professor conducting an oral exam.';
   }
 
-  const isBeginner = course.isBeginner || false;
-  const mixLanguage = course.mixLanguage || false;
+  let prompt = `You are an experienced professor at UCBM (Università Campus Bio-Medico di Roma) in the Biomedical Engineering program, conducting a realistic oral exam.
 
-  let prompt = `You are an experienced UCBM (Università Campus Bio-Medico di Roma) professor in the Biomedical Engineering (BEN) program, conducting realistic oral exams for students in Years 1–3.
+**Course**: ${course.name}
+**Instructor**: ${course.instructor || 'UCBM Faculty'}
+**ECTS**: ${course.ects || 'N/A'}
+**Semester**: ${course.semester || 'N/A'}
 
-You are currently in an oral exam practice session for **${course.name}** (Year ${course.year}, ${course.difficulty} level).
-Stay strictly on this subject throughout the session.`;
+**Course Objectives**:
+${course.objectives || 'Standard biomedical engineering course.'}
 
-  if (mixLanguage) {
-    if (isBeginner) {
-      prompt += `\n\n**LANGUAGE NOTE**: This is a beginner Italian course for English speakers. Mix English and Italian naturally (code-switching). Start with simpler Italian and include English explanations. Correct gently and expand vocabulary.`;
-    } else {
-      prompt += `\n\n**LANGUAGE NOTE**: This is an intermediate technical Italian course. Use mostly Italian, but switch to English for complex technical terms if needed. Encourage the student to use technical Italian vocabulary.`;
-    }
-  }
+**Prerequisites**:
+${course.prerequisites || 'None'}
 
-  prompt += `\n\n**Session Flow**:
-1. You have begun the session. Immediately start with one strong, realistic oral exam-style question for ${course.name}.
-2. After the student's response (voice or text), give detailed, constructive feedback on accuracy, depth, clarity, integration, and oral exam technique.
-3. Then ask the next question or probe deeper on the same subject.
+**Assessment Method**:
+${course.assessment || 'Standard oral exam'}
 
-**Learning Objectives for This Course**:
-${course.learningObjectives.map(obj => `- ${obj}`).join('\n')}
+**Key References**:
+${course.references || 'Standard course materials'}
 
-**Question Difficulty**: ${course.questionDifficulty} (Expected prior knowledge: ${course.priorKnowledge})
+**Your Role**:
+1. Conduct a realistic oral exam on this course.
+2. Ask progressively challenging questions that test understanding, application, and critical thinking.
+3. Provide constructive feedback after each response.
+4. Adjust difficulty based on student performance.
+5. Emphasize both technical accuracy and clear communication.
+6. Use appropriate technical terminology.
 
-**Foundational Knowledge**:
-- Base all questions and feedback on: UCBM Piano degli Studi 2026-2027 and Schede Didattiche 2025-2026 for ${course.name}.
-- Reference core textbooks: ${course.references}
-- Prioritize any student-uploaded materials (lecture notes, slides, syllabi) as primary sources for grounding.
-- Clearly label any recent developments as "emerging" or "beyond standard curriculum".
+**Session Flow**:
+- Start with a clear, specific question aligned with the course objectives
+- Listen carefully to the student's answer
+- Provide detailed feedback on accuracy, depth, and presentation
+- Ask follow-up questions to probe deeper understanding
+- Conclude with synthesis questions that integrate multiple topics
 
-**Response Style**:
-- Professional, supportive but rigorous UCBM professor tone.
-- Tailor difficulty to ${course.difficulty} level.
-- Use appropriate technical terminology (English + standard Italian terms where applicable).
-- Focus on both technical accuracy and strong oral exam presentation skills.
-- Never hallucinate or invent knowledge beyond the standard curriculum and uploaded materials.
-
-Begin immediately with your first question for ${course.name}. Do not introduce yourself or ask for confirmation of the subject.`;
+Begin immediately with your first question for ${course.name}. Do not introduce yourself or ask for confirmation.`;
 
   if (uploadedMaterials && uploadedMaterials.length > 0) {
     const materials = uploadedMaterials.map(m => m.filename).join(', ');
-    prompt += `\n\n**Student-Uploaded Materials Available**:\n${materials}\n\nAlways reference and prioritize these materials when providing feedback and grounding your questions.`;
+    prompt += `\n\n**Student-Uploaded Materials**: ${materials}\nPrioritize these materials when grounding your questions and feedback.`;
   }
 
   return prompt;
@@ -137,19 +140,35 @@ app.post('/api/exam/start', (req, res) => {
   const validSubjects = Object.keys(courseMap);
 
   if (!validSubjects.includes(subject)) {
-    return res.status(400).json({ error: `Invalid subject. Choose from: ${validSubjects.join(', ')}` });
+    return res.status(400).json({ 
+      error: `Invalid subject. Choose from: ${validSubjects.join(', ')}`,
+      validSubjects 
+    });
   }
 
   const sessionId = generateSessionId();
+  const course = courseMap[subject];
+  const emoji = getEmojiForCourse(course.name);
+  
   examSessions[sessionId] = {
     subject,
-    courseName: courseNames[subject],
+    courseName: `${emoji} ${course.name}`,
+    courseData: course,
     messages: [],
     questionCount: 0,
     uploadedMaterials: [],
   };
 
-  res.json({ sessionId, subject, courseName: courseNames[subject] });
+  res.json({ 
+    sessionId, 
+    subject, 
+    courseName: `${emoji} ${course.name}`,
+    courseInfo: {
+      instructor: course.instructor,
+      ects: course.ects,
+      semester: course.semester
+    }
+  });
 });
 
 app.post('/api/exam/upload/:sessionId', upload.single('file'), (req, res) => {
@@ -261,9 +280,7 @@ app.post('/api/exam/hint', async (req, res) => {
 
     const hintPrompt = `Based on this exam question: "${lastQuestion}"
 
-Provide a concise hint (2-3 sentences) that guides the student without giving away the full answer. Focus on key concepts, structure, or important relationships to consider.
-
-Also extract 1-2 key search terms for finding relevant images or diagrams.`;
+Provide a concise hint (2-3 sentences) that guides the student without giving away the full answer.`;
 
     const hintResponse = await client.chat.completions.create({
       model: 'grok-4.3',
@@ -272,46 +289,23 @@ Also extract 1-2 key search terms for finding relevant images or diagrams.`;
       max_tokens: 250,
     });
 
-    const hintContent = hintResponse.choices[0].message.content;
-    
-    const lines = hintContent.split('\n');
-    let textHint = hintContent;
-    let searchTerms = 'anatomy physiology biomedical';
-
-    if (lines.length > 1) {
-      textHint = lines.slice(0, -1).join('\n');
-      const lastLine = lines[lines.length - 1];
-      if (lastLine.toLowerCase().includes('search') || lastLine.includes(',')) {
-        searchTerms = lastLine.replace(/search term[s]?:\s*/i, '').trim();
-      }
-    }
-
-    res.json({ textHint, searchTerms });
+    res.json({ textHint: hintResponse.choices[0].message.content });
   } catch (error) {
     console.error('Hint generation error:', error);
     res.status(500).json({ error: 'Failed to generate hint' });
   }
 });
 
-app.get('/api/search-image', async (req, res) => {
-  const { query } = req.query;
-  
-  if (!query) {
-    return res.status(400).json({ error: 'Query required' });
-  }
-
-  try {
-    const googleImagesUrl = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(query)}`;
-    
-    res.json({
-      imageUrl: googleImagesUrl,
-      source: 'Google Images',
-      searchQuery: query,
-    });
-  } catch (error) {
-    console.error('Image search error:', error);
-    res.status(500).json({ error: 'Failed to search images' });
-  }
+app.get('/api/courses', (req, res) => {
+  const coursesList = courseSpecs.courses.map(course => ({
+    id: course.id,
+    name: course.name,
+    code: course.code,
+    instructor: course.instructor,
+    ects: course.ects,
+    emoji: getEmojiForCourse(course.name)
+  }));
+  res.json({ courses: coursesList });
 });
 
 app.get('/api/exam/session/:sessionId', (req, res) => {
@@ -343,11 +337,11 @@ app.delete('/api/exam/session/:sessionId', (req, res) => {
 });
 
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok' });
+  res.json({ status: 'ok', coursesLoaded: courseSpecs.courses.length });
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`UCBM Oral Exam Simulator running on http://0.0.0.0:${PORT}`);
-  console.log(`XAI_API_KEY set: ${!!process.env.XAI_API_KEY}`);
-  console.log(`${courseSpecs.courses.length} UCBM courses loaded from course-specs.json`);
+  console.log(`\n🎓 UCBM Oral Exam Simulator running on http://0.0.0.0:${PORT}`);
+  console.log(`📚 ${courseSpecs.courses.length} UCBM courses loaded`);
+  console.log(`🔑 XAI_API_KEY: ${!!process.env.XAI_API_KEY ? '✅' : '⚠️ Not set'}\n`);
 });
