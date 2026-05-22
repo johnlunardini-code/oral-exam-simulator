@@ -14,11 +14,12 @@
         @media (max-width: 768px) { .container { height: 99vh; border-radius: 8px; } }
         @media (max-width: 480px) { body { padding: 4px; } .container { height: 100vh; border-radius: 6px; } }
         
-        header { padding: 16px 16px 0 16px; text-align: center; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; }
+        header { padding: 16px 16px 0 16px; text-align: center; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
         .header-content { flex: 1; text-align: center; }
         h1 { color: #333; margin: 0 0 5px 0; font-size: 24px; }
         .subtitle { color: #666; font-size: 13px; margin: 0; }
-        .score-display { font-size: 14px; font-weight: 700; color: #667eea; min-width: 80px; text-align: left; }
+        .score-display { font-size: 13px; font-weight: 700; color: #667eea; min-width: 100px; text-align: left; white-space: nowrap; }
+        .score-stats { font-size: 10px; color: #999; margin-top: 2px; }
         
         .start-screen, .exam-screen { display: none; flex: 1; flex-direction: column; overflow: hidden; padding: 0 16px 16px 16px; }
         .start-screen.active, .exam-screen.active { display: flex; }
@@ -67,15 +68,20 @@
         .action-btn:hover { background: #764ba2; }
         
         .input-area { display: flex; gap: 8px; margin-bottom: 10px; flex-shrink: 0; align-items: flex-end; }
-        .text-editor { display: flex; flex-direction: column; gap: 0; flex: 1; }
-        textarea { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 12px; resize: none; min-height: 60px; }
+        .text-editor { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+        .formatting-toolbar { background: #f0f0f0; border: 1px solid #ddd; border-radius: 4px 4px 0 0; padding: 6px; display: flex; gap: 4px; flex-wrap: wrap; font-size: 11px; }
+        .format-btn { background: white; border: 1px solid #ddd; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-weight: 600; font-size: 11px; transition: all 0.2s; }
+        .format-btn:hover { background: #e8f0fe; border-color: #667eea; }
+        textarea { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 0 0 4px 4px; font-family: 'Segoe UI', Tahoma, Geneva, sans-serif; font-size: 12px; resize: both; overflow: auto; min-height: 60px; line-height: 1.5; }
         
         button { padding: 8px 16px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
         .btn-primary { background: #667eea; color: white; }
         .btn-secondary { background: #764ba2; color: white; }
         .btn-danger { background: #e74c3c; color: white; }
         .btn-success { background: #27ae60; color: white; }
-        .icon-btn { width: 44px; height: 44px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+        .icon-btn { width: 50px; height: 50px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; border-radius: 6px; }
+        .button-col { display: flex; gap: 6px; flex-direction: column; }
+        @media (max-width: 600px) { .button-col { flex-direction: row; flex-wrap: wrap; } .icon-btn { width: 40px; height: 40px; } }
         
         .sidebar { position: fixed; right: -90vw; top: 0; width: 90vw; max-width: 350px; height: 100vh; background: white; box-shadow: -5px 0 20px rgba(0, 0, 0, 0.2); transition: right 0.3s ease; overflow-y: auto; z-index: 1000; }
         .sidebar.active { right: 0; }
@@ -106,12 +112,15 @@
 <body>
     <div class="container">
         <header>
-            <div class="score-display" id="scoreDisplay">Score: -</div>
+            <div>
+                <div class="score-display" id="scoreDisplay">Score: -</div>
+                <div class="score-stats" id="scoreStats"></div>
+            </div>
             <div class="header-content">
                 <h1>🎓 UCBM Exam Tutor</h1>
                 <p class="subtitle">Biomedical Engineering - Piano degli Studi 2026-2027</p>
             </div>
-            <div style="min-width: 80px;"></div>
+            <div style="min-width: 100px;"></div>
         </header>
 
         <!-- Start Screen -->
@@ -171,23 +180,28 @@
                 <div class="question-count">Q<span id="questionCount">1</span></div>
             </div>
 
-            <div class="upload-box">
-                <strong>📚 Upload:</strong> <input type="file" id="examUploadInput" accept=".pdf,.docx,.pptx,.txt,.jpg,.png,.gif,.webp" onchange="uploadMaterial()" style="font-size: 10px;">
-                <div id="examUploadStatus" style="font-size: 11px; margin-top: 4px; display: none;"></div>
-            </div>
+
 
             <div class="chat-area" id="chatArea"></div>
 
             <div class="input-area">
                 <div class="text-editor">
+                    <div class="formatting-toolbar">
+                        <button class="format-btn" onclick="insertBold()" title="Bold"><strong>B</strong></button>
+                        <button class="format-btn" onclick="insertItalic()" title="Italic"><em>I</em></button>
+                        <button class="format-btn" onclick="insertUnderline()" title="Underline"><u>U</u></button>
+                        <button class="format-btn" onclick="insertCode()" title="Code">&lt;/&gt;</button>
+                        <button class="format-btn" onclick="insertList()" title="List">• List</button>
+                        <button class="format-btn" onclick="insertFormula()" title="Formula">𝑥²</button>
+                    </div>
                     <textarea id="answerInput" placeholder="Type your answer or use speech..."></textarea>
                 </div>
-                <div style="display: flex; gap: 4px; flex-direction: column;">
-                    <button class="btn-primary icon-btn tooltip" onclick="submitAnswer()" style="padding: 6px 10px;"><span class="tooltiptext">Send Answer</span>Send</button>
-                    <button class="btn-secondary icon-btn tooltip" onclick="toggleSpeech()" id="speechButton" style="padding: 6px 10px;"><span class="tooltiptext">Record Voice</span>🎤</button>
-                    <button class="btn-secondary icon-btn tooltip" onclick="document.getElementById('imageInput').click()" style="padding: 6px 10px;"><span class="tooltiptext">Attach Image</span>📷</button>
-                    <button class="btn-success icon-btn tooltip" onclick="openFeedbackHistory()" style="padding: 6px 10px;"><span class="tooltiptext">Get Feedback</span>💬</button>
-                    <button class="btn-secondary icon-btn tooltip" onclick="document.getElementById('docInput').click()" style="padding: 6px 10px;"><span class="tooltiptext">Upload Document</span>📎</button>
+                <div class="button-col">
+                    <button class="btn-primary icon-btn tooltip" onclick="submitAnswer()"><span class="tooltiptext">Send</span>✓</button>
+                    <button class="btn-secondary icon-btn tooltip" onclick="toggleSpeech()" id="speechButton"><span class="tooltiptext">Voice</span>🎤</button>
+                    <button class="btn-secondary icon-btn tooltip" onclick="document.getElementById('imageInput').click()"><span class="tooltiptext">Image</span>📷</button>
+                    <button class="btn-success icon-btn tooltip" onclick="openFeedbackHistory()"><span class="tooltiptext">Feedback</span>💬</button>
+                    <button class="btn-secondary icon-btn tooltip" onclick="document.getElementById('docInput').click()"><span class="tooltiptext">Attach</span>📎</button>
                     <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
                     <input type="file" id="docInput" accept=".pdf,.docx,.txt,.jpg,.png" style="display: none;" onchange="handleDocUpload(event)">
                 </div>
@@ -350,6 +364,30 @@
             if (!speechRecognizer) { alert('Speech recognition not supported'); return; }
             if (isListening) speechRecognizer.stop();
             else speechRecognizer.start();
+        }
+
+        function insertBold() { wrapSelection('<b>', '</b>'); }
+        function insertItalic() { wrapSelection('<i>', '</i>'); }
+        function insertUnderline() { wrapSelection('<u>', '</u>'); }
+        function insertCode() { wrapSelection('<code>', '</code>'); }
+        function insertList() {
+            const textarea = document.getElementById('answerInput');
+            const text = textarea.value;
+            const lines = text.split('\n');
+            const bulleted = lines.map(l => (l.trim() ? '• ' + l : l)).join('\n');
+            textarea.value = bulleted;
+            textarea.focus();
+        }
+        function insertFormula() { wrapSelection('[', ']'); }
+        function wrapSelection(before, after) {
+            const textarea = document.getElementById('answerInput');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+            const selected = text.substring(start, end) || 'text';
+            textarea.value = text.substring(0, start) + before + selected + after + text.substring(end);
+            textarea.focus();
+            textarea.setSelectionRange(start + before.length, start + before.length + selected.length);
         }
 
         async function preloadMaterials() {
@@ -735,7 +773,19 @@
         function clearAllData() {
             if (confirm('Delete all saved scores and data? This cannot be undone.')) {
                 localStorage.removeItem('examScores');
+                const stats = document.getElementById('scoreStats');
+                if (stats) stats.textContent = '';
                 alert('All data cleared.');
+            }
+        }
+
+        function loadHomePageStats() {
+            const scores = JSON.parse(localStorage.getItem('examScores') || '{}');
+            const allAttempts = Object.values(scores).flat().filter(a => a && a.percentage);
+            if (allAttempts.length > 0) {
+                const avg = Math.round(allAttempts.reduce((sum, a) => sum + a.percentage, 0) / allAttempts.length);
+                const stats = document.getElementById('scoreStats');
+                if (stats) stats.textContent = `${allAttempts.length} exams • ${avg}% avg`;
             }
         }
     </script>
