@@ -61,16 +61,28 @@
       "references": "Mathematics - solved exercises and theory review by Buscema et al., Societá Editrice Esculapio."
     },
     {
-      "name": "Physiology and Anatomy",
-      "code": "2300109",
-      "id": "physiology-and-anatomy",
-      "instructor": "GIOVANNI DI PINO, GIORGIO VIVACQUA",
+      "name": "Physiology",
+      "code": "2300109A",
+      "id": "physiology",
+      "instructor": "GIOVANNI DI PINO",
       "semester": "Cicio Annuale Unico",
-      "objectives": "Knowledge of human body organization and physiological functions.",
+      "objectives": "Understanding of human physiological functions and regulatory systems.",
       "prerequisites": "Chemistry, Physics, general knowledge of Molecular Biology.",
-      "ects": 10,
-      "assessment": "Integrated oral exam (anatomy 3 questions + 1 histology, physiology open-ended). Each answer max 9 points, min 18 total.",
-      "references": "Gray's Anatomy for Students; Guyton and Hall Textbook of Medical Physiology, 14th edition."
+      "ects": 5,
+      "assessment": "Integrated oral exam with open-ended questions on cardiovascular, respiratory, renal, endocrine systems. Min 18 total.",
+      "references": "Guyton and Hall Textbook of Medical Physiology, 14th edition."
+    },
+    {
+      "name": "Anatomy",
+      "code": "2300109B",
+      "id": "anatomy",
+      "instructor": "GIORGIO VIVACQUA",
+      "semester": "Cicio Annuale Unico",
+      "objectives": "Knowledge of human body organization, anatomical structures, and tissue morphology.",
+      "prerequisites": "Chemistry, Physics, general knowledge of Molecular Biology.",
+      "ects": 5,
+      "assessment": "Integrated oral exam (3 anatomy questions + 1 histology question). Each answer max 9 points, min 18 total.",
+      "references": "Gray's Anatomy for Students."
     },
     {
       "name": "Advanced Physics",

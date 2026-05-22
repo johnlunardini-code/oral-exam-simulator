@@ -123,6 +123,17 @@
                 <div id="homeUploadStatus" style="font-size: 11px; margin-top: 4px; display: none;"></div>
             </div>
 
+            <div style="background: #f0f4ff; padding: 12px; border-radius: 8px; margin: 10px 0; font-size: 12px; flex-shrink: 0;">
+                <label style="color: #333; font-weight: 600;">👤 Your Name (Optional):</label>
+                <input type="text" id="studentName" placeholder="Enter your name for personalized feedback..." 
+                       style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-top: 6px; font-size: 12px;">
+            </div>
+
+            <div style="display: flex; gap: 8px; flex-shrink: 0; margin: 10px 0;">
+                <button onclick="viewPastScores()" style="flex: 1; background: #27ae60; color: white; border: none; padding: 10px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;" title="View your exam history">📊 Past Scores</button>
+                <button onclick="clearAllData()" style="flex: 1; background: #95a5a6; color: white; border: none; padding: 10px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;" title="Clear all saved data">🗑️ Clear Data</button>
+            </div>
+
             <p class="courses-label">Select a course:</p>
 
             <div class="courses-wrapper">
@@ -198,7 +209,8 @@
                 { id: 'economics-and-management', name: 'Economics & Mgmt', color: '#16a085' },
                 { id: 'general-english', name: 'English', color: '#2980b9' },
                 { id: 'italian', name: 'Italian', color: '#8b4513' },
-                { id: 'physiology-and-anatomy', name: 'Phys & Anatomy', color: '#c0392b' },
+                { id: 'physiology', name: 'Physiology', color: '#c0392b' },
+                { id: 'anatomy', name: 'Anatomy', color: '#9b59b6' },
                 { id: 'mathematics', name: 'Mathematics', color: '#764ba2' },
                 { id: 'fundamentals-of-computer-science', name: 'Computer Science', color: '#667eea' },
             ],
@@ -266,18 +278,36 @@
 
         if (recognition) {
             speechRecognizer = new recognition();
-            speechRecognizer.continuous = false;
+            speechRecognizer.continuous = true;
             speechRecognizer.interimResults = true;
             speechRecognizer.lang = 'en-US';
+            
+            let silenceTimer = null;
+            const SILENCE_THRESHOLD = 2000;
+            
             speechRecognizer.onstart = () => { isListening = true; updateSpeechButton(); };
             speechRecognizer.onend = () => { isListening = false; updateSpeechButton(); };
             speechRecognizer.onresult = (event) => {
                 let transcript = '';
+                let isFinal = false;
+                
                 for (let i = event.resultIndex; i < event.results.length; i++) {
                     transcript += event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        isFinal = true;
+                    }
                 }
-                if (event.results[event.results.length - 1].isFinal) {
-                    document.getElementById('answerInput').value = transcript;
+                
+                document.getElementById('answerInput').value = transcript;
+                
+                if (silenceTimer) clearTimeout(silenceTimer);
+                
+                if (isFinal) {
+                    silenceTimer = setTimeout(() => {
+                        if (transcript.trim()) {
+                            submitAnswer();
+                        }
+                    }, SILENCE_THRESHOLD);
                 }
             };
         }
@@ -357,10 +387,12 @@
 
         async function startExam(subject) {
             try {
+                const studentName = document.getElementById('studentName').value || 'Student';
+                
                 const response = await fetch(`${API_BASE}/api/exam/start`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ subject }),
+                    body: JSON.stringify({ subject, studentName }),
                 });
                 const data = await response.json();
                 currentSessionId = data.sessionId;
@@ -463,6 +495,10 @@
                     </div>`;
                 group.appendChild(msg);
                 chatArea.appendChild(group);
+                
+                if (data.shouldAutoRead) {
+                    setTimeout(() => speakText(data.response), 500);
+                }
 
                 if (data.hypotheticalScore) {
                     const scoreMsg = document.createElement('div');
@@ -482,6 +518,8 @@
                 document.getElementById('questionCount').textContent = data.questionNumber;
                 document.getElementById('answerInput').value = '';
                 chatArea.scrollTop = chatArea.scrollHeight;
+                
+                saveSessionScore(currentSessionId, data.scoreTracker);
             } catch (error) {
                 alert('Error: ' + error.message);
             }
@@ -597,6 +635,75 @@
                 document.querySelector('.exam-screen').classList.remove('active');
                 document.querySelector('.start-screen').classList.add('active');
                 currentSessionId = null;
+            }
+        }
+        
+        function saveSessionScore(sessionId, scoreTracker) {
+            const scores = JSON.parse(localStorage.getItem('examScores') || '{}');
+            const courseName = document.getElementById('courseName').textContent;
+            
+            if (!scores[courseName]) {
+                scores[courseName] = [];
+            }
+            
+            scores[courseName].push({
+                date: new Date().toLocaleString(),
+                correct: scoreTracker.correct,
+                total: scoreTracker.total,
+                percentage: Math.round((scoreTracker.correct / scoreTracker.total) * 100)
+            });
+            
+            localStorage.setItem('examScores', JSON.stringify(scores));
+        }
+        
+        function viewPastScores() {
+            const scores = JSON.parse(localStorage.getItem('examScores') || '{}');
+            
+            if (Object.keys(scores).length === 0) {
+                alert('No past scores yet. Take an exam to get started!');
+                return;
+            }
+            
+            let html = '<div style="max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.2);">';
+            html += '<h2 style="color: #333; text-align: center; margin-bottom: 20px;">📊 Past Exam Scores</h2>';
+            html += '<div style="max-height: 600px; overflow-y: auto;">';
+            
+            Object.entries(scores).forEach(([course, attempts]) => {
+                const avg = Math.round(attempts.reduce((sum, a) => sum + a.percentage, 0) / attempts.length);
+                html += `<div style="background: #f9f9f9; padding: 12px; border-radius: 6px; margin-bottom: 10px; border-left: 4px solid #667eea;">`;
+                html += `<h4 style="margin: 0 0 8px 0; color: #333;">${course}</h4>`;
+                html += `<p style="margin: 0 0 8px 0; color: #666; font-size: 12px;"><strong>Average:</strong> ${avg}%</p>`;
+                html += `<div style="font-size: 11px; color: #999;">`;
+                
+                attempts.forEach((attempt, i) => {
+                    html += `<div style="margin: 4px 0; padding: 4px; background: white; border-radius: 3px;">`;
+                    html += `Attempt ${i + 1}: ${attempt.percentage}% (${attempt.correct}/${attempt.total}) - ${attempt.date}`;
+                    html += `</div>`;
+                });
+                
+                html += `</div></div>`;
+            });
+            
+            html += '</div>';
+            html += '<button onclick="closePastScoresModal()" style="width: 100%; margin-top: 12px; background: #667eea; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: 600; cursor: pointer;">Close</button>';
+            html += '</div>';
+            
+            const modal = document.createElement('div');
+            modal.id = 'pastScoresModal';
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 2000;';
+            modal.innerHTML = html;
+            document.body.appendChild(modal);
+        }
+        
+        function closePastScoresModal() {
+            const modal = document.getElementById('pastScoresModal');
+            if (modal) modal.remove();
+        }
+        
+        function clearAllData() {
+            if (confirm('Delete all saved scores and data? This cannot be undone.')) {
+                localStorage.removeItem('examScores');
+                alert('All data cleared.');
             }
         }
     </script>
