@@ -1,7 +1,4 @@
-// Health check
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok' });
-});import express from 'express';
+import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { OpenAI } from 'openai';
@@ -153,13 +150,9 @@ app.post('/api/exam/question', async (req, res) => {
     let messageContent = studentAnswer || 'Please analyze the image provided.';
     
     if (imageData) {
-      // For Grok 4.3, add vision content
       messageContent = [
         { type: 'text', text: studentAnswer || 'Please analyze this image and provide feedback.' },
-        {
-          type: 'image_url',
-          image_url: { url: imageData }
-        }
+        { type: 'image_url', image_url: { url: imageData } }
       ];
     }
 
@@ -171,7 +164,7 @@ app.post('/api/exam/question', async (req, res) => {
       });
     }
 
-    // Get professor response with vision capability
+    // Get professor response
     const messages = [
       { role: 'system', content: systemPrompt },
       ...session.messages,
@@ -199,36 +192,8 @@ app.post('/api/exam/question', async (req, res) => {
       questionNumber: session.questionCount,
     });
   } catch (error) {
-    console.error('OpenAI API error:', error);
+    console.error('Xai API error:', error);
     res.status(500).json({ error: 'Failed to get exam response' });
-  }
-});
-
-// GET /api/exam/session/:sessionId - Get session details
-app.get('/api/exam/session/:sessionId', (req, res) => {
-  const { sessionId } = req.params;
-
-  if (!examSessions[sessionId]) {
-    return res.status(404).json({ error: 'Session not found' });
-  }
-
-  const session = examSessions[sessionId];
-  res.json({
-    subject: session.subject,
-    questionCount: session.questionCount,
-    messageCount: session.messages.length,
-  });
-});
-
-// DELETE /api/exam/session/:sessionId - End exam session
-app.delete('/api/exam/session/:sessionId', (req, res) => {
-  const { sessionId } = req.params;
-
-  if (examSessions[sessionId]) {
-    delete examSessions[sessionId];
-    res.json({ message: 'Session ended' });
-  } else {
-    res.status(404).json({ error: 'Session not found' });
   }
 });
 
@@ -261,16 +226,11 @@ app.post('/api/exam/hint', async (req, res) => {
 
 Provide a concise hint (2-3 sentences) that helps the student without directly answering the question. Focus on key concepts or approach.
 
-Also extract 1-2 key search terms (comma-separated) that could be used to find relevant images (e.g., "heart anatomy", "muscle fiber").`;
+Also extract 1-2 key search terms (comma-separated) that could be used to find relevant images.`;
 
     const hintResponse = await client.chat.completions.create({
       model: 'grok-4.3',
-      messages: [
-        {
-          role: 'user',
-          content: hintPrompt,
-        },
-      ],
+      messages: [{ role: 'user', content: hintPrompt }],
       temperature: 0.7,
       max_tokens: 200,
     });
@@ -282,7 +242,6 @@ Also extract 1-2 key search terms (comma-separated) that could be used to find r
     let textHint = hintContent;
     let searchTerms = 'study hint';
 
-    // Try to extract search terms if they're on a separate line
     if (lines.length > 1) {
       textHint = lines.slice(0, -1).join('\n');
       const lastLine = lines[lines.length - 1];
@@ -291,10 +250,7 @@ Also extract 1-2 key search terms (comma-separated) that could be used to find r
       }
     }
 
-    res.json({
-      textHint,
-      searchTerms,
-    });
+    res.json({ textHint, searchTerms });
   } catch (error) {
     console.error('Hint generation error:', error);
     res.status(500).json({ error: 'Failed to generate hint' });
@@ -341,9 +297,41 @@ app.get('/api/search-image', async (req, res) => {
   }
 });
 
+// GET /api/exam/session/:sessionId - Get session details
+app.get('/api/exam/session/:sessionId', (req, res) => {
+  const { sessionId } = req.params;
+
+  if (!examSessions[sessionId]) {
+    return res.status(404).json({ error: 'Session not found' });
+  }
+
+  const session = examSessions[sessionId];
+  res.json({
+    subject: session.subject,
+    questionCount: session.questionCount,
+    messageCount: session.messages.length,
+  });
+});
+
+// DELETE /api/exam/session/:sessionId - End exam session
+app.delete('/api/exam/session/:sessionId', (req, res) => {
+  const { sessionId } = req.params;
+
+  if (examSessions[sessionId]) {
+    delete examSessions[sessionId];
+    res.json({ message: 'Session ended' });
+  } else {
+    res.status(404).json({ error: 'Session not found' });
+  }
+});
+
+// Health check
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Oral exam simulator running on http://0.0.0.0:${PORT}`);
-  console.log(`PORT env var: ${process.env.PORT}`);
   console.log(`XAI_API_KEY set: ${!!process.env.XAI_API_KEY}`);
   console.log('Using model: grok-4.3 with vision and Browser Text-to-Speech');
 });
