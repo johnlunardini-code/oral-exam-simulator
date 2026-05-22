@@ -15,17 +15,53 @@ const PORT = 3000;
 
 // Load real UCBM course data
 let courseSpecs;
+const courseDataPath = path.join(__dirname, 'courses-extracted.json');
+
 try {
-  courseSpecs = JSON.parse(fs.readFileSync(path.join(__dirname, 'courses-extracted.json'), 'utf-8'));
-  console.log('✅ Loaded real UCBM courses from courses-extracted.json');
+  if (fs.existsSync(courseDataPath)) {
+    courseSpecs = JSON.parse(fs.readFileSync(courseDataPath, 'utf-8'));
+    console.log('✅ Loaded real UCBM courses from courses-extracted.json');
+  } else {
+    throw new Error('File not found');
+  }
 } catch (e) {
-  courseSpecs = JSON.parse(fs.readFileSync(path.join(__dirname, 'course-specs.json'), 'utf-8'));
-  console.log('⚠️  Loaded fallback course-specs.json');
+  console.log('⚠️  courses-extracted.json not found, creating from course-specs.json...');
+  try {
+    courseSpecs = JSON.parse(fs.readFileSync(path.join(__dirname, 'course-specs.json'), 'utf-8'));
+    console.log('✅ Using fallback course-specs.json');
+  } catch (err) {
+    console.error('❌ Neither course data file found. Using minimal default courses.');
+    courseSpecs = { courses: [] };
+  }
 }
 
 const courseMap = {};
+const assessmentTypeMap = {};
+
 courseSpecs.courses.forEach(course => {
   courseMap[course.id] = course;
+  
+  // Determine assessment type from assessment field
+  const assessment = (course.assessment || '').toLowerCase();
+  let type = 'oral'; // default
+  
+  if (assessment.includes('written') && assessment.includes('oral')) {
+    type = 'written-oral';
+  } else if (assessment.includes('written') && assessment.includes('project')) {
+    type = 'written-project';
+  } else if (assessment.includes('written') && assessment.includes('lab')) {
+    type = 'written-lab';
+  } else if (assessment.includes('project') && assessment.includes('presentation')) {
+    type = 'project-presentation';
+  } else if (assessment.includes('written')) {
+    type = 'written';
+  } else if (assessment.includes('lab') || assessment.includes('laboratory')) {
+    type = 'lab';
+  } else if (assessment.includes('project')) {
+    type = 'project';
+  }
+  
+  assessmentTypeMap[course.id] = type;
 });
 
 app.use(cors());
@@ -76,7 +112,22 @@ function getEmojiForCourse(name) {
   if (lowerName.includes('ethics') || lowerName.includes('anthropology')) return '🎭';
   if (lowerName.includes('humanities')) return '📚';
   if (lowerName.includes('probability') || lowerName.includes('statistics')) return '📈';
+  if (lowerName.includes('lab')) return '🧪';
   return '📖';
+}
+
+function getAssessmentHint(assessmentType) {
+  const hints = {
+    'oral': 'Prepare to discuss concepts clearly and demonstrate deep understanding. Focus on explaining ideas verbally.',
+    'written': 'Practice solving problems on paper with clear mathematical steps. Time management is key.',
+    'written-oral': 'Study both written problem-solving and verbal explanation. Balance theory with calculations.',
+    'lab': 'Prepare for hands-on experimentation. Know procedures, safety, and data analysis methods.',
+    'project': 'Be ready to present your work and defend your methodology and results.',
+    'written-lab': 'Expect both theoretical written exams and practical laboratory components.',
+    'written-project': 'You\'ll need to produce written work and present findings.',
+    'project-presentation': 'Focus on clear presentation skills and ability to discuss your project in detail.'
+  };
+  return hints[assessmentType] || hints['oral'];
 }
 
 const examSessions = {};
@@ -85,18 +136,20 @@ function generateSessionId() {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
 }
 
-function buildSystemPrompt(subject, uploadedMaterials) {
+function buildSystemPrompt(subject, uploadedMaterials, assessmentType) {
   const course = courseMap[subject];
   if (!course) {
-    return 'You are an UCBM professor conducting an oral exam.';
+    return 'You are an UCBM Exam Tutor conducting a preparation session.';
   }
 
-  let prompt = `You are an experienced professor at UCBM (Università Campus Bio-Medico di Roma) in the Biomedical Engineering program, conducting a realistic oral exam.
+  const assessmentHint = getAssessmentHint(assessmentType);
+
+  let prompt = `You are an experienced UCBM Exam Tutor helping students prepare for their assessment in the Biomedical Engineering program.
 
 **Course**: ${course.name}
 **Instructor**: ${course.instructor || 'UCBM Faculty'}
 **ECTS**: ${course.ects || 'N/A'}
-**Semester**: ${course.semester || 'N/A'}
+**Assessment Type**: ${assessmentType.replace('-', ' / ').toUpperCase()}
 
 **Course Objectives**:
 ${course.objectives || 'Standard biomedical engineering course.'}
@@ -104,32 +157,39 @@ ${course.objectives || 'Standard biomedical engineering course.'}
 **Prerequisites**:
 ${course.prerequisites || 'None'}
 
-**Assessment Method**:
-${course.assessment || 'Standard oral exam'}
+**Assessment Details**:
+${course.assessment || 'Standard exam'}
 
 **Key References**:
-${course.references || 'Standard course materials'}
+${course.references || 'Course materials'}
 
-**Your Role**:
-1. Conduct a realistic oral exam on this course.
-2. Ask progressively challenging questions that test understanding, application, and critical thinking.
-3. Provide constructive feedback after each response.
-4. Adjust difficulty based on student performance.
-5. Emphasize both technical accuracy and clear communication.
-6. Use appropriate technical terminology.
+**Assessment Preparation Tip**:
+${assessmentHint}
 
-**Session Flow**:
-- Start with a clear, specific question aligned with the course objectives
-- Listen carefully to the student's answer
-- Provide detailed feedback on accuracy, depth, and presentation
-- Ask follow-up questions to probe deeper understanding
-- Conclude with synthesis questions that integrate multiple topics
+**Your Role as Exam Tutor**:
+1. Ask realistic questions that match this course's assessment format.
+2. After each response, provide constructive feedback on:
+   - Technical accuracy
+   - Depth of understanding
+   - Communication clarity (especially important for oral/presentation components)
+   - Problem-solving approach (if written exam)
+   - Practical understanding (if lab component)
+3. Adapt difficulty progressively based on student performance.
+4. Reference uploaded materials when available.
+5. Use appropriate technical terminology.
 
-Begin immediately with your first question for ${course.name}. Do not introduce yourself or ask for confirmation.`;
+**Session Style**:
+- Start with one clear, focused question aligned with course learning objectives
+- Listen carefully to responses and provide detailed, actionable feedback
+- Ask probing follow-up questions to test deeper understanding
+- Help students practice presentation skills if it's an oral/presentation exam
+- Provide encouragement and identify areas for improvement
+
+Begin immediately with your first question for ${course.name} (${assessmentType.replace('-', '/')})`. Do not introduce yourself or ask for confirmation.`;
 
   if (uploadedMaterials && uploadedMaterials.length > 0) {
     const materials = uploadedMaterials.map(m => m.filename).join(', ');
-    prompt += `\n\n**Student-Uploaded Materials**: ${materials}\nPrioritize these materials when grounding your questions and feedback.`;
+    prompt += `\n\n**Student-Uploaded Materials**: ${materials}\nUse these materials to ground your questions and feedback in the student's actual course content.`;
   }
 
   return prompt;
@@ -141,19 +201,22 @@ app.post('/api/exam/start', (req, res) => {
 
   if (!validSubjects.includes(subject)) {
     return res.status(400).json({ 
-      error: `Invalid subject. Choose from: ${validSubjects.join(', ')}`,
-      validSubjects 
+      error: `Invalid subject. Available: ${validSubjects.slice(0, 5).join(', ')}...`,
+      validSubjects,
+      availableCount: validSubjects.length
     });
   }
 
   const sessionId = generateSessionId();
   const course = courseMap[subject];
   const emoji = getEmojiForCourse(course.name);
+  const assessmentType = assessmentTypeMap[subject] || 'oral';
   
   examSessions[sessionId] = {
     subject,
     courseName: `${emoji} ${course.name}`,
     courseData: course,
+    assessmentType,
     messages: [],
     questionCount: 0,
     uploadedMaterials: [],
@@ -163,10 +226,12 @@ app.post('/api/exam/start', (req, res) => {
     sessionId, 
     subject, 
     courseName: `${emoji} ${course.name}`,
+    assessmentType,
     courseInfo: {
       instructor: course.instructor,
       ects: course.ects,
-      semester: course.semester
+      semester: course.semester,
+      assessment: course.assessment
     }
   });
 });
@@ -206,7 +271,7 @@ app.post('/api/exam/question', async (req, res) => {
   }
 
   const session = examSessions[sessionId];
-  const systemPrompt = buildSystemPrompt(session.subject, session.uploadedMaterials);
+  const systemPrompt = buildSystemPrompt(session.subject, session.uploadedMaterials, session.assessmentType);
 
   try {
     let messageContent = studentAnswer || 'Please analyze the image provided.';
@@ -251,8 +316,8 @@ app.post('/api/exam/question', async (req, res) => {
       questionNumber: session.questionCount,
     });
   } catch (error) {
-    console.error('Xai API error:', error);
-    res.status(500).json({ error: 'Failed to get exam response' });
+    console.error('API error:', error);
+    res.status(500).json({ error: 'Failed to generate response: ' + error.message });
   }
 });
 
@@ -303,6 +368,7 @@ app.get('/api/courses', (req, res) => {
     code: course.code,
     instructor: course.instructor,
     ects: course.ects,
+    assessmentType: assessmentTypeMap[course.id] || 'oral',
     emoji: getEmojiForCourse(course.name)
   }));
   res.json({ courses: coursesList });
@@ -319,6 +385,7 @@ app.get('/api/exam/session/:sessionId', (req, res) => {
   res.json({
     subject: session.subject,
     courseName: session.courseName,
+    assessmentType: session.assessmentType,
     questionCount: session.questionCount,
     messageCount: session.messages.length,
     materialsUploaded: session.uploadedMaterials.length,
@@ -337,11 +404,15 @@ app.delete('/api/exam/session/:sessionId', (req, res) => {
 });
 
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', coursesLoaded: courseSpecs.courses.length });
+  res.json({ 
+    status: 'ok', 
+    coursesLoaded: courseSpecs.courses.length,
+    appName: 'UCBM Exam Tutor'
+  });
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`\n🎓 UCBM Oral Exam Simulator running on http://0.0.0.0:${PORT}`);
-  console.log(`📚 ${courseSpecs.courses.length} UCBM courses loaded`);
+  console.log(`\n🎓 UCBM Exam Tutor running on http://0.0.0.0:${PORT}`);
+  console.log(`📚 ${courseSpecs.courses.length} courses loaded`);
   console.log(`🔑 XAI_API_KEY: ${!!process.env.XAI_API_KEY ? '✅' : '⚠️ Not set'}\n`);
 });
