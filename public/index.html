@@ -409,8 +409,13 @@
                     <button class="btn-secondary btn-submit" onclick="toggleSpeech()" id="speechButton">
                         🎤
                     </button>
+                    <button class="btn-secondary btn-submit" onclick="document.getElementById('imageInput').click()">
+                        🖼️
+                    </button>
+                    <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
                 </div>
             </div>
+            <div id="imagePreview" style="margin-bottom: 10px;"></div>
 
             <div class="button-group">
                 <button class="btn-danger" onclick="endExam()">End Exam</button>
@@ -540,11 +545,100 @@
 
         async function submitAnswer() {
             const answer = document.getElementById('answerInput').value.trim();
-            if (!answer) {
-                showError('Please provide an answer');
+            const imageInput = document.getElementById('imageInput');
+            const imageFile = imageInput.files[0];
+            
+            if (!answer && !imageFile) {
+                showError('Please provide an answer or upload an image');
                 return;
             }
-            await getQuestion(answer);
+            
+            if (imageFile) {
+                // Convert image to base64
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const imageData = e.target.result;
+                    getQuestionWithImage(answer, imageData);
+                    imageInput.value = '';
+                    document.getElementById('imagePreview').innerHTML = '';
+                };
+                reader.readAsDataURL(imageFile);
+            } else {
+                await getQuestion(answer);
+            }
+        }
+        
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const preview = document.getElementById('imagePreview');
+                    preview.innerHTML = `<img src="${e.target.result}" style="max-width: 200px; max-height: 150px; border-radius: 6px;">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        async function getQuestionWithImage(studentAnswer, imageData) {
+            try {
+                showLoading();
+                const response = await fetch(`${API_BASE}/api/exam/question`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        sessionId: currentSessionId, 
+                        studentAnswer,
+                        imageData
+                    }),
+                });
+
+                const data = await response.json();
+                hideLoading();
+
+                // Add student answer with image
+                addMessageWithImage(studentAnswer, 'student', imageData);
+
+                // Add professor response
+                addMessage(data.response, 'professor');
+                document.getElementById('questionCount').textContent = data.questionNumber;
+                document.getElementById('answerInput').value = '';
+            } catch (error) {
+                hideLoading();
+                showError('Failed to get question: ' + error.message);
+            }
+        }
+        
+        function addMessageWithImage(text, type, imageData) {
+            const chatArea = document.getElementById('chatArea');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+
+            const label = document.createElement('div');
+            label.className = 'message-label';
+            label.textContent = type === 'professor' ? 'Professor' : 'Your Answer';
+
+            const textDiv = document.createElement('div');
+            textDiv.className = 'message-text';
+            textDiv.textContent = text;
+
+            messageDiv.appendChild(label);
+            messageDiv.appendChild(textDiv);
+            
+            if (imageData && type === 'student') {
+                const imgDiv = document.createElement('div');
+                imgDiv.style.marginTop = '8px';
+                const img = document.createElement('img');
+                img.src = imageData;
+                img.style.maxWidth = '200px';
+                img.style.maxHeight = '150px';
+                img.style.borderRadius = '4px';
+                imgDiv.appendChild(img);
+                messageDiv.appendChild(imgDiv);
+            }
+
+            chatArea.appendChild(messageDiv);
+            chatArea.scrollTop = chatArea.scrollHeight;
         }
 
         function addMessage(text, type, audioUrl = null) {

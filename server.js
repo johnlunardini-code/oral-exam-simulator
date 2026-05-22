@@ -75,7 +75,7 @@ app.post('/api/exam/start', (req, res) => {
 
 // POST /api/exam/question - Get AI professor response
 app.post('/api/exam/question', async (req, res) => {
-  const { sessionId, studentAnswer } = req.body;
+  const { sessionId, studentAnswer, imageData } = req.body;
 
   if (!sessionId || !examSessions[sessionId]) {
     return res.status(404).json({ error: 'Exam session not found' });
@@ -85,21 +85,37 @@ app.post('/api/exam/question', async (req, res) => {
   const systemPrompt = systemPrompts[session.subject];
 
   try {
+    // Build message content (text + optional image)
+    let messageContent = studentAnswer || 'Please analyze the image provided.';
+    
+    if (imageData) {
+      // For Grok 4.3, add vision content
+      messageContent = [
+        { type: 'text', text: studentAnswer || 'Please analyze this image and provide feedback.' },
+        {
+          type: 'image_url',
+          image_url: { url: imageData }
+        }
+      ];
+    }
+
     // Add student answer to conversation history
     if (studentAnswer && studentAnswer.trim()) {
       session.messages.push({
         role: 'user',
-        content: studentAnswer,
+        content: messageContent,
       });
     }
 
-    // Get professor response
+    // Get professor response with vision capability
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      ...session.messages,
+    ];
+
     const response = await client.chat.completions.create({
-      model: 'grok-build-0.1',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        ...session.messages,
-      ],
+      model: 'grok-4.3',
+      messages,
       temperature: 0.6,
       max_tokens: 400,
     });
@@ -161,5 +177,5 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`Oral exam simulator running on http://0.0.0.0:${PORT}`);
   console.log(`PORT env var: ${process.env.PORT}`);
   console.log(`XAI_API_KEY set: ${!!process.env.XAI_API_KEY}`);
-  console.log('Using model: grok-build-0.1 with Browser Text-to-Speech');
+  console.log('Using model: grok-4.3 with vision and Browser Text-to-Speech');
 });
