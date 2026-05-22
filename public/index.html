@@ -16,18 +16,31 @@
         .subtitle { color: #666; font-size: 13px; }
         .start-screen, .exam-screen { display: none; }
         .start-screen.active, .exam-screen.active { display: block; }
-        .subjects-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 12px; }
+        
+        .upload-section { background: #f0f4ff; border: 2px solid #667eea; padding: 12px; border-radius: 8px; margin-bottom: 16px; }
+        .upload-section h3 { margin: 0 0 8px 0; color: #333; font-size: 13px; }
+        .upload-section p { margin: 0 0 8px 0; color: #666; font-size: 11px; }
+        #homeUploadInput { font-size: 11px; }
+        .upload-status { font-size: 11px; margin-top: 4px; }
+        .upload-status.success { color: #155724; }
+        .upload-status.error { color: #721c24; }
+        
+        .subjects-grid { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 12px; }
         @media (min-width: 480px) { .subjects-grid { grid-template-columns: 1fr 1fr; } }
-        .subject-btn { padding: 12px 10px; border: none; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; color: white; }
+        .subject-btn { padding: 10px 8px; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; color: white; }
         .subject-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); }
+        
         .exam-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px; border-radius: 6px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-        .subject-badge { background: rgba(255, 255, 255, 0.2); padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .course-name { font-size: 13px; font-weight: 700; }
+        .question-count { font-size: 11px; }
+        
         .chat-area { border: 1px solid #e0e0e0; border-radius: 6px; padding: 10px; height: 280px; overflow-y: auto; margin-bottom: 10px; background: #f9f9f9; font-size: 12px; }
         .message { margin-bottom: 10px; padding: 8px; border-radius: 6px; }
         .message.professor { background: #e8f0fe; border-left: 4px solid #667eea; }
         .message.student { background: #f0e8fe; border-left: 4px solid #764ba2; }
         .message-label { font-weight: 600; font-size: 11px; color: #666; margin-bottom: 3px; text-transform: uppercase; }
         .message-text { color: #333; font-size: 12px; line-height: 1.4; }
+        
         .input-area { display: flex; gap: 8px; margin-bottom: 10px; }
         textarea { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-family: inherit; font-size: 12px; resize: none; min-height: 60px; }
         button { padding: 8px 16px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
@@ -35,11 +48,13 @@
         .btn-secondary { background: #764ba2; color: white; }
         .btn-danger { background: #e74c3c; color: white; }
         .play-btn { background: #667eea; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 600; margin-top: 4px; }
+        
         .feature-list { background: #f9f9f9; padding: 10px; border-radius: 6px; margin: 10px 0; font-size: 12px; }
         .feature-list h3 { color: #333; margin: 0 0 6px 0; font-size: 13px; }
         .feature-list ul { list-style: none; margin: 0; padding: 0; }
         .feature-list li { padding: 2px 0; color: #666; display: flex; align-items: center; gap: 6px; }
         .feature-list li::before { content: '✓'; color: #667eea; font-weight: bold; }
+        
         .sidebar { position: fixed; right: -90vw; top: 0; width: 90vw; max-width: 350px; height: 100vh; background: white; box-shadow: -5px 0 20px rgba(0, 0, 0, 0.2); transition: right 0.3s ease; overflow-y: auto; z-index: 1000; }
         .sidebar.active { right: 0; }
         .sidebar-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px; display: flex; justify-content: space-between; align-items: center; }
@@ -48,16 +63,13 @@
         .sidebar-content { padding: 12px; }
         .sidebar-btn { position: fixed; right: 16px; bottom: 16px; width: 50px; height: 50px; border-radius: 50%; background: #667eea; color: white; border: none; font-size: 20px; cursor: pointer; box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); z-index: 999; }
         .loading { text-align: center; color: #667eea; font-weight: 600; padding: 10px; font-size: 12px; }
-        .upload-box { background: #fff3cd; border: 1px solid #ffc107; padding: 10px; border-radius: 6px; margin-bottom: 10px; font-size: 11px; }
-        #materialInput { font-size: 11px; }
-        #uploadStatus { display: none; color: #155724; margin-top: 4px; font-size: 11px; }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>🎓 UCBM Oral Exam</h1>
-            <p class="subtitle">Biomedical Engineering - Anno 2026-2027</p>
+            <p class="subtitle">Biomedical Engineering - Piano degli Studi 2026-2027</p>
         </header>
 
         <!-- Start Screen -->
@@ -65,39 +77,62 @@
             <div class="feature-list">
                 <h3>Features</h3>
                 <ul>
-                    <li>UCBM curriculum-aligned oral exams</li>
-                    <li>Upload your course materials (PDF, DOCX, slides)</li>
-                    <li>AI professor asks realistic questions</li>
+                    <li>21 UCBM BEN courses - Piano degli Studi 2026-2027</li>
+                    <li>Upload course materials (PDF, DOCX, PPTX, slides, notes)</li>
+                    <li>AI professor: realistic oral exam questions</li>
                     <li>Speech recognition for oral practice</li>
                     <li>Study hints from textbooks & materials</li>
                 </ul>
             </div>
 
-            <p style="color: #666; text-align: center; margin: 12px 0; font-size: 12px;">Select a subject:</p>
+            <div class="upload-section">
+                <h3>📚 Pre-load Course Materials (Optional)</h3>
+                <p>Upload syllabi, lecture notes, or slides before starting an exam. Materials will be used to ground exam questions and feedback.</p>
+                <input type="file" id="homeUploadInput" accept=".pdf,.docx,.pptx,.txt,.jpg,.png,.gif,.webp" multiple onchange="preloadMaterials()">
+                <div id="homeUploadStatus" class="upload-status" style="display: none;"></div>
+            </div>
+
+            <p style="color: #666; text-align: center; margin: 12px 0; font-size: 12px; font-weight: 600;">Select a course:</p>
 
             <div class="subjects-grid">
-                <button class="subject-btn" style="background: #667eea;" onclick="startExam('anatomy')">🦴 Anatomy</button>
-                <button class="subject-btn" style="background: #764ba2;" onclick="startExam('physiology')">❤️ Physiology</button>
-                <button class="subject-btn" style="background: #e74c3c;" onclick="startExam('general-physics-i')">⚡ Gen. Physics I</button>
-                <button class="subject-btn" style="background: #f39c12;" onclick="startExam('advanced-physics')">🌌 Adv. Physics</button>
-                <button class="subject-btn" style="background: #16a085;" onclick="startExam('biomechanics')">🏃 Biomechanics</button>
-                <button class="subject-btn" style="background: #2980b9;" onclick="startExam('fundamentals-of-bioengineering')">🔧 Fund. Bio-Eng</button>
-                <button class="subject-btn" style="background: #8e44ad;" onclick="startExam('economics-and-management')">💼 Econ & Mgmt</button>
-                <button class="subject-btn" style="background: #27ae60;" onclick="startExam('italian-for-english-learners')">🇮🇹 Italian</button>
+                <button class="subject-btn" style="background: #667eea;" onclick="startExam('fundamentals-of-computer-science')">💻 Computer Science</button>
+                <button class="subject-btn" style="background: #764ba2;" onclick="startExam('mathematics')">📐 Mathematics</button>
+                <button class="subject-btn" style="background: #e74c3c;" onclick="startExam('chemistry')">⚗️ Chemistry</button>
+                <button class="subject-btn" style="background: #f39c12;" onclick="startExam('general-physics')">⚡ Gen. Physics</button>
+                <button class="subject-btn" style="background: #16a085;" onclick="startExam('economics-and-management')">💼 Econ & Mgmt</button>
+                <button class="subject-btn" style="background: #2980b9;" onclick="startExam('general-english-italian')">🌍 English/Italian</button>
+                
+                <button class="subject-btn" style="background: #c0392b;" onclick="startExam('physiology-and-anatomy')">🦴 Anatomy & Physio</button>
+                <button class="subject-btn" style="background: #8e44ad;" onclick="startExam('advanced-physics')">🌌 Adv. Physics</button>
+                <button class="subject-btn" style="background: #27ae60;" onclick="startExam('mathematics-ii')">📊 Mathematics II</button>
+                <button class="subject-btn" style="background: #d35400;" onclick="startExam('probability-and-statistics')">📈 Stats</button>
+                <button class="subject-btn" style="background: #1abc9c;" onclick="startExam('healthcare-information-systems')">🏥 HIS & Telemedicine</button>
+                <button class="subject-btn" style="background: #34495e;" onclick="startExam('electronics-and-electrotechnics')">🔌 Electronics</button>
+                
+                <button class="subject-btn" style="background: #e67e22;" onclick="startExam('mechanics-of-solids')">🏗️ Mechanics</button>
+                <button class="subject-btn" style="background: #16a085;" onclick="startExam('transport-phenomena-and-thermodynamics')">🌡️ Transport & Thermo</button>
+                <button class="subject-btn" style="background: #3498db;" onclick="startExam('technical-english-italian')">📝 Tech English/It</button>
+                <button class="subject-btn" style="background: #9b59b6;" onclick="startExam('biomedical-signal-processing')">📡 Signal Processing</button>
+                <button class="subject-btn" style="background: #e74c3c;" onclick="startExam('fundamentals-of-automatic-control')">🎛️ Auto Control</button>
+                
+                <button class="subject-btn" style="background: #1e8449;" onclick="startExam('biomechanics')">🏃 Biomechanics</button>
+                <button class="subject-btn" style="background: #154360;" onclick="startExam('fundamentals-of-bioengineering')">🔧 Fund. Bio-Eng</button>
+                <button class="subject-btn" style="background: #784212;" onclick="startExam('measurements-and-instrumentation')">🔬 Measurements</button>
+                <button class="subject-btn" style="background: #641e16;" onclick="startExam('humanities-for-bioengineering')">🎭 Humanities</button>
             </div>
         </div>
 
         <!-- Exam Screen -->
         <div class="exam-screen">
             <div class="exam-header">
-                <span class="subject-badge" id="subjectBadge"></span>
-                <span style="font-size: 11px;">Q<span id="questionCount">1</span></span>
+                <div class="course-name" id="courseName"></div>
+                <div class="question-count">Q<span id="questionCount">1</span></div>
             </div>
 
-            <div class="upload-box">
+            <div style="background: #fff3cd; border: 1px solid #ffc107; padding: 10px; border-radius: 6px; margin-bottom: 10px; font-size: 11px;">
                 <strong>📚 Upload Course Materials:</strong> (Optional)<br>
-                <input type="file" id="materialInput" accept=".pdf,.docx,.pptx,.txt,.jpg,.png,.gif,.webp" onchange="uploadMaterial()">
-                <span id="uploadStatus"></span>
+                <input type="file" id="examUploadInput" accept=".pdf,.docx,.pptx,.txt,.jpg,.png,.gif,.webp" onchange="uploadMaterial()">
+                <div id="examUploadStatus" class="upload-status" style="display: none;"></div>
             </div>
 
             <div class="chat-area" id="chatArea"></div>
@@ -133,9 +168,9 @@
     <script>
         const API_BASE = '';
         let currentSessionId = null;
-        let currentSubject = null;
+        let currentCourseName = null;
         let isListening = false;
-        let selectedVoice = null;
+        let preloadedMaterials = [];
         const recognition = window.webkitSpeechRecognition || window.SpeechRecognition;
         let speechRecognizer = null;
 
@@ -170,6 +205,39 @@
             else speechRecognizer.start();
         }
 
+        async function preloadMaterials() {
+            const files = document.getElementById('homeUploadInput').files;
+            const status = document.getElementById('homeUploadStatus');
+            
+            if (files.length === 0) {
+                status.style.display = 'none';
+                return;
+            }
+
+            status.textContent = `Loading ${files.length} file(s)...`;
+            status.classList.remove('success', 'error');
+            status.style.display = 'block';
+
+            preloadedMaterials = [];
+            let loaded = 0;
+
+            for (let file of files) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    preloadedMaterials.push({
+                        name: file.name,
+                        content: e.target.result.substring(0, 50000),
+                    });
+                    loaded++;
+                    if (loaded === files.length) {
+                        status.textContent = `✓ ${loaded} material(s) pre-loaded`;
+                        status.classList.add('success');
+                    }
+                };
+                reader.readAsText(file, 'utf-8');
+            }
+        }
+
         async function startExam(subject) {
             try {
                 const response = await fetch(`${API_BASE}/api/exam/start`, {
@@ -179,20 +247,42 @@
                 });
                 const data = await response.json();
                 currentSessionId = data.sessionId;
-                currentSubject = subject;
+                currentCourseName = data.courseName;
+                
                 document.querySelector('.start-screen').classList.remove('active');
                 document.querySelector('.exam-screen').classList.add('active');
-                document.getElementById('subjectBadge').textContent = subject.split('-').map(w => w.charAt(0).toUpperCase()).join('');
+                document.getElementById('courseName').textContent = data.courseName;
                 document.getElementById('chatArea').innerHTML = '';
-                document.getElementById('uploadStatus').style.display = 'none';
+                document.getElementById('examUploadStatus').style.display = 'none';
+                
+                // Upload pre-loaded materials
+                for (let material of preloadedMaterials) {
+                    await uploadPreloadedMaterial(material);
+                }
+                
                 getQuestion('');
             } catch (error) {
                 alert('Error: ' + error.message);
             }
         }
 
+        async function uploadPreloadedMaterial(material) {
+            try {
+                const blob = new Blob([material.content], { type: 'text/plain' });
+                const formData = new FormData();
+                formData.append('file', blob, material.name);
+
+                await fetch(`${API_BASE}/api/exam/upload/${currentSessionId}`, {
+                    method: 'POST',
+                    body: formData,
+                });
+            } catch (error) {
+                console.error('Preload upload error:', error);
+            }
+        }
+
         async function uploadMaterial() {
-            const file = document.getElementById('materialInput').files[0];
+            const file = document.getElementById('examUploadInput').files[0];
             if (!file) return;
 
             const formData = new FormData();
@@ -204,15 +294,15 @@
                     body: formData,
                 });
                 const data = await response.json();
-                const status = document.getElementById('uploadStatus');
+                const status = document.getElementById('examUploadStatus');
                 status.textContent = `✓ ${data.filename} loaded (${data.materialsCount} total)`;
+                status.classList.add('success');
                 status.style.display = 'block';
-                status.style.color = '#155724';
             } catch (error) {
-                const status = document.getElementById('uploadStatus');
+                const status = document.getElementById('examUploadStatus');
                 status.textContent = `✗ Upload failed: ${error.message}`;
+                status.classList.add('error');
                 status.style.display = 'block';
-                status.style.color = '#721c24';
             }
         }
 
@@ -323,36 +413,21 @@
                 <div style="background: #f0f4ff; padding: 10px; border-radius: 6px; margin-bottom: 10px;">
                     <p style="color: #333; font-size: 12px; line-height: 1.5; margin: 0;">${data.textHint}</p>
                 </div>
-                <button class="btn-primary" onclick="getHintImage()" style="width: 100%; margin-bottom: 6px; padding: 6px;">📷 Show Image</button>
+                <button class="btn-primary" onclick="getHintImage()" style="width: 100%; margin-bottom: 6px; padding: 6px;">🔍 Search Images</button>
                 <button class="btn-secondary" onclick="toggleSidebar()" style="width: 100%; padding: 6px;">Close</button>
             `;
         }
 
-        async function getHintImage() {
+        function getHintImage() {
             if (!currentHintData) return;
+            const searchQuery = encodeURIComponent(currentHintData.searchTerms);
+            const googleImagesUrl = `https://www.google.com/search?tbm=isch&q=${searchQuery}`;
+            window.open(googleImagesUrl, '_blank');
             const hintResult = document.getElementById('hintResult');
-            hintResult.innerHTML = '<p style="text-align: center; color: #667eea; font-size: 12px;">Searching for images...</p>';
-            try {
-                const response = await fetch(`${API_BASE}/api/search-image?query=${encodeURIComponent(currentHintData.searchTerms)}`);
-                const data = await response.json();
-                if (data.imageUrl) {
-                    hintResult.innerHTML = `
-                        <img src="${data.imageUrl}" style="width: 100%; border-radius: 6px; margin-bottom: 8px; max-height: 250px; object-fit: cover;">
-                        <p style="color: #999; font-size: 11px; margin: 0;">Source: ${data.source}</p>
-                        <button class="btn-secondary" onclick="displayTextHint(currentHintData)" style="width: 100%; padding: 6px; margin-top: 8px;">📝 Back to Hint</button>
-                    `;
-                } else {
-                    hintResult.innerHTML = `
-                        <p style="color: #e74c3c; font-size: 12px; margin-bottom: 8px;">No images found.</p>
-                        <button class="btn-secondary" onclick="displayTextHint(currentHintData)" style="width: 100%; padding: 6px;">📝 Back to Hint</button>
-                    `;
-                }
-            } catch (error) {
-                hintResult.innerHTML = `
-                    <p style="color: #e74c3c; font-size: 12px; margin-bottom: 8px;">Error fetching image.</p>
-                    <button class="btn-secondary" onclick="displayTextHint(currentHintData)" style="width: 100%; padding: 6px;">Back</button>
-                `;
-            }
+            hintResult.innerHTML = `
+                <p style="color: #333; font-size: 12px; margin-bottom: 8px;">✓ Google Images opened for: <strong>${currentHintData.searchTerms}</strong></p>
+                <button class="btn-secondary" onclick="displayTextHint(currentHintData)" style="width: 100%; padding: 6px;">📝 Back to Hint</button>
+            `;
         }
 
         async function endExam() {
