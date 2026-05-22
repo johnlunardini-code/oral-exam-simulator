@@ -8,16 +8,24 @@
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 8px; margin: 0; overflow-x: hidden; box-sizing: border-box; }
         * { box-sizing: border-box; }
-        .container { background: white; border-radius: 12px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); width: 100%; max-width: 900px; padding: 16px; max-height: 98vh; overflow-y: auto; display: flex; flex-direction: column; }
-        @media (max-width: 768px) { .container { padding: 12px; border-radius: 8px; max-height: 99vh; } }
-        @media (max-width: 480px) { body { padding: 4px; } .container { padding: 10px; max-height: 100vh; border-radius: 6px; } }
-        header { text-align: center; margin-bottom: 20px; }
-        h1 { color: #333; margin-bottom: 5px; font-size: 24px; }
-        .subtitle { color: #666; font-size: 13px; }
-        .start-screen, .exam-screen { display: none; }
-        .start-screen.active, .exam-screen.active { display: block; }
+        .container { background: white; border-radius: 12px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); width: 100%; max-width: 900px; height: 98vh; overflow: hidden; display: flex; flex-direction: column; }
+        @media (max-width: 768px) { .container { height: 99vh; border-radius: 8px; } }
+        @media (max-width: 480px) { body { padding: 4px; } .container { height: 100vh; border-radius: 6px; } }
         
-        .upload-section { background: #f0f4ff; border: 2px solid #667eea; padding: 12px; border-radius: 8px; margin-bottom: 16px; }
+        header { padding: 16px 16px 0 16px; text-align: center; flex-shrink: 0; }
+        h1 { color: #333; margin: 0 0 5px 0; font-size: 24px; }
+        .subtitle { color: #666; font-size: 13px; margin: 0; }
+        
+        .start-screen, .exam-screen { display: none; flex: 1; flex-direction: column; overflow: hidden; padding: 0 16px 16px 16px; }
+        .start-screen.active, .exam-screen.active { display: flex; }
+        
+        .feature-list { background: #f9f9f9; padding: 10px; border-radius: 6px; margin: 12px 0 0 0; font-size: 12px; flex-shrink: 0; }
+        .feature-list h3 { color: #333; margin: 0 0 6px 0; font-size: 13px; }
+        .feature-list ul { list-style: none; margin: 0; padding: 0; }
+        .feature-list li { padding: 2px 0; color: #666; display: flex; align-items: center; gap: 6px; }
+        .feature-list li::before { content: '✓'; color: #667eea; font-weight: bold; }
+        
+        .upload-section { background: #f0f4ff; border: 2px solid #667eea; padding: 12px; border-radius: 8px; margin: 10px 0; font-size: 11px; flex-shrink: 0; }
         .upload-section h3 { margin: 0 0 8px 0; color: #333; font-size: 13px; }
         .upload-section p { margin: 0 0 8px 0; color: #666; font-size: 11px; }
         #homeUploadInput { font-size: 11px; }
@@ -25,35 +33,36 @@
         .upload-status.success { color: #155724; }
         .upload-status.error { color: #721c24; }
         
-        .subjects-grid { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 12px; }
+        .courses-label { color: #666; text-align: center; margin: 8px 0; font-size: 12px; font-weight: 600; flex-shrink: 0; }
+        .courses-wrapper { flex: 1; overflow-y: auto; padding-right: 8px; }
+        .courses-wrapper::-webkit-scrollbar { width: 6px; }
+        .courses-wrapper::-webkit-scrollbar-track { background: #f0f0f0; border-radius: 3px; }
+        .courses-wrapper::-webkit-scrollbar-thumb { background: #999; border-radius: 3px; }
+        .courses-wrapper::-webkit-scrollbar-thumb:hover { background: #666; }
+        
+        .subjects-grid { display: grid; grid-template-columns: 1fr; gap: 8px; padding-right: 4px; }
         @media (min-width: 480px) { .subjects-grid { grid-template-columns: 1fr 1fr; } }
-        .subject-btn { padding: 10px 8px; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; color: white; }
+        .subject-btn { padding: 12px 10px; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; color: white; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
         .subject-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); }
         
-        .exam-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px; border-radius: 6px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-        .course-name { font-size: 13px; font-weight: 700; }
+        .exam-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px; border-radius: 6px; margin: 12px 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; flex-shrink: 0; }
+        .course-name { font-size: 14px; font-weight: 700; }
         .question-count { font-size: 11px; }
         
-        .chat-area { border: 1px solid #e0e0e0; border-radius: 6px; padding: 10px; height: 280px; overflow-y: auto; margin-bottom: 10px; background: #f9f9f9; font-size: 12px; }
+        .chat-area { border: 1px solid #e0e0e0; border-radius: 6px; padding: 10px; flex: 1; overflow-y: auto; background: #f9f9f9; font-size: 12px; margin-bottom: 10px; }
         .message { margin-bottom: 10px; padding: 8px; border-radius: 6px; }
         .message.professor { background: #e8f0fe; border-left: 4px solid #667eea; }
         .message.student { background: #f0e8fe; border-left: 4px solid #764ba2; }
         .message-label { font-weight: 600; font-size: 11px; color: #666; margin-bottom: 3px; text-transform: uppercase; }
         .message-text { color: #333; font-size: 12px; line-height: 1.4; }
         
-        .input-area { display: flex; gap: 8px; margin-bottom: 10px; }
+        .input-area { display: flex; gap: 8px; margin-bottom: 10px; flex-shrink: 0; }
         textarea { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-family: inherit; font-size: 12px; resize: none; min-height: 60px; }
         button { padding: 8px 16px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
         .btn-primary { background: #667eea; color: white; }
         .btn-secondary { background: #764ba2; color: white; }
         .btn-danger { background: #e74c3c; color: white; }
         .play-btn { background: #667eea; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 600; margin-top: 4px; }
-        
-        .feature-list { background: #f9f9f9; padding: 10px; border-radius: 6px; margin: 10px 0; font-size: 12px; }
-        .feature-list h3 { color: #333; margin: 0 0 6px 0; font-size: 13px; }
-        .feature-list ul { list-style: none; margin: 0; padding: 0; }
-        .feature-list li { padding: 2px 0; color: #666; display: flex; align-items: center; gap: 6px; }
-        .feature-list li::before { content: '✓'; color: #667eea; font-weight: bold; }
         
         .sidebar { position: fixed; right: -90vw; top: 0; width: 90vw; max-width: 350px; height: 100vh; background: white; box-shadow: -5px 0 20px rgba(0, 0, 0, 0.2); transition: right 0.3s ease; overflow-y: auto; z-index: 1000; }
         .sidebar.active { right: 0; }
@@ -63,6 +72,9 @@
         .sidebar-content { padding: 12px; }
         .sidebar-btn { position: fixed; right: 16px; bottom: 16px; width: 50px; height: 50px; border-radius: 50%; background: #667eea; color: white; border: none; font-size: 20px; cursor: pointer; box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); z-index: 999; }
         .loading { text-align: center; color: #667eea; font-weight: 600; padding: 10px; font-size: 12px; }
+        
+        .upload-box { background: #fff3cd; border: 1px solid #ffc107; padding: 10px; border-radius: 6px; margin-bottom: 10px; font-size: 11px; flex-shrink: 0; }
+        #examUploadInput { font-size: 11px; }
     </style>
 </head>
 <body>
@@ -77,48 +89,47 @@
             <div class="feature-list">
                 <h3>Features</h3>
                 <ul>
-                    <li>21 UCBM BEN courses - Piano degli Studi 2026-2027</li>
-                    <li>Upload course materials (PDF, DOCX, PPTX, slides, notes)</li>
-                    <li>AI professor: realistic oral exam questions</li>
-                    <li>Speech recognition for oral practice</li>
-                    <li>Study hints from textbooks & materials</li>
+                    <li>21 UCBM BEN courses</li>
+                    <li>Upload course materials (PDF, DOCX, etc.)</li>
+                    <li>Realistic oral exam questions</li>
+                    <li>Speech recognition + voice response</li>
+                    <li>Study hints & image search</li>
                 </ul>
             </div>
 
             <div class="upload-section">
-                <h3>📚 Pre-load Course Materials (Optional)</h3>
-                <p>Upload syllabi, lecture notes, or slides before starting an exam. Materials will be used to ground exam questions and feedback.</p>
+                <h3>📚 Pre-load Materials (Optional)</h3>
+                <p>Upload syllabi, notes, or slides before starting. Used for exam grounding.</p>
                 <input type="file" id="homeUploadInput" accept=".pdf,.docx,.pptx,.txt,.jpg,.png,.gif,.webp" multiple onchange="preloadMaterials()">
                 <div id="homeUploadStatus" class="upload-status" style="display: none;"></div>
             </div>
 
-            <p style="color: #666; text-align: center; margin: 12px 0; font-size: 12px; font-weight: 600;">Select a course:</p>
+            <p class="courses-label">Select a course:</p>
 
-            <div class="subjects-grid">
-                <button class="subject-btn" style="background: #667eea;" onclick="startExam('fundamentals-of-computer-science')">💻 Computer Science</button>
-                <button class="subject-btn" style="background: #764ba2;" onclick="startExam('mathematics')">📐 Mathematics</button>
-                <button class="subject-btn" style="background: #e74c3c;" onclick="startExam('chemistry')">⚗️ Chemistry</button>
-                <button class="subject-btn" style="background: #f39c12;" onclick="startExam('general-physics')">⚡ Gen. Physics</button>
-                <button class="subject-btn" style="background: #16a085;" onclick="startExam('economics-and-management')">💼 Econ & Mgmt</button>
-                <button class="subject-btn" style="background: #2980b9;" onclick="startExam('general-english-italian')">🌍 English/Italian</button>
-                
-                <button class="subject-btn" style="background: #c0392b;" onclick="startExam('physiology-and-anatomy')">🦴 Anatomy & Physio</button>
-                <button class="subject-btn" style="background: #8e44ad;" onclick="startExam('advanced-physics')">🌌 Adv. Physics</button>
-                <button class="subject-btn" style="background: #27ae60;" onclick="startExam('mathematics-ii')">📊 Mathematics II</button>
-                <button class="subject-btn" style="background: #d35400;" onclick="startExam('probability-and-statistics')">📈 Stats</button>
-                <button class="subject-btn" style="background: #1abc9c;" onclick="startExam('healthcare-information-systems')">🏥 HIS & Telemedicine</button>
-                <button class="subject-btn" style="background: #34495e;" onclick="startExam('electronics-and-electrotechnics')">🔌 Electronics</button>
-                
-                <button class="subject-btn" style="background: #e67e22;" onclick="startExam('mechanics-of-solids')">🏗️ Mechanics</button>
-                <button class="subject-btn" style="background: #16a085;" onclick="startExam('transport-phenomena-and-thermodynamics')">🌡️ Transport & Thermo</button>
-                <button class="subject-btn" style="background: #3498db;" onclick="startExam('technical-english-italian')">📝 Tech English/It</button>
-                <button class="subject-btn" style="background: #9b59b6;" onclick="startExam('biomedical-signal-processing')">📡 Signal Processing</button>
-                <button class="subject-btn" style="background: #e74c3c;" onclick="startExam('fundamentals-of-automatic-control')">🎛️ Auto Control</button>
-                
-                <button class="subject-btn" style="background: #1e8449;" onclick="startExam('biomechanics')">🏃 Biomechanics</button>
-                <button class="subject-btn" style="background: #154360;" onclick="startExam('fundamentals-of-bioengineering')">🔧 Fund. Bio-Eng</button>
-                <button class="subject-btn" style="background: #784212;" onclick="startExam('measurements-and-instrumentation')">🔬 Measurements</button>
-                <button class="subject-btn" style="background: #641e16;" onclick="startExam('humanities-for-bioengineering')">🎭 Humanities</button>
+            <div class="courses-wrapper">
+                <div class="subjects-grid">
+                    <button class="subject-btn" style="background: #667eea;" onclick="startExam('fundamentals-of-computer-science')">💻 Computer Science</button>
+                    <button class="subject-btn" style="background: #764ba2;" onclick="startExam('mathematics')">📐 Mathematics</button>
+                    <button class="subject-btn" style="background: #e74c3c;" onclick="startExam('chemistry')">⚗️ Chemistry</button>
+                    <button class="subject-btn" style="background: #f39c12;" onclick="startExam('general-physics')">⚡ General Physics</button>
+                    <button class="subject-btn" style="background: #16a085;" onclick="startExam('economics-and-management')">💼 Economics & Mgmt</button>
+                    <button class="subject-btn" style="background: #2980b9;" onclick="startExam('general-english-italian')">🌍 English/Italian</button>
+                    <button class="subject-btn" style="background: #c0392b;" onclick="startExam('physiology-and-anatomy')">🦴 Physiology & Anatomy</button>
+                    <button class="subject-btn" style="background: #8e44ad;" onclick="startExam('advanced-physics')">🌌 Advanced Physics</button>
+                    <button class="subject-btn" style="background: #27ae60;" onclick="startExam('mathematics-ii')">📊 Mathematics II</button>
+                    <button class="subject-btn" style="background: #d35400;" onclick="startExam('probability-and-statistics')">📈 Probability & Stats</button>
+                    <button class="subject-btn" style="background: #1abc9c;" onclick="startExam('healthcare-information-systems')">🏥 HIS & Telemedicine</button>
+                    <button class="subject-btn" style="background: #34495e;" onclick="startExam('electronics-and-electrotechnics')">🔌 Electronics</button>
+                    <button class="subject-btn" style="background: #e67e22;" onclick="startExam('mechanics-of-solids')">🏗️ Mechanics</button>
+                    <button class="subject-btn" style="background: #16a085;" onclick="startExam('transport-phenomena-and-thermodynamics')">🌡️ Transport & Thermo</button>
+                    <button class="subject-btn" style="background: #3498db;" onclick="startExam('technical-english-italian')">📝 Tech English/It</button>
+                    <button class="subject-btn" style="background: #9b59b6;" onclick="startExam('biomedical-signal-processing')">📡 Signal Processing</button>
+                    <button class="subject-btn" style="background: #e74c3c;" onclick="startExam('fundamentals-of-automatic-control')">🎛️ Auto Control</button>
+                    <button class="subject-btn" style="background: #1e8449;" onclick="startExam('biomechanics')">🏃 Biomechanics</button>
+                    <button class="subject-btn" style="background: #154360;" onclick="startExam('fundamentals-of-bioengineering')">🔧 Fund. Bio-Eng</button>
+                    <button class="subject-btn" style="background: #784212;" onclick="startExam('measurements-and-instrumentation')">🔬 Measurements</button>
+                    <button class="subject-btn" style="background: #641e16;" onclick="startExam('humanities-for-bioengineering')">🎭 Humanities</button>
+                </div>
             </div>
         </div>
 
@@ -129,20 +140,19 @@
                 <div class="question-count">Q<span id="questionCount">1</span></div>
             </div>
 
-            <div style="background: #fff3cd; border: 1px solid #ffc107; padding: 10px; border-radius: 6px; margin-bottom: 10px; font-size: 11px;">
-                <strong>📚 Upload Course Materials:</strong> (Optional)<br>
-                <input type="file" id="examUploadInput" accept=".pdf,.docx,.pptx,.txt,.jpg,.png,.gif,.webp" onchange="uploadMaterial()">
+            <div class="upload-box">
+                <strong>📚 Upload:</strong> <input type="file" id="examUploadInput" accept=".pdf,.docx,.pptx,.txt,.jpg,.png,.gif,.webp" onchange="uploadMaterial()" style="font-size: 10px;">
                 <div id="examUploadStatus" class="upload-status" style="display: none;"></div>
             </div>
 
             <div class="chat-area" id="chatArea"></div>
 
             <div class="input-area">
-                <textarea id="answerInput" placeholder="Type or speak..."></textarea>
+                <textarea id="answerInput" placeholder="Type or speak your answer..."></textarea>
                 <div style="display: flex; gap: 4px; flex-direction: column;">
-                    <button class="btn-primary" onclick="submitAnswer()" style="padding: 6px 10px;">Send</button>
-                    <button class="btn-secondary" onclick="toggleSpeech()" id="speechButton" style="padding: 6px 10px;">🎤</button>
-                    <button class="btn-secondary" onclick="document.getElementById('imageInput').click()" style="padding: 6px 10px;">📷</button>
+                    <button class="btn-primary" onclick="submitAnswer()" style="padding: 6px 10px; flex: 1;">Send</button>
+                    <button class="btn-secondary" onclick="toggleSpeech()" id="speechButton" style="padding: 6px 10px; flex: 1;">🎤</button>
+                    <button class="btn-secondary" onclick="document.getElementById('imageInput').click()" style="padding: 6px 10px; flex: 1;">📷</button>
                     <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
                 </div>
             </div>
@@ -230,7 +240,7 @@
                     });
                     loaded++;
                     if (loaded === files.length) {
-                        status.textContent = `✓ ${loaded} material(s) pre-loaded`;
+                        status.textContent = `✓ ${loaded} material(s) ready`;
                         status.classList.add('success');
                     }
                 };
@@ -255,7 +265,6 @@
                 document.getElementById('chatArea').innerHTML = '';
                 document.getElementById('examUploadStatus').style.display = 'none';
                 
-                // Upload pre-loaded materials
                 for (let material of preloadedMaterials) {
                     await uploadPreloadedMaterial(material);
                 }
@@ -277,7 +286,7 @@
                     body: formData,
                 });
             } catch (error) {
-                console.error('Preload upload error:', error);
+                console.error('Preload error:', error);
             }
         }
 
@@ -295,12 +304,12 @@
                 });
                 const data = await response.json();
                 const status = document.getElementById('examUploadStatus');
-                status.textContent = `✓ ${data.filename} loaded (${data.materialsCount} total)`;
+                status.textContent = `✓ ${data.filename}`;
                 status.classList.add('success');
                 status.style.display = 'block';
             } catch (error) {
                 const status = document.getElementById('examUploadStatus');
-                status.textContent = `✗ Upload failed: ${error.message}`;
+                status.textContent = `✗ Failed`;
                 status.classList.add('error');
                 status.style.display = 'block';
             }
@@ -426,7 +435,7 @@
             const hintResult = document.getElementById('hintResult');
             hintResult.innerHTML = `
                 <p style="color: #333; font-size: 12px; margin-bottom: 8px;">✓ Google Images opened for: <strong>${currentHintData.searchTerms}</strong></p>
-                <button class="btn-secondary" onclick="displayTextHint(currentHintData)" style="width: 100%; padding: 6px;">📝 Back to Hint</button>
+                <button class="btn-secondary" onclick="displayTextHint(currentHintData)" style="width: 100%; padding: 6px;">📝 Back</button>
             `;
         }
 
