@@ -157,8 +157,8 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Oral exam simulator running on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Oral exam simulator running on http://0.0.0.0:${PORT}`);
   if (!process.env.XAI_API_KEY) {
     console.warn('⚠️  XAI_API_KEY not set. Please set it in .env file');
   }
