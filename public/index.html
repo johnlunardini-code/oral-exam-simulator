@@ -21,18 +21,18 @@
         .score-display { font-size: 13px; font-weight: 700; color: #667eea; min-width: 100px; text-align: left; white-space: nowrap; }
         .score-stats { font-size: 10px; color: #999; margin-top: 2px; }
         
-        .start-screen, .exam-screen { display: none; flex: 1; flex-direction: column; overflow: hidden; padding: 0 16px 16px 16px; }
+        .start-screen, .exam-screen { display: none; flex: 1; flex-direction: column; overflow-y: auto; overflow-x: hidden; padding: 0 16px 16px 16px; }
         .start-screen.active, .exam-screen.active { display: flex; }
         
-        .feature-list { background: #f9f9f9; padding: 10px; border-radius: 6px; margin: 12px 0 0 0; font-size: 12px; flex-shrink: 0; }
-        .feature-list h3 { color: #333; margin: 0 0 6px 0; font-size: 13px; }
-        .feature-list ul { list-style: none; margin: 0; padding: 0; }
-        .feature-list li { padding: 2px 0; color: #666; display: flex; align-items: center; gap: 6px; }
+        .feature-list { background: #f9f9f9; padding: 10px; border-radius: 6px; margin: 8px 0; font-size: 12px; flex-shrink: 0; }
+        .feature-list h3 { color: #333; margin: 0 0 8px 0; font-size: 13px; }
+        .feature-list ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+        .feature-list li { padding: 4px 0; color: #666; display: flex; align-items: center; gap: 4px; font-size: 11px; }
         .feature-list li::before { content: '✓'; color: #667eea; font-weight: bold; }
         
-        .upload-section { background: #f0f4ff; border: 2px solid #667eea; padding: 12px; border-radius: 8px; margin: 10px 0; font-size: 11px; flex-shrink: 0; }
-        .upload-section h3 { margin: 0 0 8px 0; color: #333; font-size: 13px; }
-        .upload-section p { margin: 0 0 8px 0; color: #666; font-size: 11px; }
+        .upload-section { background: #f0f4ff; border: 2px solid #667eea; padding: 10px; border-radius: 8px; margin: 8px 0; font-size: 11px; flex-shrink: 0; }
+        .upload-section h3 { margin: 0 0 6px 0; color: #333; font-size: 12px; }
+        .upload-section p { margin: 0 0 6px 0; color: #666; font-size: 10px; }
         
         .courses-label { color: #666; text-align: center; margin: 8px 0; font-size: 12px; font-weight: 600; flex-shrink: 0; }
         .courses-wrapper { flex: 1; overflow-y: auto; padding-right: 8px; }
@@ -52,14 +52,15 @@
         .subject-btn { padding: 12px 10px; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; color: white; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
         .subject-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); }
         
-        .exam-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px; border-radius: 6px; margin: 12px 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; flex-shrink: 0; }
+        .exam-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 16px; border-radius: 6px; margin: 12px 0 8px 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; flex-shrink: 0; }
         .course-name { font-size: 14px; font-weight: 700; }
         .question-count { font-size: 11px; }
         
-        .chat-area { border: 1px solid #e0e0e0; border-radius: 6px; padding: 10px; flex: 1; overflow-y: auto; background: #f9f9f9; font-size: 12px; margin-bottom: 10px; }
+        .chat-area { border: 1px solid #e0e0e0; border-radius: 6px; padding: 10px; flex: 1; overflow-y: auto; background: #f9f9f9; font-size: 12px; margin-bottom: 8px; }
         .message-group { margin-bottom: 12px; display: flex; flex-direction: column; gap: 4px; }
-        .message { padding: 10px; border-radius: 8px; line-height: 1.5; }
-        .message.question { background: #e8f0fe; border-left: 4px solid #667eea; align-self: flex-start; max-width: 85%; }
+        .message { padding: 10px 12px; border-radius: 8px; line-height: 1.5; }
+        .message.question { background: #e3f2fd; border-left: 4px solid #667eea; align-self: flex-start; max-width: 85%; }
+        .message.question-header { background: #f3e5f5; border-left: 4px solid #764ba2; align-self: center; max-width: 95%; text-align: center; font-weight: 600; color: #764ba2; padding: 6px 12px; margin: 8px 0; }
         .message.answer { background: #f0e8fe; border-left: 4px solid #764ba2; align-self: flex-end; max-width: 85%; }
         .message-label { font-weight: 600; font-size: 11px; color: #666; margin-bottom: 3px; text-transform: uppercase; }
         .message-text { color: #333; font-size: 12px; white-space: pre-wrap; word-wrap: break-word; }
@@ -79,9 +80,10 @@
         .btn-secondary { background: #764ba2; color: white; }
         .btn-danger { background: #e74c3c; color: white; }
         .btn-success { background: #27ae60; color: white; }
-        .icon-btn { width: 50px; height: 50px; padding: 0; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; border-radius: 6px; }
         .button-col { display: flex; gap: 6px; flex-direction: column; }
-        @media (max-width: 600px) { .button-col { flex-direction: row; flex-wrap: wrap; } .icon-btn { width: 40px; height: 40px; } }
+        .icon-btn { flex: 1; padding: 10px 8px; font-size: 12px; border-radius: 6px; display: flex; align-items: center; justify-content: center; gap: 4px; font-weight: 600; }
+        .icon-btn:hover { transform: translateY(-2px); box-shadow: 0 3px 10px rgba(0,0,0,0.15); }
+        @media (max-width: 600px) { .button-col { flex-direction: row; flex-wrap: wrap; } .icon-btn { flex: 0 1 45%; } }
         
         .sidebar { position: fixed; right: -90vw; top: 0; width: 90vw; max-width: 350px; height: 100vh; background: white; box-shadow: -5px 0 20px rgba(0, 0, 0, 0.2); transition: right 0.3s ease; overflow-y: auto; z-index: 1000; }
         .sidebar.active { right: 0; }
@@ -89,14 +91,19 @@
         .sidebar-header h3 { margin: 0; font-size: 14px; }
         .sidebar-close { background: none; border: none; color: white; font-size: 20px; cursor: pointer; }
         .sidebar-content { padding: 12px; }
-        .sidebar-btn { position: fixed; right: 16px; bottom: 16px; width: 50px; height: 50px; border-radius: 50%; background: #667eea; color: white; border: none; font-size: 20px; cursor: pointer; box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); z-index: 999; }
+        .sidebar-btn { position: fixed; right: 16px; bottom: 80px; width: 50px; height: 50px; border-radius: 50%; background: #667eea; color: white; border: none; font-size: 20px; cursor: pointer; box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); z-index: 999; }
         .loading { text-align: center; color: #667eea; font-weight: 600; padding: 10px; font-size: 12px; }
         
         .upload-box { background: #fff3cd; border: 1px solid #ffc107; padding: 10px; border-radius: 6px; margin-bottom: 10px; font-size: 11px; flex-shrink: 0; }
         
-        .voice-select { background: #f0f4ff; padding: 12px; border-radius: 8px; margin: 10px 0; font-size: 11px; flex-shrink: 0; }
-        .voice-select label { display: block; color: #333; font-weight: 600; margin-bottom: 6px; }
-        .voice-select select { width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 11px; }
+        .inline-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 8px 0; }
+        @media (max-width: 600px) { .inline-row { grid-template-columns: 1fr; } }
+        .inline-row label { display: block; color: #333; font-weight: 600; margin-bottom: 4px; font-size: 12px; }
+        .inline-row input, .inline-row select { width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 11px; }
+        
+        .voice-select { background: transparent; padding: 0; border: none; margin: 0; }
+        .voice-select label { margin: 0; }
+        .voice-select select { padding: 4px; }
         
         .feedback-history { max-height: 400px; overflow-y: auto; }
         .feedback-item { background: white; border: 1px solid #ddd; padding: 8px; border-radius: 4px; margin-bottom: 8px; cursor: pointer; }
@@ -112,28 +119,44 @@
 <body>
     <div class="container">
         <header>
-            <div>
-                <div class="score-display" id="scoreDisplay">Score: -</div>
-                <div class="score-stats" id="scoreStats"></div>
-            </div>
+            <div></div>
             <div class="header-content">
                 <h1>🎓 UCBM Exam Tutor</h1>
                 <p class="subtitle">Biomedical Engineering - Piano degli Studi 2026-2027</p>
             </div>
-            <div style="min-width: 100px;"></div>
+            <div></div>
         </header>
 
         <!-- Start Screen -->
         <div class="start-screen active">
             <div class="feature-list">
-                <h3>Features</h3>
+                <h3>🌟 Features</h3>
                 <ul>
-                    <li>27 UCBM BEN courses</li>
-                    <li>Assessment-matched questions</li>
-                    <li>Question-by-question feedback</li>
-                    <li>Continuous speech support</li>
-                    <li>Hypothetical scoring (every 10 Q)</li>
+                    <li>27 UCBM courses</li>
+                    <li>Auto Q-generation</li>
+                    <li>Live feedback</li>
+                    <li>Speech support</li>
+                    <li>Progress tracking</li>
+                    <li>Rich text editing</li>
                 </ul>
+            </div>
+
+            <div class="inline-row">
+                <div>
+                    <label>👤 Your Name (Optional):</label>
+                    <input type="text" id="studentName" placeholder="Your name..." style="font-size: 12px;">
+                </div>
+                <div class="voice-select">
+                    <label>🎤 Voice Language:</label>
+                    <select id="voiceLanguage" onchange="changeVoiceLanguage()" style="font-size: 12px;">
+                        <option value="en-US">English (US)</option>
+                        <option value="en-GB">English (UK)</option>
+                        <option value="it-IT">Italian</option>
+                        <option value="es-ES">Spanish</option>
+                        <option value="fr-FR">French</option>
+                        <option value="de-DE">German</option>
+                    </select>
+                </div>
             </div>
 
             <div class="upload-section">
@@ -143,27 +166,9 @@
                 <div id="homeUploadStatus" style="font-size: 11px; margin-top: 4px; display: none;"></div>
             </div>
 
-            <div class="voice-select">
-                <label>🎤 Voice Language:</label>
-                <select id="voiceLanguage" onchange="changeVoiceLanguage()">
-                    <option value="en-US">English (US)</option>
-                    <option value="en-GB">English (UK)</option>
-                    <option value="it-IT">Italian</option>
-                    <option value="es-ES">Spanish</option>
-                    <option value="fr-FR">French</option>
-                    <option value="de-DE">German</option>
-                </select>
-            </div>
-
-            <div style="background: #f0f4ff; padding: 12px; border-radius: 8px; margin: 10px 0; font-size: 12px; flex-shrink: 0;">
-                <label style="color: #333; font-weight: 600;">👤 Your Name (Optional):</label>
-                <input type="text" id="studentName" placeholder="Enter your name for personalized feedback..." 
-                       style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-top: 6px; font-size: 12px;">
-            </div>
-
-            <div style="display: flex; gap: 8px; flex-shrink: 0; margin: 10px 0;">
-                <button onclick="viewPastScores()" style="flex: 1; background: #27ae60; color: white; border: none; padding: 10px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;" title="View your exam history">📊 Past Scores</button>
-                <button onclick="clearAllData()" style="flex: 1; background: #95a5a6; color: white; border: none; padding: 10px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;" title="Clear all saved data">🗑️ Clear Data</button>
+            <div style="display: flex; gap: 8px; flex-shrink: 0; margin: 8px 0;">
+                <button onclick="viewPastScores()" style="flex: 1; background: #27ae60; color: white; border: none; padding: 10px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">📊 Past Scores</button>
+                <button onclick="clearAllData()" style="flex: 1; background: #95a5a6; color: white; border: none; padding: 10px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">🗑️ Clear Data</button>
             </div>
 
             <p class="courses-label">Select a course:</p>
@@ -197,11 +202,11 @@
                     <textarea id="answerInput" placeholder="Type your answer or use speech..."></textarea>
                 </div>
                 <div class="button-col">
-                    <button class="btn-primary icon-btn tooltip" onclick="submitAnswer()"><span class="tooltiptext">Send</span>✓</button>
-                    <button class="btn-secondary icon-btn tooltip" onclick="toggleSpeech()" id="speechButton"><span class="tooltiptext">Voice</span>🎤</button>
-                    <button class="btn-secondary icon-btn tooltip" onclick="document.getElementById('imageInput').click()"><span class="tooltiptext">Image</span>📷</button>
-                    <button class="btn-success icon-btn tooltip" onclick="openFeedbackHistory()"><span class="tooltiptext">Feedback</span>💬</button>
-                    <button class="btn-secondary icon-btn tooltip" onclick="document.getElementById('docInput').click()"><span class="tooltiptext">Attach</span>📎</button>
+                    <button class="btn-primary icon-btn tooltip" onclick="submitAnswer()"><span class="tooltiptext">Send</span>✓ Send</button>
+                    <button class="btn-secondary icon-btn tooltip" onclick="toggleSpeech()" id="speechButton"><span class="tooltiptext">Voice</span>🎤 Speak</button>
+                    <button class="btn-secondary icon-btn tooltip" onclick="document.getElementById('imageInput').click()"><span class="tooltiptext">Image</span>📷 Image</button>
+                    <button class="btn-success icon-btn tooltip" onclick="openFeedbackHistory()"><span class="tooltiptext">Feedback</span>💬 Feedback</button>
+                    <button class="btn-secondary icon-btn tooltip" onclick="document.getElementById('docInput').click()"><span class="tooltiptext">Attach</span>📎 Attach</button>
                     <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
                     <input type="file" id="docInput" accept=".pdf,.docx,.txt,.jpg,.png" style="display: none;" onchange="handleDocUpload(event)">
                 </div>
