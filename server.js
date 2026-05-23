@@ -431,8 +431,44 @@ app.post('/api/exam/question', async (req, res) => {
     });
   }
   
-  const answerLength = studentAnswer ? studentAnswer.trim().length : 0;
-  const isInvalidAnswer = answerLength < 5 || (studentAnswer && (studentAnswer.includes('???') || studentAnswer.includes('...') || studentAnswer.toLowerCase() === 'skip'));
+  // BUG FIX #1: Detect incomplete answers (less than 10 words OR less than 15 characters)
+  const wordCount = studentAnswer ? studentAnswer.trim().split(/\s+/).length : 0;
+  const charCount = studentAnswer ? studentAnswer.trim().length : 0;
+  const isIncompleteAnswer = (wordCount < 10 || charCount < 15) && studentAnswer && studentAnswer.trim();
+  const isInvalidAnswer = !studentAnswer || studentAnswer.trim().length < 5 || (studentAnswer && (studentAnswer.includes('???') || studentAnswer.includes('...') || studentAnswer.toLowerCase() === 'skip'));
+  
+  // Handle incomplete answers by repeating the same question
+  if (isIncompleteAnswer && !isFirst) {
+    let lastQuestion = '';
+    for (let i = session.messages.length - 1; i >= 0; i--) {
+      if (session.messages[i].role === 'assistant') {
+        lastQuestion = session.messages[i].content;
+        break;
+      }
+    }
+    
+    if (lastQuestion) {
+      // Add user's incomplete answer to messages for context
+      session.messages.push({
+        role: 'user',
+        content: studentAnswer,
+        confidenceScore: confidenceScore || null
+      });
+      
+      // Do NOT increment questionCount on incomplete answer
+      // Do NOT score incomplete answer
+      // Return flags to indicate incomplete answer and question repeat
+      const feedbackMessage = `That answer seems incomplete. Let me re-ask the question more clearly: ${lastQuestion}`;
+      return res.json({
+        response: feedbackMessage,
+        questionNumber: session.questionCount,
+        hypotheticalScore: null,
+        scoreTracker: session.scoreTracker,
+        isIncompleteAnswer: true,
+        isQuestionRepeat: true
+      });
+    }
+  }
   
   if (isInvalidAnswer && !isFirst) {
     let lastQuestion = '';

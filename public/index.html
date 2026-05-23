@@ -98,6 +98,10 @@
         .btn-success { background: #27ae60; color: white; }
         .btn-danger { background: #e74c3c; color: white; }
         
+        /* BUG FIX #2: Visual recording indicator for mobile speech */
+        .recording-active { border: 3px solid #e74c3c !important; animation: pulse 0.5s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.5); } 70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); } 100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); } }
+        
         .bottom-controls { display: flex; gap: 8px; flex-shrink: 0; }
         .bottom-controls button { flex: 1; padding: 10px; font-size: 12px; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; }
         
@@ -112,6 +116,8 @@
         .feedback-history { max-height: 400px; overflow-y: auto; }
         .feedback-item { background: white; border: 1px solid #ddd; padding: 8px; border-radius: 4px; margin-bottom: 8px; cursor: pointer; }
         .feedback-item:hover { background: #f0f4ff; border-color: #667eea; }
+        
+        .speech-feedback { font-size: 12px; color: #27ae60; padding: 8px; background: #e8f8f5; border-radius: 4px; margin-top: 4px; text-align: center; font-weight: 600; }
     </style>
 </head>
 <body>
@@ -213,6 +219,7 @@
                         <button class="format-btn" onclick="insertURL()">🔗 URL</button>
                     </div>
                     <textarea id="answerInput" placeholder="Type answer or use speech... (URLs: http://example.com)"></textarea>
+                    <div id="speechFeedback"></div>
                 </div>
                 <div class="button-col">
                     <button class="icon-btn btn-primary" onclick="submitAnswer()">✓ Send</button>
@@ -301,7 +308,7 @@
                     <p style="margin: 3px 0;"><strong>End Exam:</strong> Finish the exam and save your score.</p>
                     
                     <h4 style="color: #667eea; margin-top: 10px; margin-bottom: 6px; font-size: 12px;">🎤 Audio Buttons</h4>
-                    <p style="margin: 3px 0;"><strong>🎤 Speak:</strong> Click to start recording your answer. A blue outline and "⏹️ Stop" button indicate recording is active. Click again to stop and submit.</p>
+                    <p style="margin: 3px 0;"><strong>🎤 Speak:</strong> Click to start recording your answer. The text field borders will pulse red. Click again to stop and submit.</p>
                     <p style="margin: 3px 0;"><strong>🔊 Mute:</strong> Toggle text-to-speech on/off. Button changes color when muted.</p>
                     <p style="margin: 3px 0;"><strong>📎 Attach:</strong> Upload supporting files with your answer (PDFs, documents, images, audio, video).</p>
                     <p style="margin: 3px 0;"><strong>⚙️ Settings:</strong> Change voice output and test it before your exam.</p>
@@ -337,7 +344,7 @@
         let currentSessionLang = 'en-US';
         let currentSessionIsItalian = false;
         const recognition = window.webkitSpeechRecognition || window.SpeechRecognition;
-        const SILENCE_THRESHOLD = 5000;
+        const SILENCE_THRESHOLD = 8000;
 
         const yearStructure = {
             'Year 1': [
@@ -438,14 +445,24 @@
                 recognitionTranscript = '';
                 document.getElementById('answerInput').value = '';
                 document.getElementById('answerInput').dataset.voiceRecording = 'true';
+                document.getElementById('answerInput').classList.add('recording-active');
                 document.getElementById('speechButton').classList.add('active');
                 document.getElementById('speechButton').textContent = '⏹️ Stop';
+                document.getElementById('speechFeedback').innerHTML = '<div class="speech-feedback">🎤 RECORDING...</div>';
             };
             
             speechRecognizer.onend = () => { 
                 isListening = false;
+                document.getElementById('answerInput').classList.remove('recording-active');
                 document.getElementById('speechButton').classList.remove('active');
                 document.getElementById('speechButton').textContent = '🎤 Speak';
+                const wordCount = recognitionTranscript.trim().split(/\s+/).length;
+                if (wordCount > 0) {
+                    document.getElementById('speechFeedback').innerHTML = `<div class="speech-feedback">✓ ${wordCount} word${wordCount !== 1 ? 's' : ''} captured</div>`;
+                    setTimeout(() => {
+                        document.getElementById('speechFeedback').innerHTML = '';
+                    }, 3000);
+                }
             };
             
             speechRecognizer.onresult = (event) => {
@@ -461,6 +478,9 @@
                 }
                 document.getElementById('answerInput').value = recognitionTranscript.trim();
                 if (recognitionSilenceTimer) clearTimeout(recognitionSilenceTimer);
+                recognitionSilenceTimer = setTimeout(() => {
+                    if (isListening) speechRecognizer.stop();
+                }, SILENCE_THRESHOLD);
             };
 
             speechRecognizer.onerror = (event) => {
