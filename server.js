@@ -212,11 +212,11 @@ ${course.prerequisites || 'None'}
 - Base all questions on UCBM Teaching Sheets
 - Do NOT use markdown formatting in responses
 - Address the student by name: ${studentName}
-- Generate 8 questions total (3-8 range for oral exams, use 8)
+- Generate flexible questions (3-10+, not fixed to 8)
 - Progress from foundational to advanced
 - Each question builds on previous answers
-- For math/physics: Include formulas using LaTeX notation (e.g., \\frac{1}{2}mv^2)
-- Stop after 8 questions with final score summary`;
+- For math/physics: Include formulas using LaTeX notation
+- Allow student to request score at ANY time`;
 
   if (isFirstQuestion) {
     prompt += `

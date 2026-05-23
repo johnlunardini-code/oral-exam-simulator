@@ -1,21 +1,4 @@
-        function renderLaTeX(elementId) {
-            const el = document.getElementById(elementId);
-            if (!el || typeof katex === 'undefined') return;
-            
-            try {
-                const html = el.innerHTML;
-                const rendered = html.replace(/\\\(([^\\)]+)\\\)/g, (match, formula) => {
-                    try {
-                        return katex.renderToString(formula);
-                    } catch (e) {
-                        return match;
-                    }
-                });
-                el.innerHTML = rendered;
-            } catch (e) {
-                console.error('LaTeX rendering error:', e);
-            }
-        }<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -31,14 +14,11 @@
         @media (max-width: 768px) { .container { height: 99vh; border-radius: 8px; } }
         @media (max-width: 480px) { body { padding: 4px; } .container { height: 100vh; border-radius: 6px; } }
         
-        header { padding: 16px 16px 0 16px; text-align: center; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
-        .header-content { flex: 1; text-align: center; }
+        header { padding: 16px; text-align: center; flex-shrink: 0; }
         h1 { color: #333; margin: 0 0 5px 0; font-size: 24px; }
         .subtitle { color: #666; font-size: 13px; margin: 0; }
-        .score-display { font-size: 13px; font-weight: 700; color: #667eea; min-width: 100px; text-align: left; white-space: nowrap; }
-        .score-stats { font-size: 10px; color: #999; margin-top: 2px; }
         
-        .start-screen, .exam-screen { display: none; flex: 1; flex-direction: column; overflow-y: auto; overflow-x: hidden; padding: 0 16px 16px 16px; }
+        .start-screen, .exam-screen { display: none; flex: 1; flex-direction: column; overflow-y: auto; padding: 0 16px 16px 16px; }
         .start-screen.active, .exam-screen.active { display: flex; }
         
         .feature-list { background: #f9f9f9; padding: 10px; border-radius: 6px; margin: 8px 0; font-size: 12px; flex-shrink: 0; }
@@ -51,27 +31,29 @@
         .upload-section h3 { margin: 0 0 6px 0; color: #333; font-size: 12px; }
         .upload-section p { margin: 0 0 6px 0; color: #666; font-size: 10px; }
         
+        .inline-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 8px 0; }
+        @media (max-width: 600px) { .inline-row { grid-template-columns: 1fr; } }
+        .inline-row label { display: block; color: #333; font-weight: 600; margin-bottom: 4px; font-size: 12px; }
+        .inline-row input, .inline-row select { width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 11px; }
+        
         .courses-label { color: #666; text-align: center; margin: 8px 0; font-size: 12px; font-weight: 600; flex-shrink: 0; }
         .courses-wrapper { flex: 1; overflow-y: auto; padding-right: 8px; }
         .courses-wrapper::-webkit-scrollbar { width: 6px; }
         .courses-wrapper::-webkit-scrollbar-track { background: #f0f0f0; border-radius: 3px; }
         .courses-wrapper::-webkit-scrollbar-thumb { background: #999; border-radius: 3px; }
-        .courses-wrapper::-webkit-scrollbar-thumb:hover { background: #666; }
         
         .year-section { margin-bottom: 16px; }
         .year-header { background: #667eea; color: white; padding: 8px 12px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
         .year-header:hover { background: #764ba2; }
-        .year-header .toggle { font-size: 16px; }
-        .year-courses { display: grid; grid-template-columns: 1fr; gap: 8px; }
-        @media (min-width: 480px) { .year-courses { grid-template-columns: 1fr 1fr; } }
+        .year-courses { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .year-courses.collapsed { display: none; }
+        @media (max-width: 480px) { .year-courses { grid-template-columns: 1fr; } }
         
         .subject-btn { padding: 12px 10px; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; color: white; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
         .subject-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); }
         
-        .exam-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 16px; border-radius: 6px; margin: 12px 0 8px 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; flex-shrink: 0; }
+        .exam-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 16px; border-radius: 6px; margin: 12px 0 8px 0; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
         .course-name { font-size: 14px; font-weight: 700; }
-        .question-count { font-size: 11px; }
         
         .chat-area { border: 1px solid #e0e0e0; border-radius: 6px; padding: 10px; flex: 1; overflow-y: auto; background: #f9f9f9; font-size: 12px; margin-bottom: 8px; }
         .message-group { margin-bottom: 12px; display: flex; flex-direction: column; gap: 4px; }
@@ -92,15 +74,16 @@
         .format-btn:hover { background: #e8f0fe; border-color: #667eea; }
         textarea { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 0 0 4px 4px; font-family: 'Segoe UI', Tahoma, Geneva, sans-serif; font-size: 12px; resize: vertical; overflow: auto; min-height: 60px; line-height: 1.5; max-height: 300px; }
         
-        button { padding: 8px 16px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+        .button-col { display: flex; gap: 6px; flex-direction: column; flex-shrink: 0; }
+        .icon-btn { flex: 0 0 auto; padding: 10px 8px; font-size: 11px; border-radius: 6px; display: flex; align-items: center; justify-content: center; gap: 4px; font-weight: 600; white-space: nowrap; min-width: 55px; cursor: pointer; border: none; transition: all 0.3s; }
+        .icon-btn:hover { transform: translateY(-2px); box-shadow: 0 3px 10px rgba(0,0,0,0.15); }
         .btn-primary { background: #667eea; color: white; }
         .btn-secondary { background: #764ba2; color: white; }
-        .btn-danger { background: #e74c3c; color: white; }
         .btn-success { background: #27ae60; color: white; }
-        .button-col { display: flex; gap: 6px; flex-direction: column; flex-shrink: 0; }
-        .icon-btn { flex: 0 0 auto; padding: 10px 8px; font-size: 12px; border-radius: 6px; display: flex; align-items: center; justify-content: center; gap: 4px; font-weight: 600; white-space: nowrap; min-width: 60px; }
-        .icon-btn:hover { transform: translateY(-2px); box-shadow: 0 3px 10px rgba(0,0,0,0.15); }
-        @media (max-width: 600px) { .button-col { flex-direction: row; flex-wrap: wrap; } .icon-btn { flex: 0 1 45%; } }
+        .btn-danger { background: #e74c3c; color: white; }
+        
+        .bottom-controls { display: flex; gap: 8px; flex-shrink: 0; }
+        .bottom-controls button { flex: 1; padding: 10px; font-size: 12px; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; }
         
         .sidebar { position: fixed; right: -90vw; top: 0; width: 90vw; max-width: 350px; height: 100vh; background: white; box-shadow: -5px 0 20px rgba(0, 0, 0, 0.2); transition: right 0.3s ease; overflow-y: auto; z-index: 1000; }
         .sidebar.active { right: 0; }
@@ -108,40 +91,18 @@
         .sidebar-header h3 { margin: 0; font-size: 14px; }
         .sidebar-close { background: none; border: none; color: white; font-size: 20px; cursor: pointer; }
         .sidebar-content { padding: 12px; }
-        .sidebar-btn { position: fixed; right: 16px; bottom: 90px; width: 50px; height: 50px; border-radius: 50%; background: #667eea; color: white; border: none; font-size: 20px; cursor: pointer; box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); z-index: 999; }
+        
         .loading { text-align: center; color: #667eea; font-weight: 600; padding: 10px; font-size: 12px; }
-        
-        .upload-box { background: #fff3cd; border: 1px solid #ffc107; padding: 10px; border-radius: 6px; margin-bottom: 10px; font-size: 11px; flex-shrink: 0; }
-        
-        .inline-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 8px 0; }
-        @media (max-width: 600px) { .inline-row { grid-template-columns: 1fr; } }
-        .inline-row label { display: block; color: #333; font-weight: 600; margin-bottom: 4px; font-size: 12px; }
-        .inline-row input, .inline-row select { width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 11px; }
-        
-        .voice-select { background: transparent; padding: 0; border: none; margin: 0; }
-        .voice-select label { margin: 0; }
-        .voice-select select { padding: 4px; }
-        
         .feedback-history { max-height: 400px; overflow-y: auto; }
         .feedback-item { background: white; border: 1px solid #ddd; padding: 8px; border-radius: 4px; margin-bottom: 8px; cursor: pointer; }
         .feedback-item:hover { background: #f0f4ff; border-color: #667eea; }
-        .feedback-item-q { font-weight: 600; font-size: 11px; color: #333; margin-bottom: 4px; }
-        .feedback-item-a { font-size: 10px; color: #666; }
-        
-        .tooltip { position: relative; display: inline-block; }
-        .tooltip .tooltiptext { visibility: hidden; width: 120px; background-color: #333; color: #fff; text-align: center; padding: 5px; border-radius: 6px; position: absolute; z-index: 1001; bottom: 125%; left: 50%; margin-left: -60px; opacity: 0; transition: opacity 0.3s; font-size: 10px; }
-        .tooltip:hover .tooltiptext { visibility: visible; opacity: 1; }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <div></div>
-            <div class="header-content">
-                <h1>🎓 UCBM Exam Tutor</h1>
-                <p class="subtitle">Biomedical Engineering - Piano degli Studi 2026-2027</p>
-            </div>
-            <div></div>
+            <h1>🎓 UCBM Exam Tutor</h1>
+            <p class="subtitle">Biomedical Engineering - Piano degli Studi 2026-2027</p>
         </header>
 
         <!-- Start Screen -->
@@ -160,40 +121,39 @@
 
             <div class="inline-row">
                 <div>
-                    <label>👤 Your Name (Optional):</label>
-                    <input type="text" id="studentName" placeholder="Your name..." style="font-size: 12px;">
+                    <label>👤 Your Name:</label>
+                    <input type="text" id="studentName" placeholder="Your name...">
                 </div>
-                <div class="voice-select">
-                    <label>🎤 Voice Language:</label>
-                    <select id="voiceLanguage" onchange="changeVoiceLanguage()" style="font-size: 12px;">
+                <div>
+                    <label>🎤 Voice:</label>
+                    <select id="voiceLanguage" onchange="changeVoiceLanguage()">
                         <option value="en-GB-Standard-A">Sonia (UK)</option>
                         <option value="en-US-Standard-A">English (US)</option>
-                        <option value="en-US-Standard-C">English US Female</option>
-                        <option value="en-US-Standard-E">English US Male</option>
-                        <option value="en-GB-Standard-B">English GB Male</option>
-                        <option value="en-GB-Standard-C">English GB Female 2</option>
-                        <option value="it-IT-Standard-A">Italian Female</option>
-                        <option value="es-ES-Standard-A">Spanish Female</option>
-                        <option value="fr-FR-Standard-A">French Female</option>
-                        <option value="de-DE-Standard-A">German Female</option>
+                        <option value="en-US-Standard-C">US Female</option>
+                        <option value="en-US-Standard-E">US Male</option>
+                        <option value="en-GB-Standard-B">GB Male</option>
+                        <option value="en-GB-Standard-C">GB Female 2</option>
+                        <option value="it-IT-Standard-A">Italian</option>
+                        <option value="es-ES-Standard-A">Spanish</option>
+                        <option value="fr-FR-Standard-A">French</option>
+                        <option value="de-DE-Standard-A">German</option>
                     </select>
                 </div>
             </div>
 
             <div class="upload-section">
-                <h3>📚 Pre-load Materials (Optional)</h3>
-                <p>Upload syllabi, notes, or slides before starting.</p>
-                <input type="file" id="homeUploadInput" accept=".pdf,.docx,.pptx,.txt,.jpg,.png,.gif,.webp" multiple onchange="preloadMaterials()" style="font-size: 11px;">
+                <h3>📚 Pre-load Materials</h3>
+                <p>Upload syllabi, notes, or slides.</p>
+                <input type="file" id="homeUploadInput" accept=".pdf,.docx,.pptx,.txt,.jpg,.png,.gif,.webp" multiple onchange="preloadMaterials()">
                 <div id="homeUploadStatus" style="font-size: 11px; margin-top: 4px; display: none;"></div>
             </div>
 
-            <div style="display: flex; gap: 8px; flex-shrink: 0; margin: 8px 0;">
-                <button onclick="viewPastScores()" style="flex: 1; background: #27ae60; color: white; border: none; padding: 10px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">📊 Past Scores</button>
-                <button onclick="clearAllData()" style="flex: 1; background: #95a5a6; color: white; border: none; padding: 10px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">🗑️ Clear Data</button>
+            <div class="bottom-controls">
+                <button onclick="viewPastScores()" style="background: #27ae60; color: white;">📊 Past Scores</button>
+                <button onclick="clearAllData()" style="background: #95a5a6; color: white;">🗑️ Clear</button>
             </div>
 
             <p class="courses-label">Select a course:</p>
-
             <div class="courses-wrapper">
                 <div id="coursesContainer"></div>
             </div>
@@ -203,67 +163,67 @@
         <div class="exam-screen">
             <div class="exam-header">
                 <div class="course-name" id="courseName"></div>
-                <div class="question-count">Q<span id="questionCount">1</span></div>
+                <div style="font-size: 11px;">Q<span id="questionCount">1</span></div>
             </div>
-
-
 
             <div class="chat-area" id="chatArea"></div>
 
             <div class="input-area">
                 <div class="text-editor">
                     <div class="formatting-toolbar">
-                        <button class="format-btn" onclick="insertBold()" title="Bold"><strong>B</strong></button>
-                        <button class="format-btn" onclick="insertItalic()" title="Italic"><em>I</em></button>
-                        <button class="format-btn" onclick="insertUnderline()" title="Underline"><u>U</u></button>
-                        <button class="format-btn" onclick="insertCode()" title="Code">&lt;/&gt;</button>
-                        <button class="format-btn" onclick="insertList()" title="List">• List</button>
-                        <button class="format-btn" onclick="insertFormula()" title="Formula">𝑥²</button>
+                        <button class="format-btn" onclick="insertBold()"><strong>B</strong></button>
+                        <button class="format-btn" onclick="insertItalic()"><em>I</em></button>
+                        <button class="format-btn" onclick="insertUnderline()"><u>U</u></button>
+                        <button class="format-btn" onclick="insertCode()">&lt;/&gt;</button>
+                        <button class="format-btn" onclick="insertList()">• List</button>
+                        <button class="format-btn" onclick="insertFormula()">𝑥²</button>
                     </div>
-                    <textarea id="answerInput" placeholder="Type your answer or use speech..."></textarea>
+                    <textarea id="answerInput" placeholder="Type answer or use speech..."></textarea>
                 </div>
                 <div class="button-col">
-                    <button class="btn-primary icon-btn tooltip" onclick="submitAnswer()"><span class="tooltiptext">Send</span>✓ Send</button>
-                    <button class="btn-secondary icon-btn tooltip" onclick="toggleSpeech()" id="speechButton"><span class="tooltiptext">Voice</span>🎤 Speak</button>
-                    <button class="btn-secondary icon-btn tooltip" onclick="document.getElementById('imageInput').click()"><span class="tooltiptext">Image</span>📷 Image</button>
-                    <button class="btn-success icon-btn tooltip" onclick="openFeedbackHistory()"><span class="tooltiptext">Feedback</span>💬 Feedback</button>
-                    <button class="btn-secondary icon-btn tooltip" onclick="document.getElementById('docInput').click()"><span class="tooltiptext">Attach</span>📎 Attach</button>
+                    <button class="icon-btn btn-primary" onclick="submitAnswer()">✓ Send</button>
+                    <button class="icon-btn btn-secondary" onclick="toggleSpeech()" id="speechButton">🎤 Speak</button>
+                    <button class="icon-btn btn-secondary" onclick="toggleMute()" id="muteButton">🔊 Mute</button>
+                    <button class="icon-btn btn-secondary" onclick="document.getElementById('imageInput').click()">📷 Image</button>
+                    <button class="icon-btn btn-success" onclick="openFeedbackHistory()">💬 Feedback</button>
+                    <button class="icon-btn btn-secondary" onclick="document.getElementById('docInput').click()">📎 Attach</button>
                     <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
                     <input type="file" id="docInput" accept=".pdf,.docx,.txt,.jpg,.png" style="display: none;" onchange="handleDocUpload(event)">
                 </div>
             </div>
 
-            <button class="btn-danger" onclick="endExam()" style="width: 100%; margin-bottom: 8px;">End Exam</button>
-            <button class="btn-primary" onclick="toggleHintSidebar()" style="width: 100%; background: #667eea;">💡 Study Hint</button>
+            <div class="bottom-controls">
+                <button class="btn-primary" onclick="getScore()" style="flex: 1;">📊 Get Score</button>
+                <button class="btn-secondary" onclick="generateHint()" style="flex: 1;">💡 Hint</button>
+                <button class="btn-danger" onclick="endExam()" style="flex: 1;">End Exam</button>
+            </div>
         </div>
 
         <!-- Hint Sidebar -->
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <h3 id="sidebarTitle">Study Hint</h3>
-                <button class="sidebar-close" onclick="toggleSidebar()">×</button>
+                <button class="sidebar-close" onclick="closeSidebar()">×</button>
             </div>
             <div class="sidebar-content">
                 <div id="hintResult">
-                    <p style="color: #999; font-size: 12px;">Loading...</p>
+                    <p style="color: #999; font-size: 12px;">Click Hint button to start.</p>
                 </div>
             </div>
         </div>
-        <button class="sidebar-btn tooltip" onclick="generateHint()" title="Get Study Hint" id="hintButtonExam"><span class="tooltiptext">Study Hints</span>💡</button>
     </div>
 
     <script>
         const API_BASE = '';
         let currentSessionId = null;
-        let currentCourseName = null;
         let isListening = false;
         let preloadedMaterials = [];
-        const recognition = window.webkitSpeechRecognition || window.SpeechRecognition;
+        let voiceLanguage = 'en-GB-Standard-A';
         let speechRecognizer = null;
-        let currentQuestion = '';
         let currentHintCache = null;
         let speechSynthesisEnabled = true;
-        let isAISpeaking = false;
+        let messageHistory = [];
+        const recognition = window.webkitSpeechRecognition || window.SpeechRecognition;
 
         const yearStructure = {
             'Year 1': [
@@ -299,40 +259,22 @@
             ]
         };
 
-        function changeVoiceLanguage() {
-            voiceLanguage = document.getElementById('voiceLanguage').value;
-            if (speechRecognizer) {
-                const langMap = {
-                    'en-GB-Standard-A': 'en-GB',
-                    'en-US-Standard-A': 'en-US',
-                    'en-US-Standard-C': 'en-US',
-                    'en-US-Standard-E': 'en-US',
-                    'en-GB-Standard-B': 'en-GB',
-                    'en-GB-Standard-C': 'en-GB',
-                    'it-IT-Standard-A': 'it-IT',
-                    'es-ES-Standard-A': 'es-ES',
-                    'fr-FR-Standard-A': 'fr-FR',
-                    'de-DE-Standard-A': 'de-DE'
-                };
-                speechRecognizer.lang = langMap[voiceLanguage] || 'en-GB';
-            }
-        }
-
         function initializeCourses() {
             const container = document.getElementById('coursesContainer');
             container.innerHTML = '';
             
-            Object.entries(yearStructure).forEach(([year, courses]) => {
+            Object.entries(yearStructure).forEach(([year, courses], yearIndex) => {
                 const yearDiv = document.createElement('div');
                 yearDiv.className = 'year-section';
                 
                 const header = document.createElement('div');
                 header.className = 'year-header';
-                header.innerHTML = `<span>${year}</span><span class="toggle">▼</span>`;
+                header.innerHTML = `<span>${year}</span><span class="toggle">${yearIndex === 0 ? '▼' : '▶'}</span>`;
                 header.onclick = () => toggleYear(header);
                 
                 const coursesDiv = document.createElement('div');
                 coursesDiv.className = 'year-courses';
+                if (yearIndex > 0) coursesDiv.classList.add('collapsed');
                 
                 courses.forEach(course => {
                     const btn = document.createElement('button');
@@ -352,8 +294,7 @@
         function toggleYear(header) {
             const coursesDiv = header.nextElementSibling;
             coursesDiv.classList.toggle('collapsed');
-            const toggle = header.querySelector('.toggle');
-            toggle.textContent = coursesDiv.classList.contains('collapsed') ? '▶' : '▼';
+            header.querySelector('.toggle').textContent = coursesDiv.classList.contains('collapsed') ? '▶' : '▼';
         }
 
         initializeCourses();
@@ -362,48 +303,52 @@
             speechRecognizer = new recognition();
             speechRecognizer.continuous = true;
             speechRecognizer.interimResults = true;
-            speechRecognizer.lang = voiceLanguage;
+            speechRecognizer.lang = getLangForRecognition(voiceLanguage);
             
             let silenceTimer = null;
-            const SILENCE_THRESHOLD = 2000;
-            
-            speechRecognizer.onstart = () => { isListening = true; updateSpeechButton(); };
-            speechRecognizer.onend = () => { isListening = false; updateSpeechButton(); };
+            speechRecognizer.onstart = () => { isListening = true; };
+            speechRecognizer.onend = () => { isListening = false; };
             speechRecognizer.onresult = (event) => {
                 let transcript = '';
-                let isFinal = false;
-                
                 for (let i = event.resultIndex; i < event.results.length; i++) {
                     transcript += event.results[i][0].transcript;
-                    if (event.results[i].isFinal) {
-                        isFinal = true;
-                    }
                 }
-                
                 document.getElementById('answerInput').value = transcript;
                 
                 if (silenceTimer) clearTimeout(silenceTimer);
-                
-                if (isFinal) {
+                if (event.results[event.results.length - 1].isFinal) {
                     silenceTimer = setTimeout(() => {
-                        if (transcript.trim()) {
-                            submitAnswer();
-                        }
-                    }, SILENCE_THRESHOLD);
+                        if (transcript.trim()) submitAnswer();
+                    }, 2000);
                 }
             };
         }
 
-        function updateSpeechButton() {
-            const btn = document.getElementById('speechButton');
-            btn.style.background = isListening ? '#e74c3c' : '#764ba2';
-            btn.textContent = isListening ? '⏹️' : '🎤';
+        function getLangForRecognition(lang) {
+            const map = {
+                'en-GB-Standard-A': 'en-GB', 'en-US-Standard-A': 'en-US', 'en-US-Standard-C': 'en-US',
+                'en-US-Standard-E': 'en-US', 'en-GB-Standard-B': 'en-GB', 'en-GB-Standard-C': 'en-GB',
+                'it-IT-Standard-A': 'it-IT', 'es-ES-Standard-A': 'es-ES', 'fr-FR-Standard-A': 'fr-FR', 'de-DE-Standard-A': 'de-DE'
+            };
+            return map[lang] || 'en-GB';
+        }
+
+        function changeVoiceLanguage() {
+            voiceLanguage = document.getElementById('voiceLanguage').value;
+            if (speechRecognizer) speechRecognizer.lang = getLangForRecognition(voiceLanguage);
         }
 
         function toggleSpeech() {
-            if (!speechRecognizer) { alert('Speech recognition not supported'); return; }
+            if (!speechRecognizer) { alert('Speech not supported'); return; }
             if (isListening) speechRecognizer.stop();
             else speechRecognizer.start();
+        }
+
+        function toggleMute() {
+            speechSynthesisEnabled = !speechSynthesisEnabled;
+            const btn = document.getElementById('muteButton');
+            btn.textContent = speechSynthesisEnabled ? '🔊 Mute' : '🔇 Mute';
+            btn.style.background = speechSynthesisEnabled ? '#764ba2' : '#e74c3c';
         }
 
         function insertBold() { wrapSelection('<b>', '</b>'); }
@@ -414,8 +359,7 @@
             const textarea = document.getElementById('answerInput');
             const text = textarea.value;
             const lines = text.split('\n');
-            const bulleted = lines.map(l => (l.trim() ? '• ' + l : l)).join('\n');
-            textarea.value = bulleted;
+            textarea.value = lines.map(l => (l.trim() ? '• ' + l : l)).join('\n');
             textarea.focus();
         }
         function insertFormula() { wrapSelection('[', ']'); }
@@ -427,18 +371,13 @@
             const selected = text.substring(start, end) || 'text';
             textarea.value = text.substring(0, start) + before + selected + after + text.substring(end);
             textarea.focus();
-            textarea.setSelectionRange(start + before.length, start + before.length + selected.length);
         }
 
         async function preloadMaterials() {
             const files = document.getElementById('homeUploadInput').files;
             const status = document.getElementById('homeUploadStatus');
+            if (!files.length) { status.style.display = 'none'; return; }
             
-            if (files.length === 0) {
-                status.style.display = 'none';
-                return;
-            }
-
             status.textContent = `Loading ${files.length} file(s)...`;
             status.style.display = 'block';
             preloadedMaterials = [];
@@ -465,19 +404,15 @@
             try {
                 const studentName = document.getElementById('studentName').value || 'Student';
                 
-                console.log('Starting exam for:', subject, 'as', studentName);
-                
                 const response = await fetch(`${API_BASE}/api/exam/start`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ subject, studentName }),
                 });
                 const data = await response.json();
-                console.log('Start response:', data);
-                
                 currentSessionId = data.sessionId;
-                currentCourseName = data.courseName;
                 messageHistory = [];
+                currentHintCache = null;
                 
                 document.querySelector('.start-screen').classList.remove('active');
                 document.querySelector('.exam-screen').classList.add('active');
@@ -490,9 +425,11 @@
                 }
                 
                 setTimeout(() => getQuestion(''), 500);
+                document.getElementById('answerInput').addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitAnswer(); }
+                });
             } catch (error) {
-                console.error('startExam error:', error);
-                alert('Error starting exam: ' + error.message);
+                alert('Error: ' + error.message);
             }
         }
 
@@ -501,36 +438,8 @@
                 const blob = new Blob([material.content], { type: 'text/plain' });
                 const formData = new FormData();
                 formData.append('file', blob, material.name);
-                await fetch(`${API_BASE}/api/exam/upload/${currentSessionId}`, {
-                    method: 'POST',
-                    body: formData,
-                });
-            } catch (error) {
-                console.error('Preload error:', error);
-            }
-        }
-
-        async function uploadMaterial() {
-            const file = document.getElementById('examUploadInput').files[0];
-            if (!file) return;
-            const formData = new FormData();
-            formData.append('file', file);
-            try {
-                const response = await fetch(`${API_BASE}/api/exam/upload/${currentSessionId}`, {
-                    method: 'POST',
-                    body: formData,
-                });
-                const data = await response.json();
-                const status = document.getElementById('examUploadStatus');
-                status.textContent = `✓ ${data.filename}`;
-                status.style.color = '#27ae60';
-                status.style.display = 'block';
-            } catch (error) {
-                const status = document.getElementById('examUploadStatus');
-                status.textContent = `✗ Failed`;
-                status.style.color = '#e74c3c';
-                status.style.display = 'block';
-            }
+                await fetch(`${API_BASE}/api/exam/upload/${currentSessionId}`, { method: 'POST', body: formData });
+            } catch (e) { console.error('Preload error:', e); }
         }
 
         async function getQuestion(studentAnswer) {
@@ -540,21 +449,18 @@
                 if (studentAnswer.trim()) {
                     const group = document.createElement('div');
                     group.className = 'message-group';
-                    
                     const msg = document.createElement('div');
                     msg.className = 'message answer';
                     msg.innerHTML = `<div class="message-label">You</div><div class="message-text">${studentAnswer}</div>`;
                     group.appendChild(msg);
                     chatArea.appendChild(group);
-                    
                     messageHistory.push({ role: 'user', text: studentAnswer });
                 }
 
-                const loadingDiv = document.createElement('div');
-                loadingDiv.id = 'loadingMessage';
-                loadingDiv.className = 'loading';
-                loadingDiv.textContent = 'Professor thinking...';
-                chatArea.appendChild(loadingDiv);
+                const loading = document.createElement('div');
+                loading.className = 'loading';
+                loading.textContent = 'Professor thinking...';
+                chatArea.appendChild(loading);
                 chatArea.scrollTop = chatArea.scrollHeight;
 
                 const response = await fetch(`${API_BASE}/api/exam/question`, {
@@ -563,63 +469,46 @@
                     body: JSON.stringify({ sessionId: currentSessionId, studentAnswer }),
                 });
                 const data = await response.json();
-
-                loadingDiv.remove();
+                loading.remove();
 
                 const qNum = data.questionNumber;
-                const qHeaderGroup = document.createElement('div');
-                qHeaderGroup.className = 'message-group';
-                const qHeader = document.createElement('div');
-                qHeader.className = 'message question-header';
-                qHeader.innerHTML = `Question ${qNum}`;
-                qHeaderGroup.appendChild(qHeader);
-                chatArea.appendChild(qHeaderGroup);
+                const hGroup = document.createElement('div');
+                hGroup.className = 'message-group';
+                const hMsg = document.createElement('div');
+                hMsg.className = 'message question-header';
+                hMsg.innerHTML = `Question ${qNum}`;
+                hGroup.appendChild(hMsg);
+                chatArea.appendChild(hGroup);
 
                 const group = document.createElement('div');
                 group.className = 'message-group';
-                
                 const msg = document.createElement('div');
                 msg.className = 'message question';
-                currentQuestion = data.response;
-                msg.innerHTML = `<div class="message-label">Professor</div><div class="message-text" id="msgText_${data.questionNumber}">${data.response}</div>
+                msg.innerHTML = `<div class="message-label">Professor</div><div class="message-text">${data.response}</div>
                     <div class="message-actions">
                         <button class="action-btn" onclick="speakText('${data.response.replace(/'/g, "\\'")}')">🔊 Speak</button>
                     </div>`;
                 group.appendChild(msg);
                 chatArea.appendChild(group);
                 
-                renderLaTeX(`msgText_${data.questionNumber}`);
-                
                 messageHistory.push({ role: 'professor', text: data.response, index: messageHistory.filter(m => m.role === 'professor').length });
                 
-                if (data.shouldAutoRead) {
-                    setTimeout(() => speakText(data.response), 500);
-                }
-
+                if (data.shouldAutoRead) setTimeout(() => speakText(data.response), 500);
                 if (data.hypotheticalScore) {
                     const scoreMsg = document.createElement('div');
                     scoreMsg.className = 'message-group';
                     const scoreMsgContent = document.createElement('div');
-                    scoreMsgContent.style.textAlign = 'center';
-                    scoreMsgContent.style.background = '#e8f0fe';
-                    scoreMsgContent.style.padding = '8px';
-                    scoreMsgContent.style.borderRadius = '6px';
-                    scoreMsgContent.style.fontWeight = 'bold';
+                    scoreMsgContent.style.cssText = 'text-align: center; background: #e8f0fe; padding: 8px; border-radius: 6px; font-weight: bold;';
                     scoreMsgContent.innerHTML = `📊 Hypothetical Score: ${data.hypotheticalScore}/30`;
                     scoreMsg.appendChild(scoreMsgContent);
                     chatArea.appendChild(scoreMsg);
-                    const scoreDisplay = document.getElementById('scoreDisplay');
-                    if (scoreDisplay) scoreDisplay.textContent = `Score: ${Math.round(data.scoreTracker.correct / data.scoreTracker.total * 100)}%`;
                 }
 
                 document.getElementById('questionCount').textContent = qNum;
                 document.getElementById('answerInput').value = '';
                 chatArea.scrollTop = chatArea.scrollHeight;
-                
-                saveSessionScore(currentSessionId, data.scoreTracker);
             } catch (error) {
-                console.error('getQuestion error:', error);
-                alert('Error: ' + error.message);
+                console.error('Question error:', error);
             }
         }
 
@@ -629,39 +518,39 @@
             await getQuestion(answer);
         }
 
-        function setupTextareaEnter() {
-            const textarea = document.getElementById('answerInput');
-            if (!textarea) return;
-            textarea.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    submitAnswer();
-                }
-                // Shift+Enter allows newline
-            });
+        async function getScore() {
+            try {
+                const response = await fetch(`${API_BASE}/api/exam/session/${currentSessionId}`, { method: 'GET' });
+                const data = await response.json();
+                const chatArea = document.getElementById('chatArea');
+                const group = document.createElement('div');
+                group.className = 'message-group';
+                const msg = document.createElement('div');
+                msg.className = 'message question';
+                const correct = data.scoreTracker.correct;
+                const total = data.scoreTracker.total;
+                const percentage = total > 0 ? Math.round(correct / total * 100) : 0;
+                const italianScore = Math.round(percentage * 30 / 100);
+                msg.innerHTML = `<div class="message-label">Score Report</div><div class="message-text">Correct: ${correct}/${total}\nPercentage: ${percentage}%\nItalian Score: ${italianScore}/30</div>`;
+                group.appendChild(msg);
+                chatArea.appendChild(group);
+                chatArea.scrollTop = chatArea.scrollHeight;
+            } catch (error) {
+                alert('Error getting score: ' + error.message);
+            }
         }
 
         async function openFeedbackHistory() {
-            if (messageHistory.length === 0) {
-                alert('No answers to provide feedback on yet.');
-                return;
-            }
-
-            toggleSidebar();
+            if (!messageHistory.length) { alert('No answers yet.'); return; }
+            document.getElementById('sidebar').classList.add('active');
+            document.getElementById('sidebarTitle').textContent = 'Select Question for Feedback';
             const hintResult = document.getElementById('hintResult');
-            const sidebarTitle = document.getElementById('sidebarTitle');
-            sidebarTitle.textContent = 'Feedback History';
-            
             let html = '<div class="feedback-history">';
-            
             const answers = messageHistory.filter(m => m.role === 'user');
             answers.forEach((answer, i) => {
-                html += `<div class="feedback-item" onclick="getFeedbackForAnswer(${i})">
-                    <div class="feedback-item-q">Q${i + 1}: ${messageHistory[messageHistory.findIndex(m => m.role === 'professor' && m.index === i)].text.substring(0, 50)}...</div>
-                    <div class="feedback-item-a">Your answer: ${answer.text.substring(0, 40)}...</div>
-                </div>`;
+                const q = messageHistory.find(m => m.role === 'professor' && m.index === i);
+                if (q) html += `<div class="feedback-item" onclick="getFeedbackForAnswer(${i})" style="cursor:pointer;"><div style="font-weight:600;font-size:11px;color:#333;margin-bottom:4px;">Q${i + 1}</div><div style="font-size:10px;color:#666;">${q.text.substring(0, 50)}...</div></div>`;
             });
-            
             html += '</div>';
             hintResult.innerHTML = html;
         }
@@ -674,14 +563,7 @@
                     body: JSON.stringify({ sessionId: currentSessionId, questionIndex: index }),
                 });
                 const data = await response.json();
-
-                const hintResult = document.getElementById('hintResult');
-                hintResult.innerHTML = `
-                    <div style="background: #f0f4ff; padding: 10px; border-radius: 6px; margin-bottom: 10px;">
-                        <p style="color: #333; font-size: 12px; line-height: 1.5; margin: 0;"><strong>Feedback:</strong> ${data.feedback}</p>
-                    </div>
-                    <button class="btn-secondary" onclick="openFeedbackHistory()" style="width: 100%; padding: 6px;">← Back to History</button>
-                `;
+                document.getElementById('hintResult').innerHTML = `<div style="background: #f0f4ff; padding: 10px; border-radius: 6px; margin-bottom: 10px;"><p style="color: #333; font-size: 12px; line-height: 1.5; margin: 0;"><strong>Feedback:</strong> ${data.feedback}</p></div><button class="action-btn" onclick="openFeedbackHistory()" style="width:100%;padding:8px;">← Back</button>`;
             } catch (error) {
                 alert('Error: ' + error.message);
             }
@@ -689,83 +571,42 @@
 
         function handleImageUpload(event) {
             const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    getQuestion('Image uploaded - please analyze it');
-                };
-                reader.readAsDataURL(file);
-            }
+            if (file) getQuestion('Image uploaded - analyze');
         }
 
         function handleDocUpload(event) {
             const file = event.target.files[0];
-            if (file) {
-                getQuestion(`Document uploaded (${file.name}) - please analyze or reference it in your feedback`);
-            }
+            if (file) getQuestion(`Document uploaded - ${file.name}`);
         }
 
         function speakText(text) {
             if (!speechSynthesisEnabled) return;
-            
-            isAISpeaking = true;
-            if (speechRecognizer && isListening) {
-                speechRecognizer.stop();
-            }
+            if (speechRecognizer && isListening) speechRecognizer.stop();
             
             speechSynthesis.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.rate = 0.9;
-            utterance.lang = getRecognitionLanguage();
-            
-            utterance.onend = () => {
-                isAISpeaking = false;
-            };
-            
+            utterance.lang = getLangForRecognition(voiceLanguage);
             speechSynthesis.speak(utterance);
         }
-        
-        function toggleMute() {
-            speechSynthesisEnabled = !speechSynthesisEnabled;
-            const btn = document.getElementById('muteButton');
-            if (btn) {
-                btn.textContent = speechSynthesisEnabled ? '🔊' : '🔇';
-                btn.style.background = speechSynthesisEnabled ? '#667eea' : '#e74c3c';
-            }
-        }
-        
-        function getRecognitionLanguage() {
-            const langMap = {
-                'en-GB-Standard-A': 'en-GB',
-                'en-US-Standard-A': 'en-US',
-                'en-US-Standard-C': 'en-US',
-                'en-US-Standard-E': 'en-US',
-                'en-GB-Standard-B': 'en-GB',
-                'en-GB-Standard-C': 'en-GB',
-                'it-IT-Standard-A': 'it-IT',
-                'es-ES-Standard-A': 'es-ES',
-                'fr-FR-Standard-A': 'fr-FR',
-                'de-DE-Standard-A': 'de-DE'
-            };
-            return langMap[voiceLanguage] || 'en-GB';
-        }
 
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('active');
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('active');
         }
 
         async function generateHint() {
-            if (!currentSessionId) { alert('Start an exam first'); return; }
-            toggleHintSidebar();
+            if (!currentSessionId) { alert('Start exam first'); return; }
+            document.getElementById('sidebar').classList.add('active');
             document.getElementById('sidebarTitle').textContent = 'Study Hint';
-            const hintResult = document.getElementById('hintResult');
             
             if (currentHintCache) {
-                displayTextHint(currentHintCache);
+                displayHint(currentHintCache);
                 return;
             }
+
+            const hintResult = document.getElementById('hintResult');
+            hintResult.innerHTML = '<p style="text-align: center; color: #667eea;">Generating hint...</p>';
             
-            hintResult.innerHTML = '<p style="text-align: center; color: #667eea; font-size: 12px;">Generating hint...</p>';
             try {
                 const response = await fetch(`${API_BASE}/api/exam/hint`, {
                     method: 'POST',
@@ -773,107 +614,58 @@
                     body: JSON.stringify({ sessionId: currentSessionId }),
                 });
                 const data = await response.json();
-                
-                if (!data.textHint || data.textHint === 'undefined') {
-                    throw new Error('Hint generation failed');
-                }
-                
+                if (!data.textHint) throw new Error('Failed');
                 currentHintCache = data;
-                displayTextHint(data);
+                displayHint(data);
             } catch (error) {
-                hintResult.innerHTML = '<p style="color: #e74c3c; font-size: 12px;">Error generating hint. Try again.</p>';
+                hintResult.innerHTML = '<p style="color: #e74c3c; font-size: 12px;">Error</p>';
             }
         }
-        
-        function toggleHintSidebar() {
-            document.getElementById('sidebar').classList.toggle('active');
+
+        function displayHint(data) {
+            const hintResult = document.getElementById('hintResult');
+            hintResult.innerHTML = `<div style="background: #f0f4ff; padding: 10px; border-radius: 6px; margin-bottom: 10px;"><p style="color: #333; font-size: 12px; line-height: 1.5; margin: 0;">${data.textHint}</p></div><button class="action-btn" onclick="searchHint('${encodeURIComponent(data.searchTerms)}');" style="width:100%;margin-bottom:6px;padding:8px;">🔍 Search</button><button class="action-btn" onclick="closeSidebar();" style="width:100%;padding:8px;background:#764ba2;">Close</button>`;
         }
 
-        function displayTextHint(data) {
-            const hintResult = document.getElementById('hintResult');
-            hintResult.innerHTML = `
-                <div style="background: #f0f4ff; padding: 10px; border-radius: 6px; margin-bottom: 10px;">
-                    <p style="color: #333; font-size: 12px; line-height: 1.5; margin: 0;">${data.textHint}</p>
-                </div>
-                <button class="btn-primary" onclick="getHintImage('${encodeURIComponent(data.searchTerms)}')" style="width: 100%; margin-bottom: 6px; padding: 6px;">🔍 Search Images</button>
-                <button class="btn-secondary" onclick="toggleSidebar()" style="width: 100%; padding: 6px;">Close</button>
-            `;
-        }
-
-        function getHintImage(searchTermsEncoded) {
-            const searchQuery = decodeURIComponent(searchTermsEncoded);
-            const googleImagesUrl = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(searchQuery)}`;
-            window.open(googleImagesUrl, '_blank');
-            const hintResult = document.getElementById('hintResult');
-            hintResult.innerHTML = `
-                <p style="color: #333; font-size: 12px; margin-bottom: 8px;">✓ Google Images: <strong>${searchQuery}</strong></p>
-                <p style="color: #999; font-size: 11px; margin-bottom: 8px;">Opened in new window</p>
-                <button class="btn-secondary" onclick="toggleSidebar()" style="width: 100%; padding: 6px;">Close</button>
-            `;
+        function searchHint(terms) {
+            const query = decodeURIComponent(terms);
+            window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
         }
 
         function endExam() {
             if (confirm('End exam?')) {
-                try {
-                    fetch(`${API_BASE}/api/exam/session/${currentSessionId}`, { method: 'DELETE' });
-                } catch (e) {}
+                try { fetch(`${API_BASE}/api/exam/session/${currentSessionId}`, { method: 'DELETE' }); } catch (e) {}
                 document.querySelector('.exam-screen').classList.remove('active');
                 document.querySelector('.start-screen').classList.add('active');
                 currentSessionId = null;
             }
         }
 
-        function saveSessionScore(sessionId, scoreTracker) {
-            const scores = JSON.parse(localStorage.getItem('examScores') || '{}');
-            const courseName = document.getElementById('courseName').textContent;
-            
-            if (!scores[courseName]) {
-                scores[courseName] = [];
-            }
-            
-            scores[courseName][scores[courseName].length - 1] = {
-                date: new Date().toLocaleString(),
-                correct: scoreTracker.correct,
-                total: scoreTracker.total,
-                percentage: Math.round((scoreTracker.correct / scoreTracker.total) * 100)
-            };
-            
-            localStorage.setItem('examScores', JSON.stringify(scores));
-        }
-
         function viewPastScores() {
             const scores = JSON.parse(localStorage.getItem('examScores') || '{}');
+            if (!Object.keys(scores).length) { alert('No scores yet.'); return; }
             
-            if (Object.keys(scores).length === 0) {
-                alert('No past scores yet. Take an exam to get started!');
-                return;
-            }
-            
-            let html = '<div style="max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.2);z-index: 2001;">';
-            html += '<h2 style="color: #333; text-align: center; margin-bottom: 20px;">📊 Past Exam Scores</h2>';
+            let html = '<div style="max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); z-index: 2001;">';
+            html += '<h2 style="color: #333; text-align: center; margin-bottom: 20px;">📊 Past Scores</h2>';
             html += '<div style="max-height: 600px; overflow-y: auto;">';
             
             Object.entries(scores).forEach(([course, attempts]) => {
-                const validAttempts = attempts.filter(a => a && a.percentage);
-                if (validAttempts.length === 0) return;
-                const avg = Math.round(validAttempts.reduce((sum, a) => sum + a.percentage, 0) / validAttempts.length);
+                const valid = attempts.filter(a => a && a.percentage);
+                if (!valid.length) return;
+                const avg = Math.round(valid.reduce((sum, a) => sum + a.percentage, 0) / valid.length);
+                const avgItalian = Math.round(avg * 30 / 100);
                 html += `<div style="background: #f9f9f9; padding: 12px; border-radius: 6px; margin-bottom: 10px; border-left: 4px solid #667eea;">`;
                 html += `<h4 style="margin: 0 0 8px 0; color: #333;">${course}</h4>`;
-                html += `<p style="margin: 0 0 8px 0; color: #666; font-size: 12px;"><strong>Average:</strong> ${avg}%</p>`;
+                html += `<p style="margin: 0 0 8px 0; color: #666; font-size: 12px;"><strong>Average:</strong> ${avg}% (${avgItalian}/30)</p>`;
                 html += `<div style="font-size: 11px; color: #999;">`;
-                
-                validAttempts.forEach((attempt, i) => {
-                    html += `<div style="margin: 4px 0; padding: 4px; background: white; border-radius: 3px;">`;
-                    html += `Attempt ${i + 1}: ${attempt.percentage}% (${attempt.correct}/${attempt.total}) - ${attempt.date}`;
-                    html += `</div>`;
+                valid.forEach((a, i) => {
+                    const italianScore = Math.round(a.percentage * 30 / 100);
+                    html += `<div style="margin: 4px 0; padding: 4px; background: white; border-radius: 3px;">Attempt ${i + 1}: ${a.percentage}% (${italianScore}/30) - ${a.date}</div>`;
                 });
-                
                 html += `</div></div>`;
             });
             
-            html += '</div>';
-            html += '<button onclick="closePastScoresModal()" style="width: 100%; margin-top: 12px; background: #667eea; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: 600; cursor: pointer;">Close</button>';
-            html += '</div>';
+            html += '</div><button onclick="closePastScoresModal()" style="width:100%;margin-top:12px;background:#667eea;color:white;border:none;padding:10px;border-radius:6px;font-weight:600;cursor:pointer;">Close</button></div>';
             
             const modal = document.createElement('div');
             modal.id = 'pastScoresModal';
@@ -888,21 +680,9 @@
         }
 
         function clearAllData() {
-            if (confirm('Delete all saved scores and data? This cannot be undone.')) {
+            if (confirm('Delete all data?')) {
                 localStorage.removeItem('examScores');
-                const stats = document.getElementById('scoreStats');
-                if (stats) stats.textContent = '';
-                alert('All data cleared.');
-            }
-        }
-
-        function loadHomePageStats() {
-            const scores = JSON.parse(localStorage.getItem('examScores') || '{}');
-            const allAttempts = Object.values(scores).flat().filter(a => a && a.percentage);
-            if (allAttempts.length > 0) {
-                const avg = Math.round(allAttempts.reduce((sum, a) => sum + a.percentage, 0) / allAttempts.length);
-                const stats = document.getElementById('scoreStats');
-                if (stats) stats.textContent = `${allAttempts.length} exams • ${avg}% avg`;
+                alert('Cleared.');
             }
         }
     </script>
