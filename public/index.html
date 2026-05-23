@@ -632,7 +632,7 @@
                             body: formData
                         });
                         if (response.ok) {
-                            getQuestion(`[File attached: ${file.name} - Please review and reference this in your questions and feedback]`);
+                            getQuestion(`[Document attached: ${file.name}]`);
                         } else {
                             alert('Failed to upload file');
                         }
@@ -653,13 +653,35 @@
             speechSynthesis.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.rate = 0.9;
-            utterance.lang = 'en-US';
             
             const voiceName = voiceLanguage;
             const voices = speechSynthesis.getVoices();
-            const voice = voices.find(v => v.name && (v.name.includes(voiceName) || v.name === voiceName));
+            
+            // Determine language based on voice selection
+            let lang = 'en-US';
+            if (voiceName.includes('Italian') || voiceName.includes('Aronica')) lang = 'it-IT';
+            else if (voiceName.includes('Spanish')) lang = 'es-ES';
+            else if (voiceName.includes('French')) lang = 'fr-FR';
+            else if (voiceName.includes('German')) lang = 'de-DE';
+            else if (voiceName.includes('UK') || voiceName.includes('Sonia')) lang = 'en-GB';
+            
+            utterance.lang = lang;
+            
+            // Try exact match first
+            let voice = voices.find(v => v.name === voiceName);
+            // Then try partial match
+            if (!voice) voice = voices.find(v => v.name && v.name.includes(voiceName));
+            // Try matching on name parts (e.g., "Joanna" from "Amazon Joanna")
+            if (!voice) {
+                const voiceParts = voiceName.split(' ');
+                voice = voices.find(v => voiceParts.some(part => v.name && v.name.includes(part)));
+            }
+            // Fallback to first available voice
+            if (!voice && voices.length > 0) voice = voices[0];
+            
             if (voice) {
                 utterance.voice = voice;
+                console.log('Using voice:', voice.name, 'lang:', lang);
             }
             
             speechSynthesis.speak(utterance);
@@ -711,6 +733,7 @@
             if (confirm('End exam?')) {
                 speechSynthesis.cancel();
                 if (speechRecognizer && isListening) speechRecognizer.stop();
+                document.getElementById('sidebar').classList.remove('active');
                 
                 try {
                     const response = await fetch(`${API_BASE}/api/exam/session/${currentSessionId}`, { method: 'DELETE' });
