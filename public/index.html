@@ -180,15 +180,16 @@
                         <button class="format-btn" onclick="insertCode()">&lt;/&gt;</button>
                         <button class="format-btn" onclick="insertList()">• List</button>
                         <button class="format-btn" onclick="insertFormula()">𝑥²</button>
+                        <button class="format-btn" onclick="insertURL()">🔗 URL</button>
                     </div>
-                    <textarea id="answerInput" placeholder="Type answer or use speech..."></textarea>
+                    <textarea id="answerInput" placeholder="Type answer or use speech... (URLs: http://example.com)"></textarea>
                 </div>
                 <div class="button-col">
                     <button class="icon-btn btn-primary" onclick="submitAnswer()">✓ Send</button>
                     <button class="icon-btn btn-secondary" onclick="toggleSpeech()" id="speechButton" title="Click to start recording">🎤 Speak</button>
                     <button class="icon-btn btn-secondary" onclick="toggleMute()" id="muteButton">🔊 Mute</button>
-                    <button class="icon-btn btn-secondary" onclick="document.getElementById('docInput').click()">📄 Docs</button>
-                    <input type="file" id="docInput" accept=".pdf,.docx,.txt,.jpg,.png,.pptx" style="display: none;" onchange="handleDocUpload(event)">
+                    <button class="icon-btn btn-secondary" onclick="document.getElementById('attachInput').click()">📎 Attach</button>
+                    <input type="file" id="attachInput" accept=".pdf,.docx,.pptx,.txt,.jpg,.png,.gif,.webp,.mp3,.mp4,.mov" style="display: none;" onchange="handleAttachUpload(event)">
                 </div>
             </div>
 
@@ -227,7 +228,7 @@
         let recognitionSilenceTimer = null;
         let recognitionTranscript = '';
         const recognition = window.webkitSpeechRecognition || window.SpeechRecognition;
-        const SILENCE_THRESHOLD = 4000;
+        const SILENCE_THRESHOLD = 5000;
 
         const yearStructure = {
             'Year 1': [
@@ -306,7 +307,6 @@
         }
         speechSynthesis.getVoices();
 
-        // Restore voice preference on load
         document.getElementById('voiceLanguage').value = voiceLanguage;
         initializeCourses();
 
@@ -388,6 +388,7 @@
             textarea.focus();
         }
         function insertFormula() { wrapSelection('[', ']'); }
+        function insertURL() { wrapSelection('(', ')'); }
         function wrapSelection(before, after) {
             const textarea = document.getElementById('answerInput');
             const start = textarea.selectionStart;
@@ -445,6 +446,7 @@
                 document.getElementById('chatArea').innerHTML = '';
                 document.getElementById('questionCount').textContent = '1';
                 document.getElementById('answerInput').value = '';
+                speechSynthesis.cancel();
                 
                 for (let material of preloadedMaterials) {
                     await uploadPreloadedMaterial(material);
@@ -602,10 +604,10 @@
             }
         }
 
-        function handleDocUpload(event) {
+        function handleAttachUpload(event) {
             const file = event.target.files[0];
             if (file) {
-                getQuestion(`[Document attached: ${file.name}]`);
+                getQuestion(`[File attached: ${file.name} - Please review and reference this in your questions and feedback]`);
             }
             event.target.value = '';
         }
@@ -671,10 +673,19 @@
             window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
         }
 
-        function endExam() {
+        async function endExam() {
             if (confirm('End exam?')) {
-                try { fetch(`${API_BASE}/api/exam/session/${currentSessionId}`, { method: 'DELETE' }); } catch (e) {}
+                speechSynthesis.cancel();
                 if (speechRecognizer && isListening) speechRecognizer.stop();
+                
+                try {
+                    const response = await fetch(`${API_BASE}/api/exam/session/${currentSessionId}`, { method: 'DELETE' });
+                    const data = await response.json();
+                    if (data.score) {
+                        saveScore(data.score);
+                    }
+                } catch (e) {}
+                
                 document.querySelector('.exam-screen').classList.remove('active');
                 document.querySelector('.start-screen').classList.add('active');
                 currentSessionId = null;
@@ -682,6 +693,20 @@
                 currentHintCache = null;
                 recognitionTranscript = '';
             }
+        }
+
+        function saveScore(scoreData) {
+            let scores = JSON.parse(localStorage.getItem('examScores') || '{}');
+            const courseName = scoreData.courseName || 'Unknown Course';
+            if (!scores[courseName]) scores[courseName] = [];
+            scores[courseName].push({
+                correct: scoreData.correct,
+                total: scoreData.total,
+                percentage: scoreData.percentage,
+                italianScore: scoreData.italianScore,
+                date: scoreData.date || new Date().toLocaleDateString()
+            });
+            localStorage.setItem('examScores', JSON.stringify(scores));
         }
 
         function viewPastScores() {
@@ -693,16 +718,16 @@
             html += '<div style="max-height: 600px; overflow-y: auto;">';
             
             Object.entries(scores).forEach(([course, attempts]) => {
-                const valid = attempts.filter(a => a && a.percentage);
+                const valid = attempts.filter(a => a && a.percentage !== undefined);
                 if (!valid.length) return;
-                const avg = Math.round(valid.reduce((sum, a) => sum + a.percentage, 0) / valid.length);
+                const avg = Math.round(valid.reduce((sum, a) => sum + (a.percentage || 0), 0) / valid.length);
                 const avgItalian = Math.round(avg * 30 / 100);
                 html += `<div style="background: #f9f9f9; padding: 12px; border-radius: 6px; margin-bottom: 10px; border-left: 4px solid #667eea;">`;
                 html += `<h4 style="margin: 0 0 8px 0; color: #333;">${course}</h4>`;
                 html += `<p style="margin: 0 0 8px 0; color: #666; font-size: 12px;"><strong>Average:</strong> ${avg}% (${avgItalian}/30)</p>`;
                 html += `<div style="font-size: 11px; color: #999;">`;
                 valid.forEach((a, i) => {
-                    const italianScore = Math.round(a.percentage * 30 / 100);
+                    const italianScore = Math.round((a.percentage || 0) * 30 / 100);
                     html += `<div style="margin: 4px 0; padding: 4px; background: white; border-radius: 3px;">Attempt ${i + 1}: ${a.percentage}% (${italianScore}/30) - ${a.date}</div>`;
                 });
                 html += `</div></div>`;

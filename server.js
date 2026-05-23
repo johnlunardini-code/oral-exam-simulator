@@ -206,17 +206,23 @@ ${course.objectives || 'Develop comprehensive understanding'}
 ${course.prerequisites || 'None'}
 
 **CRITICAL RULES**
-- Generate ORIGINAL questions (not textbook rephrasing)
-- Mix question types: conceptual, calculation, applied
+- Generate ORIGINAL questions (not textbook rephrasing) - NEVER repeat similar questions from previous sessions
+- Vary questions: explore different aspects, topics, and types from each course area
+- Mix question types: conceptual, calculation, applied, real-world scenarios
 - Adapt difficulty based on performance
-- Base all questions on UCBM Teaching Sheets
+- Base all questions on UCBM Teaching Sheets AND any uploaded materials
 - Do NOT use markdown formatting in responses
 - Address the student by name: ${studentName}
 - Generate flexible questions (3-10+, not fixed to 8)
 - Progress from foundational to advanced
 - Each question builds on previous answers
 - For math/physics: Include formulas using LaTeX notation
-- Allow student to request score at ANY time`;
+- Allow student to request score at ANY time
+- ALWAYS read and process the ENTIRE question/answer/feedback - NEVER truncate
+- Never truncate or summarize user input - use the full text exactly as given
+- If question appears cut off, explicitly ask for full text before proceeding
+- Pay special attention to technical terms and answer them accurately
+- You are an experienced UCBM professor. Stay in character.`;
 
   if (isFirstQuestion) {
     prompt += `
