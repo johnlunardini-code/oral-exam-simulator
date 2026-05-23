@@ -342,6 +342,7 @@ app.post('/api/exam/upload/:sessionId', upload.single('file'), (req, res) => {
   });
 });
 
+// BUG FIX #4: Add tracking to prevent double-scoring
 app.post('/api/exam/question', async (req, res) => {
   const { sessionId, studentAnswer } = req.body;
 
@@ -351,6 +352,11 @@ app.post('/api/exam/question', async (req, res) => {
 
   const session = examSessions[sessionId];
   const isFirst = session.isFirstQuestion;
+  
+  // BUG FIX #5: Mark if user is ending exam to prevent late answers
+  if (req.body.isEnding) {
+    return res.json({ response: 'Exam ended', questionNumber: session.questionCount, scoreTracker: session.scoreTracker, isEnded: true });
+  }
   
   // ISSUE 1 FIX: Check for invalid/incomplete answers and handle without advancing question
   const answerLength = studentAnswer ? studentAnswer.trim().length : 0;
@@ -436,7 +442,9 @@ RESPOND WITH ONLY A NUMBER 1-5, nothing else.`;
           temperature: 0.3,
           max_tokens: 10,
         });
-        const scoreNum = parseInt(scoreResponse.choices[0].message.content.trim());
+        // BUG FIX #4: Safely parse score, default to 0 if invalid
+        const scoreText = scoreResponse.choices[0]?.message?.content?.trim() || '0';
+        const scoreNum = parseInt(scoreText) || 0;
         if (scoreNum >= 3) {
           session.scoreTracker.correct += 1;
         }
@@ -447,15 +455,18 @@ RESPOND WITH ONLY A NUMBER 1-5, nothing else.`;
 
     let hypotheticalScore = null;
     if (session.questionCount % 10 === 0) {
-      const percentage = (session.scoreTracker.correct / session.scoreTracker.total) * 100;
-      hypotheticalScore = Math.round(percentage * 3) / 10;
+      // BUG FIX #4: Ensure safe division
+      if (session.scoreTracker.total > 0) {
+        const percentage = (session.scoreTracker.correct / session.scoreTracker.total) * 100;
+        hypotheticalScore = Math.round(percentage * 3) / 10;
+      }
     }
 
     res.json({
       response: professorMessage,
       questionNumber: session.questionCount,
       hypotheticalScore: hypotheticalScore,
-      scoreTracker: session.scoreTracker
+      scoreTracker: session.scoreTracker || { correct: 0, total: 0 }
     });
   } catch (error) {
     console.error('Error:', error);
@@ -579,23 +590,13 @@ Provide a brief hint (2 sentences, no spoilers). Do NOT use markdown formatting.
     let textHint = hintResponse.choices[0].message.content;
     textHint = cleanMarkdown(textHint);
     
-    // FIX 1: Extract search terms from the QUESTION TEXT, not the hint
-    const searchTermsPrompt = `From this exam question, extract ONLY 2-3 key technical noun phrases (5-8 words max total) suitable for Google search to study this topic.
-    
-Question: "${lastQuestion.substring(0, 300)}"
-    
-Return ONLY the keywords separated by spaces (e.g., "kinematic equations derivation" or "enzyme inhibition kinetics"). No professor names, course names, or full sentences. Just compact technical terms for studying.`;
-
-    const termsResponse = await client.chat.completions.create({
-      model: 'grok-4.3',
-      messages: [{ role: 'user', content: searchTermsPrompt }],
-      temperature: 0.3,
-      max_tokens: 30,
-    });
-
-    let searchTerms = termsResponse.choices[0].message.content.trim();
-    if (!searchTerms || searchTerms.includes('professor') || searchTerms.includes('course') || searchTerms.length < 3) {
-      const words = lastQuestion.split(/\s+/).filter(w => w.length > 4 && !['question', 'explain', 'describe', 'professor', 'course', 'exam', 'hint', 'provide', 'brief', 'please', 'how', 'what', 'which', 'where', 'when'].includes(w.toLowerCase())).slice(0, 3);
+    // BUG FIX #1: Use FULL question text as search terms, not extracted terms
+    // This ensures mobile browser gets the professor's actual question for better Google search
+    let searchTerms = lastQuestion.substring(0, 150).trim();
+    // Clean up question formatting
+    searchTerms = searchTerms.replace(/[?:!.]+$/, '').trim();
+    if (searchTerms.length < 5) {
+      const words = lastQuestion.split(/\s+/).filter(w => w.length > 4 && !['question', 'explain', 'describe', 'professor', 'course', 'exam', 'hint', 'provide', 'brief', 'please', 'how', 'what', 'which', 'where', 'when', 'about', 'the', 'and', 'or', 'is', 'are'].includes(w.toLowerCase())).slice(0, 3);
       searchTerms = words.join(' ') || 'course concepts';
     }
 

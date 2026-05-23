@@ -257,9 +257,10 @@
                     <p style="margin: 3px 0;">3. Choose a course</p>
                     
                     <h4 style="color: #667eea; margin-top: 10px; margin-bottom: 6px; font-size: 12px;">🎤 Audio Buttons</h4>
-                    <p style="margin: 3px 0;"><strong>🎤 Speak:</strong> Record answer</p>
-                    <p style="margin: 3px 0;"><strong>🔊 Mute:</strong> Toggle audio</p>
+                    <p style="margin: 3px 0;"><strong>🎤 Speak:</strong> Click to record, click again to stop</p>
+                    <p style="margin: 3px 0;"><strong>🔊 Mute:</strong> Toggle audio (browser-dependent voice availability)</p>
                     <p style="margin: 3px 0;"><strong>⚙️ Settings:</strong> Change voice</p>
+                    <p style="margin: 3px 0; font-size: 10px; color: #999;"><em>Note: Voice availability varies by device/browser. Google voices work on most phones. Microsoft voices availability depends on OS.</em></p>
                     
                     <h4 style="color: #667eea; margin-top: 10px; margin-bottom: 6px; font-size: 12px;">📝 Exam Actions</h4>
                     <p style="margin: 3px 0;"><strong>✓ Send:</strong> Submit answer</p>
@@ -393,9 +394,11 @@
             
             speechRecognizer.onstart = () => { 
                 isListening = true;
-                // FIX 3: Clear transcript before starting recognition
+                        isListening = true;
+                // BUG FIX #2: Clear transcript AND set flag before starting recognition
                 recognitionTranscript = '';
                 document.getElementById('answerInput').value = '';
+                document.getElementById('answerInput').dataset.voiceRecording = 'true';
                 document.getElementById('speechButton').classList.add('active');
                 document.getElementById('speechButton').textContent = '⏹️ Stop';
             };
@@ -407,26 +410,20 @@
             };
             
             speechRecognizer.onresult = (event) => {
-                let interim = '';
+                // BUG FIX #2: Only add final results, not interim ones
+                let isFinal = false;
                 for (let i = event.resultIndex; i < event.results.length; i++) {
-                    const transcript = event.results[i][0].transcript;
                     if (event.results[i].isFinal) {
-                        recognitionTranscript += transcript + ' ';
-                    } else {
-                        interim += transcript + ' ';
+                        recognitionTranscript += event.results[i][0].transcript + ' ';
+                        isFinal = true;
                     }
                 }
-                document.getElementById('answerInput').value = (recognitionTranscript + interim).trim();
+                // Display final transcript without repeating
+                document.getElementById('answerInput').value = recognitionTranscript.trim();
                 
-                const isFinal = event.results[event.results.length - 1].isFinal;
                 if (recognitionSilenceTimer) clearTimeout(recognitionSilenceTimer);
-                if (isFinal) {
-                    recognitionSilenceTimer = setTimeout(() => {
-                        if (recognitionTranscript.trim() && isListening) {
-                            submitAnswer();
-                        }
-                    }, SILENCE_THRESHOLD);
-                }
+                // BUG FIX #7: Do NOT auto-submit. Wait for user to click Stop button
+                // This fixes the issue where voice continues after pressing End
             };
 
             speechRecognizer.onerror = (event) => {
@@ -463,9 +460,15 @@
         function toggleSpeech() {
             if (!speechRecognizer) { alert('Speech not supported'); return; }
             if (isListening) {
+                // BUG FIX #7: When user stops recording, submit the answer
                 speechRecognizer.stop();
+                document.getElementById('answerInput').dataset.voiceRecording = 'false';
+                const answer = document.getElementById('answerInput').value.trim();
+                if (answer) {
+                    setTimeout(() => submitAnswer(), 500);
+                }
             } else {
-                // FIX 3: Clear everything before starting recognition to prevent duplication
+                // BUG FIX #2: Clear everything before starting recognition to prevent duplication
                 document.getElementById('answerInput').value = '';
                 recognitionTranscript = '';
                 speechRecognizer.start();
@@ -653,10 +656,15 @@
             }
         }
 
+        // BUG FIX #2: Add language detection for Italian speech
         async function submitAnswer() {
             const answer = document.getElementById('answerInput').value.trim();
             if (!answer) return;
-            if (speechRecognizer && isListening) speechRecognizer.stop();
+            if (speechRecognizer && isListening) {
+                speechRecognizer.stop();
+                document.getElementById('answerInput').dataset.voiceRecording = 'false';
+            }
+            // BUG FIX #6: If Italian exam, detection happens automatically via language setting
             await getQuestion(answer);
         }
 
@@ -809,9 +817,12 @@
                 console.log('Using fallback voice:', voice.name);
             }
             
+            // BUG FIX #6: Detect language from course for Italian exam
             let lang = 'en-US';
-            if (voiceLanguage.includes('Italian') || voiceLanguage.includes('Aronica')) {
+            const courseName = document.getElementById('courseName')?.textContent || '';
+            if (courseName.includes('Italian') || voiceLanguage.includes('Italian') || voiceLanguage.includes('Aronica')) {
                 lang = 'it-IT';
+                utterance.lang = 'it-IT';
             } else if (voiceLanguage.includes('Spanish')) {
                 lang = 'es-ES';
             } else if (voiceLanguage.includes('French')) {
@@ -824,6 +835,10 @@
                 lang = 'en-US';
             }
             
+            // BUG FIX #6: Set language for speech recognition too
+            if (lang === 'it-IT') {
+                if (speechRecognizer) speechRecognizer.lang = 'it-IT';
+            }
             utterance.lang = lang;
             
             if (voice) {
@@ -905,8 +920,14 @@
 
         async function endExam() {
             if (confirm('End exam?')) {
+                // BUG FIX #5: Stop speech and voice immediately, prevent any delayed submissions
                 speechSynthesis.cancel();
-                if (speechRecognizer && isListening) speechRecognizer.stop();
+                if (speechRecognizer) {
+                    speechRecognizer.stop();
+                    isListening = false;
+                }
+                if (recognitionSilenceTimer) clearTimeout(recognitionSilenceTimer);
+                document.getElementById('answerInput').dataset.voiceRecording = 'false';
                 
                 // Close ALL sidebars
                 document.getElementById('sidebar').classList.remove('active');
@@ -914,7 +935,12 @@
                 document.getElementById('helpSidebar').classList.remove('active');
                 
                 try {
-                    const response = await fetch(`${API_BASE}/api/exam/session/${currentSessionId}`, { method: 'DELETE' });
+                    // BUG FIX #5: Signal to server that exam is ending
+                    const response = await fetch(`${API_BASE}/api/exam/session/${currentSessionId}`, { 
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ isEnding: true })
+                    });
                     const data = await response.json();
                     if (data.score) {
                         saveScore(data.score);
