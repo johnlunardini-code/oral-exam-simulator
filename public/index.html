@@ -128,15 +128,12 @@
                 <div>
                     <label>🎤 Voice:</label>
                     <select id="voiceLanguage" onchange="changeVoiceLanguage()" style="font-size: 12px;">
-                        <option value="Microsoft Sonia">Sonia (UK) - Default</option>
-                        <option value="Microsoft David">David (US Male)</option>
-                        <option value="Microsoft Zira">Zira (US Female)</option>
-                        <option value="Microsoft Mark">Mark (US)</option>
+                        <option value="Microsoft Sonia - English (United Kingdom)">Sonia (UK) - Default</option>
+                        <option value="Microsoft David - English (United States)">David (US) - Male</option>
+                        <option value="Microsoft Zira - English (United States)">Zira (US) - Female</option>
+                        <option value="Microsoft Mark - English (United States)">Mark (US) - Male</option>
                         <option value="Google US English">Google US English</option>
                         <option value="Google UK English">Google UK English</option>
-                        <option value="Samantha">Samantha (Apple/macOS)</option>
-                        <option value="Victoria">Victoria (Apple/macOS)</option>
-                        <option value="Alex">Alex (Apple/macOS)</option>
                     </select>
                 </div>
             </div>
@@ -213,6 +210,28 @@
                 </div>
             </div>
         </div>
+
+        <!-- Settings Sidebar -->
+        <div class="sidebar" id="settingsSidebar">
+            <div class="sidebar-header">
+                <h3>Voice Settings</h3>
+                <button class="sidebar-close" onclick="closeSettings()">×</button>
+            </div>
+            <div class="sidebar-content">
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333; font-size: 12px;">Select Voice:</label>
+                    <select id="examVoiceSelect" onchange="updateVoiceFromSettings()" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">
+                        <option value="Microsoft Sonia - English (United Kingdom)">Sonia (UK)</option>
+                        <option value="Microsoft David - English (United States)">David (US) - Male</option>
+                        <option value="Microsoft Zira - English (United States)">Zira (US) - Female</option>
+                        <option value="Microsoft Mark - English (United States)">Mark (US) - Male</option>
+                        <option value="Google US English">Google US English</option>
+                        <option value="Google UK English">Google UK English</option>
+                    </select>
+                </div>
+                <button onclick="closeSettings()" style="width: 100%; padding: 10px; background: #667eea; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Close</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -220,7 +239,7 @@
         let currentSessionId = null;
         let isListening = false;
         let preloadedMaterials = [];
-        let voiceLanguage = localStorage.getItem('userVoicePreference') || 'Microsoft Sonia';
+        let voiceLanguage = localStorage.getItem('userVoicePreference') || 'Microsoft Sonia - English (United Kingdom)';
         let speechRecognizer = null;
         let currentHintCache = null;
         let speechSynthesisEnabled = true;
@@ -368,6 +387,13 @@
         function changeVoiceLanguage() {
             voiceLanguage = document.getElementById('voiceLanguage').value;
             localStorage.setItem('userVoicePreference', voiceLanguage);
+            document.getElementById('examVoiceSelect').value = voiceLanguage;
+        }
+
+        function updateVoiceFromSettings() {
+            voiceLanguage = document.getElementById('examVoiceSelect').value;
+            localStorage.setItem('userVoicePreference', voiceLanguage);
+            document.getElementById('voiceLanguage').value = voiceLanguage;
         }
 
         function toggleSpeech() {
@@ -462,6 +488,7 @@
                 document.getElementById('questionCount').textContent = '1';
                 document.getElementById('answerInput').value = '';
                 speechSynthesis.cancel();
+                document.getElementById('examVoiceSelect').value = voiceLanguage;
                 
                 for (let material of preloadedMaterials) {
                     await uploadPreloadedMaterial(material);
@@ -653,35 +680,13 @@
             speechSynthesis.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.rate = 0.9;
+            utterance.lang = 'en-US';
             
-            const voiceName = voiceLanguage;
             const voices = speechSynthesis.getVoices();
-            
-            // Determine language based on voice selection
-            let lang = 'en-US';
-            if (voiceName.includes('Italian') || voiceName.includes('Aronica')) lang = 'it-IT';
-            else if (voiceName.includes('Spanish')) lang = 'es-ES';
-            else if (voiceName.includes('French')) lang = 'fr-FR';
-            else if (voiceName.includes('German')) lang = 'de-DE';
-            else if (voiceName.includes('UK') || voiceName.includes('Sonia')) lang = 'en-GB';
-            
-            utterance.lang = lang;
-            
-            // Try exact match first
-            let voice = voices.find(v => v.name === voiceName);
-            // Then try partial match
-            if (!voice) voice = voices.find(v => v.name && v.name.includes(voiceName));
-            // Try matching on name parts (e.g., "Joanna" from "Amazon Joanna")
-            if (!voice) {
-                const voiceParts = voiceName.split(' ');
-                voice = voices.find(v => voiceParts.some(part => v.name && v.name.includes(part)));
-            }
-            // Fallback to first available voice
-            if (!voice && voices.length > 0) voice = voices[0];
-            
+            const voice = voices.find(v => v.name === voiceLanguage);
             if (voice) {
                 utterance.voice = voice;
-                console.log('Using voice:', voice.name, 'lang:', lang);
+                console.log('Using voice:', voice.name);
             }
             
             speechSynthesis.speak(utterance);
@@ -689,6 +694,14 @@
 
         function closeSidebar() {
             document.getElementById('sidebar').classList.remove('active');
+        }
+
+        function openSettings() {
+            document.getElementById('settingsSidebar').style.right = '0';
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsSidebar').style.right = '-100vw';
         }
 
         async function generateHint() {
