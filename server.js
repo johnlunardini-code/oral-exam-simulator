@@ -298,6 +298,7 @@ app.post('/api/exam/start', (req, res) => {
     scoreTracker: { correct: 0, total: 0 },
     isFirstQuestion: true,
     lastAnswerIncomplete: false,
+    hintHistory: {},
   };
 
   res.json({ 
@@ -568,7 +569,6 @@ app.post('/api/exam/hint', async (req, res) => {
     
 Provide a brief hint (2 sentences, no spoilers). Do NOT use markdown formatting.`;
 
-    // ISSUE 2 FIX: First generate the hint, then extract 2-3 concise keywords from it
     const hintResponse = await client.chat.completions.create({
       model: 'grok-4.3',
       messages: [{ role: 'user', content: hintPrompt }],
@@ -579,12 +579,12 @@ Provide a brief hint (2 sentences, no spoilers). Do NOT use markdown formatting.
     let textHint = hintResponse.choices[0].message.content;
     textHint = cleanMarkdown(textHint);
     
-    // ISSUE 2 FIX: Extract 2-3 key technical keywords from the HINT TEXT, not the question
-    const searchTermsPrompt = `From this hint text, extract ONLY 2-3 key technical noun phrases (5-8 words max total) suitable for Google search.
+    // FIX 1: Extract search terms from the QUESTION TEXT, not the hint
+    const searchTermsPrompt = `From this exam question, extract ONLY 2-3 key technical noun phrases (5-8 words max total) suitable for Google search to study this topic.
     
-Hint: "${textHint}"
+Question: "${lastQuestion.substring(0, 300)}"
     
-Return ONLY the keywords separated by spaces (e.g., "mediastinum subdivisions anatomy" or "enzyme inhibition kinetics"). No professor names, course names, or full sentences. Just compact technical terms.`;
+Return ONLY the keywords separated by spaces (e.g., "kinematic equations derivation" or "enzyme inhibition kinetics"). No professor names, course names, or full sentences. Just compact technical terms for studying.`;
 
     const termsResponse = await client.chat.completions.create({
       model: 'grok-4.3',
@@ -595,9 +595,20 @@ Return ONLY the keywords separated by spaces (e.g., "mediastinum subdivisions an
 
     let searchTerms = termsResponse.choices[0].message.content.trim();
     if (!searchTerms || searchTerms.includes('professor') || searchTerms.includes('course') || searchTerms.length < 3) {
-      const words = textHint.split(/\s+/).filter(w => w.length > 4 && !['question', 'explain', 'describe', 'professor', 'course', 'exam', 'hint', 'provide', 'brief'].includes(w.toLowerCase())).slice(0, 3);
+      const words = lastQuestion.split(/\s+/).filter(w => w.length > 4 && !['question', 'explain', 'describe', 'professor', 'course', 'exam', 'hint', 'provide', 'brief', 'please', 'how', 'what', 'which', 'where', 'when'].includes(w.toLowerCase())).slice(0, 3);
       searchTerms = words.join(' ') || 'course concepts';
     }
+
+    // Store hint with question number
+    const questionNum = session.questionCount;
+    if (!session.hintHistory[questionNum]) {
+      session.hintHistory[questionNum] = [];
+    }
+    session.hintHistory[questionNum].push({
+      hint: textHint,
+      searchTerms: searchTerms,
+      timestamp: new Date().toISOString()
+    });
 
     res.json({ 
       textHint,
@@ -624,6 +635,19 @@ app.post('/api/exam/score-answer', (req, res) => {
   res.json({
     scoreTracker: session.scoreTracker,
     percentage: Math.round((session.scoreTracker.correct / session.scoreTracker.total) * 100)
+  });
+});
+
+app.get('/api/exam/hint-history/:sessionId', (req, res) => {
+  const { sessionId } = req.params;
+
+  if (!sessionId || !examSessions[sessionId]) {
+    return res.status(404).json({ error: 'Not found' });
+  }
+
+  const session = examSessions[sessionId];
+  res.json({
+    hintHistory: session.hintHistory || {}
   });
 });
 

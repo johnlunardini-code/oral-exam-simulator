@@ -203,6 +203,7 @@
             <div class="bottom-controls">
                 <button class="btn-primary" onclick="getScore()" style="flex: 1;">📊 Get Score</button>
                 <button class="btn-secondary" onclick="generateHint()" style="flex: 1;">💡 Hint</button>
+                <button class="btn-success" onclick="openHintHistory()" style="flex: 1;">📋 History</button>
                 <button class="btn-success" onclick="openFeedbackHistory()" style="flex: 1;">💬 Feedback</button>
                 <button class="btn-danger" onclick="endExam()" style="flex: 1;">End Exam</button>
             </div>
@@ -392,7 +393,9 @@
             
             speechRecognizer.onstart = () => { 
                 isListening = true;
+                // FIX 3: Clear transcript before starting recognition
                 recognitionTranscript = '';
+                document.getElementById('answerInput').value = '';
                 document.getElementById('speechButton').classList.add('active');
                 document.getElementById('speechButton').textContent = '⏹️ Stop';
             };
@@ -434,13 +437,27 @@
         function changeVoiceLanguage() {
             voiceLanguage = document.getElementById('voiceLanguage').value;
             localStorage.setItem('userVoicePreference', voiceLanguage);
-            document.getElementById('examVoiceSelect').value = voiceLanguage;
+            // FIX 4: Ensure sync on mobile
+            const examSelect = document.getElementById('examVoiceSelect');
+            if (examSelect) examSelect.value = voiceLanguage;
         }
 
         function updateVoiceFromSettings() {
             voiceLanguage = document.getElementById('examVoiceSelect').value;
             localStorage.setItem('userVoicePreference', voiceLanguage);
-            document.getElementById('voiceLanguage').value = voiceLanguage;
+            const homeSelect = document.getElementById('voiceLanguage');
+            if (homeSelect) homeSelect.value = voiceLanguage;
+        }
+        
+        // FIX 4: Delay voice check for mobile browsers
+        function initializeVoiceForExam() {
+            setTimeout(() => {
+                const examSelect = document.getElementById('examVoiceSelect');
+                if (examSelect) {
+                    examSelect.value = voiceLanguage;
+                    console.log('Voice initialized for exam:', voiceLanguage);
+                }
+            }, 300);
         }
 
         function toggleSpeech() {
@@ -448,6 +465,7 @@
             if (isListening) {
                 speechRecognizer.stop();
             } else {
+                // FIX 3: Clear everything before starting recognition to prevent duplication
                 document.getElementById('answerInput').value = '';
                 recognitionTranscript = '';
                 speechRecognizer.start();
@@ -535,7 +553,8 @@
                 document.getElementById('questionCount').textContent = '1';
                 document.getElementById('answerInput').value = '';
                 speechSynthesis.cancel();
-                document.getElementById('examVoiceSelect').value = voiceLanguage;
+                // FIX 4: Initialize voice with delay for mobile
+                initializeVoiceForExam();
                 
                 for (let material of preloadedMaterials) {
                     await uploadPreloadedMaterial(material);
@@ -661,6 +680,45 @@
                 chatArea.scrollTop = chatArea.scrollHeight;
             } catch (error) {
                 alert('Error getting score: ' + error.message);
+            }
+        }
+
+        // FIX 2: Open Hint History sidebar
+        async function openHintHistory() {
+            if (!currentSessionId) { alert('Start exam first'); return; }
+            document.getElementById('sidebar').classList.add('active');
+            document.getElementById('sidebarTitle').textContent = '💡 Hint History';
+            const hintResult = document.getElementById('hintResult');
+            hintResult.innerHTML = '<p style="text-align: center; color: #667eea;">Loading...</p>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/exam/hint-history/${currentSessionId}`, { method: 'GET' });
+                const data = await response.json();
+                const hintHistory = data.hintHistory || {};
+                
+                if (Object.keys(hintHistory).length === 0) {
+                    hintResult.innerHTML = '<p style="color: #999; font-size: 12px; text-align: center;">No hints yet. Click Hint button to generate.</p>';
+                    return;
+                }
+                
+                let html = '<div style="max-height: 500px; overflow-y: auto;">';
+                Object.entries(hintHistory).forEach(([qNum, hints]) => {
+                    html += `<div style="background: #f0f4ff; padding: 10px; border-radius: 6px; margin-bottom: 10px; border-left: 4px solid #667eea;">`;
+                    html += `<div style="font-weight: 600; font-size: 12px; color: #333; margin-bottom: 8px;">Question ${qNum}</div>`;
+                    if (Array.isArray(hints)) {
+                        hints.forEach((hint, idx) => {
+                            html += `<div style="background: white; padding: 8px; border-radius: 4px; margin-bottom: 6px; border-left: 3px solid #764ba2;">`;
+                            html += `<p style="margin: 0 0 6px 0; color: #333; font-size: 11px; line-height: 1.4;">${hint.hint}</p>`;
+                            html += `<button class="action-btn" onclick="searchHint('${encodeURIComponent(hint.searchTerms)}');" style="width: 100%; padding: 6px; font-size: 10px;">🔍 Search: ${hint.searchTerms}</button>`;
+                            html += `</div>`;
+                        });
+                    }
+                    html += `</div>`;
+                });
+                html += '</div>';
+                hintResult.innerHTML = html;
+            } catch (error) {
+                hintResult.innerHTML = '<p style="color: #e74c3c; font-size: 12px;">Error loading hint history</p>';
             }
         }
 
