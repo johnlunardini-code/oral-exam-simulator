@@ -147,6 +147,7 @@
 
             <div class="bottom-controls">
                 <button onclick="viewPastScores()" style="background: #27ae60; color: white;">📊 Past Scores</button>
+                <button onclick="openHelp()" style="background: #3498db; color: white;">❓ Help</button>
                 <button onclick="clearAllData()" style="background: #95a5a6; color: white;">🗑️ Clear</button>
             </div>
 
@@ -214,23 +215,59 @@
         <!-- Settings Sidebar -->
         <div class="sidebar" id="settingsSidebar">
             <div class="sidebar-header">
-                <h3>Voice Settings</h3>
+                <h3>Settings</h3>
                 <button class="sidebar-close" onclick="closeSettings()">×</button>
             </div>
             <div class="sidebar-content">
-                <div style="margin-bottom: 16px;">
-                    <label style="display: block; font-weight: 600; margin-bottom: 6px; color: #333; font-size: 12px;">Select Voice:</label>
-                    <select id="examVoiceSelect" onchange="updateVoiceFromSettings()" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">
-                        <option value="Microsoft Sonia - English (United Kingdom)">Sonia (UK)</option>
-                        <option value="Microsoft David - English (United States)">David (US) - Male</option>
-                        <option value="Microsoft Zira - English (United States)">Zira (US) - Female</option>
-                        <option value="Microsoft Mark - English (United States)">Mark (US) - Male</option>
-                        <option value="Google US English">Google US English</option>
-                        <option value="Google UK English">Google UK English</option>
-                    </select>
-                </div>
-                <button onclick="testVoice()" style="width: 100%; padding: 10px; background: #27ae60; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; margin-bottom: 8px;">🔊 Test Voice</button>
+                <h4 style="color: #667eea; font-size: 12px; margin-bottom: 8px; margin-top: 0;">🎤 Voice Selection</h4>
+                <select id="examVoiceSelect" onchange="updateVoiceFromSettings()" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; margin-bottom: 8px;">
+                    <option value="Microsoft Sonia - English (United Kingdom)">Sonia (UK)</option>
+                    <option value="Microsoft David - English (United States)">David (US) - Male</option>
+                    <option value="Microsoft Zira - English (United States)">Zira (US) - Female</option>
+                    <option value="Microsoft Mark - English (United States)">Mark (US) - Male</option>
+                    <option value="Google US English">Google US English</option>
+                    <option value="Google UK English">Google UK English</option>
+                </select>
+                <button onclick="testVoice()" style="width: 100%; padding: 10px; background: #27ae60; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; margin-bottom: 12px;">🔊 Test Voice</button>
                 <button onclick="closeSettings()" style="width: 100%; padding: 10px; background: #667eea; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Close</button>
+            </div>
+        </div>
+
+        <!-- Help Sidebar -->
+        <div class="sidebar" id="helpSidebar">
+            <div class="sidebar-header">
+                <h3>Help Guide</h3>
+                <button class="sidebar-close" onclick="closeHelp()">×</button>
+            </div>
+            <div class="sidebar-content">
+                <div style="font-size: 11px; line-height: 1.6; color: #333;">
+                    <h4 style="color: #667eea; margin-top: 10px; margin-bottom: 6px; font-size: 12px;">🎓 Getting Started</h4>
+                    <p style="margin: 3px 0;">1. Enter your name (optional)</p>
+                    <p style="margin: 3px 0;">2. Select a voice</p>
+                    <p style="margin: 3px 0;">3. Choose a course</p>
+                    
+                    <h4 style="color: #667eea; margin-top: 10px; margin-bottom: 6px; font-size: 12px;">🎤 Audio Buttons</h4>
+                    <p style="margin: 3px 0;"><strong>🎤 Speak:</strong> Record answer</p>
+                    <p style="margin: 3px 0;"><strong>🔊 Mute:</strong> Toggle audio</p>
+                    <p style="margin: 3px 0;"><strong>⚙️ Settings:</strong> Change voice</p>
+                    
+                    <h4 style="color: #667eea; margin-top: 10px; margin-bottom: 6px; font-size: 12px;">📝 Exam Actions</h4>
+                    <p style="margin: 3px 0;"><strong>✓ Send:</strong> Submit answer</p>
+                    <p style="margin: 3px 0;"><strong>📊 Get Score:</strong> View progress</p>
+                    <p style="margin: 3px 0;"><strong>💡 Hint:</strong> Get study tip</p>
+                    <p style="margin: 3px 0;"><strong>💬 Feedback:</strong> Review answers</p>
+                    <p style="margin: 3px 0;"><strong>📎 Attach:</strong> Upload files</p>
+                    
+                    <h4 style="color: #667eea; margin-top: 10px; margin-bottom: 6px; font-size: 12px;">🏠 Home Options</h4>
+                    <p style="margin: 3px 0;"><strong>📚 Pre-load:</strong> Upload materials</p>
+                    <p style="margin: 3px 0;"><strong>📊 Past Scores:</strong> View history</p>
+                    <p style="margin: 3px 0;"><strong>🗑️ Clear:</strong> Delete data</p>
+                    
+                    <h4 style="color: #667eea; margin-top: 10px; margin-bottom: 6px; font-size: 12px;">💡 Tips</h4>
+                    <p style="margin: 3px 0;">• Use Hint for weak areas</p>
+                    <p style="margin: 3px 0;">• Upload course materials</p>
+                    <p style="margin: 3px 0;">• Each exam has fresh questions</p>
+                </div>
             </div>
         </div>
     </div>
@@ -751,7 +788,13 @@
             document.getElementById('settingsSidebar').style.right = '-100vw';
         }
 
-        async function generateHint() {
+        function openHelp() {
+            document.getElementById('helpSidebar').classList.add('active');
+        }
+
+        function closeHelp() {
+            document.getElementById('helpSidebar').classList.remove('active');
+        }
             if (!currentSessionId) { alert('Start exam first'); return; }
             document.getElementById('sidebar').classList.add('active');
             document.getElementById('sidebarTitle').textContent = 'Study Hint';
