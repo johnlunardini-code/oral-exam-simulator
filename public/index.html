@@ -302,11 +302,19 @@
             header.querySelector('.toggle').textContent = coursesDiv.classList.contains('collapsed') ? '▶' : '▼';
         }
 
-        if (speechSynthesis.onvoiceschanged !== undefined) {
-            speechSynthesis.onvoiceschanged = () => {};
+        function loadVoices() {
+            const voices = speechSynthesis.getVoices();
+            if (voices.length > 0) {
+                document.getElementById('voiceLanguage').value = voiceLanguage;
+            }
         }
-        speechSynthesis.getVoices();
 
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = () => {
+                loadVoices();
+            };
+        }
+        loadVoices();
         document.getElementById('voiceLanguage').value = voiceLanguage;
         initializeCourses();
 
@@ -330,13 +338,20 @@
             };
             
             speechRecognizer.onresult = (event) => {
+                let interim = '';
                 for (let i = event.resultIndex; i < event.results.length; i++) {
-                    recognitionTranscript += event.results[i][0].transcript + ' ';
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        recognitionTranscript += transcript + ' ';
+                    } else {
+                        interim += transcript + ' ';
+                    }
                 }
-                document.getElementById('answerInput').value = recognitionTranscript.trim();
+                document.getElementById('answerInput').value = (recognitionTranscript + interim).trim();
                 
+                const isFinal = event.results[event.results.length - 1].isFinal;
                 if (recognitionSilenceTimer) clearTimeout(recognitionSilenceTimer);
-                if (event.results[event.results.length - 1].isFinal) {
+                if (isFinal) {
                     recognitionSilenceTimer = setTimeout(() => {
                         if (recognitionTranscript.trim() && isListening) {
                             submitAnswer();
