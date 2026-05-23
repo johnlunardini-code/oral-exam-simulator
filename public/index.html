@@ -527,6 +527,15 @@
 
                 loadingDiv.remove();
 
+                const qNum = data.questionNumber;
+                const qHeaderGroup = document.createElement('div');
+                qHeaderGroup.className = 'message-group';
+                const qHeader = document.createElement('div');
+                qHeader.className = 'message question-header';
+                qHeader.innerHTML = `Question ${qNum}`;
+                qHeaderGroup.appendChild(qHeader);
+                chatArea.appendChild(qHeaderGroup);
+
                 const group = document.createElement('div');
                 group.className = 'message-group';
                 
@@ -558,10 +567,11 @@
                     scoreMsgContent.innerHTML = `📊 Hypothetical Score: ${data.hypotheticalScore}/30`;
                     scoreMsg.appendChild(scoreMsgContent);
                     chatArea.appendChild(scoreMsg);
-                    document.getElementById('scoreDisplay').textContent = `Score: ${Math.round(data.scoreTracker.correct / data.scoreTracker.total * 100)}%`;
+                    const scoreDisplay = document.getElementById('scoreDisplay');
+                    if (scoreDisplay) scoreDisplay.textContent = `Score: ${Math.round(data.scoreTracker.correct / data.scoreTracker.total * 100)}%`;
                 }
 
-                document.getElementById('questionCount').textContent = data.questionNumber;
+                document.getElementById('questionCount').textContent = qNum;
                 document.getElementById('answerInput').value = '';
                 chatArea.scrollTop = chatArea.scrollHeight;
                 
