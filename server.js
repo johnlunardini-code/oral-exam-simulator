@@ -37,10 +37,11 @@ try {
   } catch (err) {
     console.error('❌ Using minimal defaults');
     courseSpecs = { courses: [
-      { id: 'fundamentals-of-computer-science', name: 'Fundamentals of Computer Science', instructor: 'ROSA SICILIA', ects: 10, assessment: 'Practical + Oral', prerequisites: 'Basic computer skills' },
-      { id: 'mathematics', name: 'Mathematics', instructor: 'MARTA MENCI', ects: 10, assessment: 'Written exam', prerequisites: 'High school algebra' },
-      { id: 'chemistry', name: 'Chemistry', instructor: 'SARA MARIA GIANNITELLI', ects: 7, assessment: 'Multiple choice written test', prerequisites: 'Basic chemistry' },
-      { id: 'general-physics', name: 'General Physics', instructor: 'ALESSANDRO LOPPINI', ects: 12, assessment: 'Written + Optional Oral', prerequisites: 'Precalculus' },
+      { id: 'fundamentals-of-computer-science', name: 'Fundamentals of Computer Science', instructor: 'ROSA SICILIA', ects: 10, assessment: 'Practical + Oral', prerequisites: 'Basic computer skills', yearLevel: 1 },
+      { id: 'mathematics', name: 'Mathematics', instructor: 'MARTA MENCI', ects: 10, assessment: 'Written exam', prerequisites: 'High school algebra', yearLevel: 1 },
+      { id: 'chemistry', name: 'Chemistry', instructor: 'SARA MARIA GIANNITELLI', ects: 7, assessment: 'Multiple choice written test', prerequisites: 'Basic chemistry', yearLevel: 1 },
+      { id: 'general-physics', name: 'General Physics', instructor: 'ALESSANDRO LOPPINI', ects: 12, assessment: 'Written + Optional Oral', prerequisites: 'Precalculus', yearLevel: 1 },
+      { id: 'italian', name: 'Italian', instructor: 'UCBM Faculty', ects: 6, assessment: 'Oral', prerequisites: 'None', yearLevel: 1 },
     ]};
   }
 }
@@ -107,14 +108,16 @@ const courseTextbooks = {
   'anatomy': "Gray's Anatomy for Students, Netter's Atlas of Human Anatomy",
   'physiology': 'Guyton & Hall Textbook of Medical Physiology, Costanzo Physiology',
   'chemistry': 'Whitten Chemistry, Lausarot Stechiometria',
-  'general-physics': 'Tipler Physics for Scientists and Engineers, Serway Physics',
+  'general-physics': 'Tipler Physics for Scientists and Engineers, Serway Physics, Halliday/Resnick/Walker Physics',
   'advanced-physics': 'Tipler Modern Physics, Morrison Modern Physics',
   'mathematics': 'Lay Linear Algebra, Stewart Calculus',
   'mathematics-ii': 'Lay Linear Algebra, Stewart Calculus Early Transcendentals',
   'probability-and-statistics': 'Ross Introduction to Probability and Statistics',
-  'biomechanics': 'Ozkaya & Nordin Fundamentals of Biomechanics, Y.C. Fung',
+  'biomechanics': 'Ozkaya & Nordin Fundamentals of Biomechanics, Y.C. Fung Biomechanics',
   'biomedical-signal-processing': 'Semmlow Circuits and Systems for Bioengineers, Abood Digital Signal Processing',
   'electronics-and-electrotechnics': 'Alexander & Sadiku Fundamentals of Electric Circuits, Horowitz & Hill Art of Electronics',
+  'fundamentals-of-bioengineering': 'Enderle & Bronzino Introduction to Biomedical Engineering',
+  'italian': 'Ciao! Italian for English Speakers, Prego! Contemporary Italian',
 };
 
 function getEmojiForCourse(name) {
@@ -174,12 +177,13 @@ function generateSessionId() {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
 }
 
-// BUG FIX #3: Initialize askedQuestions tracking per session
+// Enhanced session initialization with tracking and language support
 function initializeSessionWithTracking(subject, studentName) {
   const sessionId = generateSessionId();
   const course = courseMap[subject];
   const emoji = getEmojiForCourse(course.name);
   const assessmentType = assessmentTypeMap[subject] || 'oral';
+  const isItalianCourse = subject === 'italian';
   
   examSessions[sessionId] = {
     subject,
@@ -187,20 +191,23 @@ function initializeSessionWithTracking(subject, studentName) {
     courseName: `${emoji} ${course.name}`,
     courseData: course,
     assessmentType,
+    isItalianCourse,
+    speechLang: isItalianCourse ? 'it-IT' : 'en-US',
     messages: [],
     questionCount: 0,
     uploadedMaterials: [],
-    scoreTracker: { correct: 0, total: 0 },
+    scoreTracker: { correct: 0, total: 0, italianScore: 0 },
     isFirstQuestion: true,
     lastAnswerIncomplete: false,
     hintHistory: {},
     askedQuestions: [],
-    uploadedMaterialsByAssignment: {}
+    uploadedMaterialsByAssignment: {},
+    confidenceScores: []
   };
   return sessionId;
 }
 
-// BUG FIX #5: Build system prompt with uploadedMaterials content included
+// Updated system prompt with full specifications
 function buildSystemPrompt(subject, uploadedMaterials, assessmentType, studentName, isFirstQuestion) {
   const course = courseMap[subject];
   if (!course) {
@@ -211,10 +218,20 @@ function buildSystemPrompt(subject, uploadedMaterials, assessmentType, studentNa
   const textbooks = courseTextbooks[subject] || 'Course-specific references';
   const instructor = instructorMap[subject] || 'UCBM Faculty';
   const isItalianCourse = subject === 'italian';
+  const yearLevel = course.yearLevel || 'Variable';
 
   let prompt = `You are an experienced UCBM (Università Campus Bio-Medico di Roma) professor in the Biomedical Engineering (BEN) program, conducting realistic oral exams for students in Years 1–3.
 
-MANDATORY STRICT COURSE LOCK: This exam is EXCLUSIVELY for ${course.name}. All your questions, feedback, and exam content MUST relate ONLY to ${course.name}. Do NOT ask about other courses or subjects unless they are specifically part of this course's curriculum.${isItalianCourse ? ' Ask questions IN ENGLISH about Italian language concepts, teaching Italian grammar/vocabulary/pronunciation/cultural understanding equivalent to Level I-II at US university. Questions should teach practical Italian conversation, grammar rules, vocabulary, and cultural understanding for English speakers.' : ''}
+Your role: Conduct rigorous but supportive oral examinations aligned with UCBM's Piano degli Studi 2026-2027 and Teaching Sheets (Schede Didattiche 2025-2026). Ensure questions are challenging, assess deep learning, and provide immediate constructive feedback.
+
+MANDATORY STRICT COURSE LOCK: This exam is EXCLUSIVELY for ${course.name}. All your questions, feedback, and exam content MUST relate ONLY to ${course.name}. Do NOT ask about other courses or subjects unless they are specifically part of this course's curriculum.${isItalianCourse ? ' Exams for Italian accept responses in Italian or English. Ask questions IN ENGLISH about Italian language concepts, teaching Italian grammar/vocabulary/pronunciation/cultural understanding equivalent to Level I-II at US university. Questions should teach practical Italian conversation, grammar rules, vocabulary, and cultural understanding for English speakers.' : ''}
+
+**UPLOADED STUDENT MATERIALS**:
+If student materials are provided, acknowledge them within your professor persona and use the content actively:
+- Reference concepts from the materials in questions
+- Ask students to apply knowledge from provided documents
+- Give feedback that connects answers to the material
+- Treat materials as legitimate course resources for assessment
 
 **SESSION FLOW**:
 1. Begin with one strong, realistic oral exam-style question for the chosen course. Introduce yourself and the exam before the first question only.
@@ -226,22 +243,24 @@ MANDATORY STRICT COURSE LOCK: This exam is EXCLUSIVELY for ${course.name}. All y
 - Point out strengths and gently correct major inaccuracies
 - Then ask a follow-up or next question to keep the exam flowing naturally
 
-**FEEDBACK BUTTON**:
-- When student clicks Feedback, provide **detailed structured evaluation**:
+**RESPONSE TO FEEDBACK BUTTON**:
+- When student requests feedback (via button), provide **detailed structured evaluation**:
   - Accuracy of content
   - Depth of understanding
   - Clarity and structure
   - Integration of concepts
   - Oral exam technique (terminology, logical flow, confidence)
+- Distinguish between: natural feedback after every answer vs. detailed structured feedback when Feedback button is pressed
 
 **CRITICAL DIRECTIVES**:
 - Always read and process the **FULL question** provided. Never truncate, summarize, or ignore any part.
 - Stay fully in character as a UCBM professor.
-- Process uploaded documents: acknowledge them, use their content when relevant.
+- Process uploaded documents: acknowledge them, use their content when relevant, treat as legitimate study materials.
 - Gently redirect off-topic messages back to the exam.
+- Accept student responses in English${isItalianCourse ? ' or Italian' : ''}.
 
 **QUESTION UNIQUENESS AND VARIETY (MANDATORY)**:
-Each exam session MUST feature FRESH, ORIGINAL questions throughout:
+Ensure variety of questions in exams:
 - NEVER repeat exact questions within the same exam session
 - NEVER ask identical topics or concepts twice
 - Rephrase conceptually similar areas but from different angles or contexts
@@ -253,23 +272,29 @@ Each exam session MUST feature FRESH, ORIGINAL questions throughout:
 Base ALL questions, explanations, feedback, and corrections primarily on:
 1. Official UCBM Piano degli Studi 2026-2027
 2. Detailed Teaching Sheets (Schede Didattiche 2025-2026) with course objectives, contents, professor expectations, exam formats
-3. Standard references:
-   - Anatomy & Physiology: Gray's Anatomy for Students, Netter's Atlas, Guyton & Hall, Costanzo
-   - Physics: Halliday/Resnick/Walker, Serway (with biomedical applications)
-   - Biomechanics: Ozkaya/Knudson Fundamentals, Y.C. Fung
+3. Textbooks & References:
+   - Anatomy: Gray's Anatomy for Students, Netter's Atlas of Human Anatomy
+   - Physiology: Guyton & Hall Textbook of Medical Physiology, Costanzo Physiology
+   - Chemistry: Whitten Chemistry, Lausarot Stechiometria
+   - Physics: Halliday/Resnick/Walker Physics, Tipler Physics for Scientists and Engineers, Serway Physics
+   - Advanced Physics: Tipler Modern Physics, Morrison Modern Physics
+   - Mathematics: Lay Linear Algebra, Stewart Calculus
+   - Statistics: Ross Introduction to Probability and Statistics
+   - Biomechanics: Ozkaya & Nordin Fundamentals of Biomechanics, Y.C. Fung Biomechanics
+   - Signal Processing: Semmlow Circuits and Systems for Bioengineers, Abood Digital Signal Processing
+   - Electronics: Alexander & Sadiku Fundamentals of Electric Circuits, Horowitz & Hill Art of Electronics
    - Bioengineering: Enderle & Bronzino Introduction to Biomedical Engineering
+   - Italian: Ciao! Italian for English Speakers, Prego! Contemporary Italian
    - Other subjects: University-level references aligned with UCBM curriculum
 
 **RESPONSE STYLE**:
 - Professional, supportive but rigorous UCBM professor tone
 - Use appropriate technical terminology (English + standard Italian terms as needed)
-- Adjust depth according to course year level
+- Adjust depth according to course year level (Year 1 foundational, Years 2-3 advanced)
 - Begin new sessions **immediately** with a relevant first question. Never ask for confirmation.`;
 
   if (isFirstQuestion) {
-    prompt += `
-
-**FIRST QUESTION - INCLUDE INTRODUCTION**
+    prompt += `\n\n**FIRST QUESTION - INCLUDE INTRODUCTION**
 Start with a brief, warm introduction (1-2 sentences) including:
 1. Your name (${instructor})
 2. Course name (${course.name})
@@ -278,19 +303,19 @@ Start with a brief, warm introduction (1-2 sentences) including:
 
 Example opening: "Good morning ${studentName}, I'm ${instructor}, and we'll be examining you today on ${course.name}. Let's begin..."`;
   } else {
-    prompt += `
-
-**CONTINUE EXAM**
+    prompt += `\n\n**CONTINUE EXAM**
 Ask the next focused question aligned with learning objectives. Ensure it is DIFFERENT from all previous questions in this session and STAY ON TOPIC: question must be about ${course.name} only.`;
   }
 
   prompt += `\n\nCourse: ${course.name}
 Assessment: ${assessmentType.replace(/-/g, '/')}
+Year Level: ${yearLevel}
+Textbooks: ${textbooks}
 Tip: ${assessmentHint}
 
 Begin now. Do NOT use markdown formatting.`;
 
-  // BUG FIX #5: Include uploaded materials content in system prompt
+  // Include uploaded materials in system prompt
   if (uploadedMaterials && uploadedMaterials.length > 0) {
     prompt += `\n\nSTUDENT UPLOADED MATERIALS (USE THESE FOR QUESTIONS & FEEDBACK - These are critical reference documents):\n`;
     uploadedMaterials.forEach(material => {
@@ -314,7 +339,6 @@ app.post('/api/exam/start', (req, res) => {
     return res.status(400).json({ error: `Invalid subject` });
   }
 
-  // BUG FIX #3: Use new initialization function with tracking
   const sessionId = initializeSessionWithTracking(subject, studentName);
   const session = examSessions[sessionId];
 
@@ -324,6 +348,8 @@ app.post('/api/exam/start', (req, res) => {
     courseName: session.courseName,
     assessmentType: session.assessmentType,
     studentName: session.studentName,
+    isItalianCourse: session.isItalianCourse,
+    speechLang: session.speechLang,
     courseInfo: {
       instructor: instructorMap[subject],
       ects: session.courseData.ects,
@@ -332,7 +358,7 @@ app.post('/api/exam/start', (req, res) => {
   });
 });
 
-// BUG FIX #4 & #6: Enhanced upload endpoint with courseAssignment and confirmation
+// Enhanced upload endpoint with course assignment
 app.post('/api/exam/upload/:sessionId', upload.single('file'), (req, res) => {
   const { sessionId } = req.params;
   const { courseAssignment } = req.body;
@@ -350,12 +376,12 @@ app.post('/api/exam/upload/:sessionId', upload.single('file'), (req, res) => {
     mimetype: req.file.mimetype,
     size: req.file.size,
     content: req.file.buffer.toString('utf-8', 0, Math.min(50000, req.file.size)),
-    courseAssignment: courseAssignment || 'general'
+    courseAssignment: courseAssignment || 'general',
+    uploadedAt: new Date().toISOString()
   };
 
   examSessions[sessionId].uploadedMaterials.push(material);
   
-  // BUG FIX #6: Track by assignment if provided
   if (courseAssignment) {
     if (!examSessions[sessionId].uploadedMaterialsByAssignment[courseAssignment]) {
       examSessions[sessionId].uploadedMaterialsByAssignment[courseAssignment] = [];
@@ -363,20 +389,19 @@ app.post('/api/exam/upload/:sessionId', upload.single('file'), (req, res) => {
     examSessions[sessionId].uploadedMaterialsByAssignment[courseAssignment].push(material);
   }
 
-  // BUG FIX #4: Return detailed confirmation message
   res.json({
     message: 'File successfully uploaded and loaded',
     filename: req.file.originalname,
     courseAssignment: courseAssignment || 'general',
     totalFilesLoaded: examSessions[sessionId].uploadedMaterials.length,
     fileSize: req.file.size,
-    confirmation: `Material "${req.file.originalname}" has been loaded for ${courseAssignment || 'this exam'}. Total materials loaded: ${examSessions[sessionId].uploadedMaterials.length}`
+    confirmation: `✓ Material "${req.file.originalname}" loaded for ${courseAssignment || 'this exam'}. Total materials: ${examSessions[sessionId].uploadedMaterials.length}`
   });
 });
 
-// BUG FIX #1: Reorder getQuestion calls to prevent double-scoring and display sequence issues
+// Enhanced question endpoint with confidence scoring and language support
 app.post('/api/exam/question', async (req, res) => {
-  const { sessionId, studentAnswer } = req.body;
+  const { sessionId, studentAnswer, confidenceScore } = req.body;
 
   if (!sessionId || !examSessions[sessionId]) {
     return res.status(404).json({ error: 'Not found' });
@@ -386,7 +411,24 @@ app.post('/api/exam/question', async (req, res) => {
   const isFirst = session.isFirstQuestion;
   
   if (req.body.isEnding) {
-    return res.json({ response: 'Exam ended', questionNumber: session.questionCount, scoreTracker: session.scoreTracker, isEnded: true });
+    const percentage = session.scoreTracker.total > 0 ? Math.round((session.scoreTracker.correct / session.scoreTracker.total) * 100) : 0;
+    const italianScore = Math.round(percentage * 30 / 100);
+    session.scoreTracker.italianScore = italianScore;
+    
+    return res.json({ 
+      response: 'Exam ended', 
+      questionNumber: session.questionCount, 
+      scoreTracker: session.scoreTracker, 
+      isEnded: true,
+      scoreData: {
+        courseName: session.courseName.replace(/^[🌍💻📐⚗️⚡💼🌍❤️🦴📡🤖🎛️🏃🔧🔬🔌🏗️🌡️🏥🎭📚📈🧪📖]\s/, ''),
+        correct: session.scoreTracker.correct,
+        total: session.scoreTracker.total,
+        percentage: percentage,
+        italianScore: italianScore,
+        date: new Date().toLocaleDateString()
+      }
+    });
   }
   
   const answerLength = studentAnswer ? studentAnswer.trim().length : 0;
@@ -426,12 +468,13 @@ app.post('/api/exam/question', async (req, res) => {
       session.messages.push({
         role: 'user',
         content: studentAnswer,
+        confidenceScore: confidenceScore || null
       });
     }
 
     const messages = [
       { role: 'system', content: systemPrompt },
-      ...session.messages,
+      ...session.messages.map(m => ({ role: m.role, content: m.content })),
     ];
 
     const response = await client.chat.completions.create({
@@ -449,10 +492,9 @@ app.post('/api/exam/question', async (req, res) => {
       content: professorMessage,
     });
 
-    // BUG FIX #3: Track the question asked
     session.askedQuestions.push(professorMessage.substring(0, 200));
 
-    // BUG FIX #1: Only score if user provided a valid answer
+    // Score only if user provided a valid answer
     let scoreData = null;
     if (studentAnswer && studentAnswer.trim() && !isInvalidAnswer) {
       session.questionCount += 1;
@@ -480,6 +522,7 @@ RESPOND WITH ONLY A NUMBER 1-5, nothing else.`;
           session.scoreTracker.correct += 1;
         }
         scoreData = scoreNum;
+        session.confidenceScores.push({ answer: scoreNum, userConfidence: confidenceScore || null });
       } catch (e) {
         console.log('Scoring error (non-critical):', e.message);
       }
@@ -711,6 +754,7 @@ app.get('/api/exam/session/:sessionId', (req, res) => {
     assessmentType: session.assessmentType,
     questionCount: session.questionCount,
     scoreTracker: session.scoreTracker,
+    isItalianCourse: session.isItalianCourse,
     messages: session.messages.filter(m => m.role === 'assistant').map((q, i) => ({ index: i, question: q.content }))
   });
 });
@@ -718,8 +762,21 @@ app.get('/api/exam/session/:sessionId', (req, res) => {
 app.delete('/api/exam/session/:sessionId', (req, res) => {
   const { sessionId } = req.params;
   if (examSessions[sessionId]) {
+    const session = examSessions[sessionId];
+    const percentage = session.scoreTracker.total > 0 ? Math.round((session.scoreTracker.correct / session.scoreTracker.total) * 100) : 0;
+    const italianScore = Math.round(percentage * 30 / 100);
+    
+    const scoreData = {
+      courseName: session.courseName.replace(/^[🌍💻📐⚗️⚡💼🌍❤️🦴📡🤖🎛️🏃🔧🔬🔌🏗️🌡️🏥🎭📚📈🧪📖]\s/, ''),
+      correct: session.scoreTracker.correct,
+      total: session.scoreTracker.total,
+      percentage: percentage,
+      italianScore: italianScore,
+      date: new Date().toLocaleDateString()
+    };
+    
     delete examSessions[sessionId];
-    res.json({ message: 'Ended' });
+    res.json({ message: 'Ended', scoreData: scoreData });
   } else {
     res.status(404).json({ error: 'Not found' });
   }

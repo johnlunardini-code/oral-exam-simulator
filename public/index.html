@@ -55,6 +55,11 @@
         .exam-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 16px; border-radius: 6px; margin: 12px 0 8px 0; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
         .course-name { font-size: 14px; font-weight: 700; }
         
+        .italian-button-area { display: none; padding: 8px 0; text-align: center; }
+        .italian-button-area.active { display: block; }
+        .italian-btn { background: #8b4513; color: white; border: none; padding: 10px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px; }
+        .italian-btn:hover { background: #a0522d; }
+        
         .chat-area { border: 1px solid #e0e0e0; border-radius: 6px; padding: 10px; flex: 1; overflow-y: auto; background: #f9f9f9; font-size: 12px; margin-bottom: 8px; }
         .message-group { margin-bottom: 12px; display: flex; flex-direction: column; gap: 4px; }
         .message { padding: 10px 12px; border-radius: 8px; line-height: 1.5; }
@@ -147,7 +152,7 @@
                 </div>
             </div>
 
-            <!-- BUG FIX #6: Add course selector for uploads -->
+            <!-- Upload Materials Section -->
             <div class="upload-section">
                 <h3>📚 Pre-load Materials</h3>
                 <p>Upload syllabi, notes, or slides for study.</p>
@@ -160,6 +165,7 @@
                         <option value="chemistry">Chemistry</option>
                         <option value="mathematics">Mathematics</option>
                         <option value="general-physics">General Physics</option>
+                        <option value="italian">Italian</option>
                     </select>
                 </div>
                 <input type="file" id="homeUploadInput" accept=".pdf,.docx,.pptx,.txt,.jpg,.png,.gif,.webp" multiple onchange="preloadMaterials()">
@@ -186,6 +192,11 @@
                     <div style="font-size: 11px;">Q<span id="questionCount">1</span></div>
                     <button onclick="openSettings()" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer; padding: 4px 8px;" title="Settings">⚙️</button>
                 </div>
+            </div>
+
+            <!-- Italian Respond Button -->
+            <div class="italian-button-area" id="italianButtonArea">
+                <button class="italian-btn" onclick="speakItalianPrompt()">🇮🇹 Risponda in Italiano (Respond in Italian)</button>
             </div>
 
             <div class="chat-area" id="chatArea"></div>
@@ -281,6 +292,11 @@
                     <p style="margin: 3px 0;"><strong>💬 Feedback:</strong> Review answers</p>
                     <p style="margin: 3px 0;"><strong>📎 Attach:</strong> Upload files</p>
                     
+                    <h4 style="color: #667eea; margin-top: 10px; margin-bottom: 6px; font-size: 12px;">🇮🇹 Italian Exams</h4>
+                    <p style="margin: 3px 0;"><strong>Italian courses accept responses in Italian or English.</strong></p>
+                    <p style="margin: 3px 0;">Click the "Risponda in Italiano" button to see the Italian prompt reminder.</p>
+                    <p style="margin: 3px 0;">Speech recognition will automatically switch to Italian (it-IT) for Italian exams.</p>
+                    
                     <h4 style="color: #667eea; margin-top: 10px; margin-bottom: 6px; font-size: 12px;">🏠 Home Options</h4>
                     <p style="margin: 3px 0;"><strong>📚 Pre-load:</strong> Upload materials</p>
                     <p style="margin: 3px 0;"><strong>📊 Past Scores:</strong> View history</p>
@@ -288,8 +304,9 @@
                     
                     <h4 style="color: #667eea; margin-top: 10px; margin-bottom: 6px; font-size: 12px;">💡 Tips</h4>
                     <p style="margin: 3px 0;">• Use Hint for weak areas</p>
-                    <p style="margin: 3px 0;">• Upload course materials</p>
+                    <p style="margin: 3px 0;">• Upload course materials for better AI feedback</p>
                     <p style="margin: 3px 0;">• Each exam has fresh questions</p>
+                    <p style="margin: 3px 0;">• Works on desktop and mobile devices</p>
                 </div>
             </div>
         </div>
@@ -307,6 +324,7 @@
         let messageHistory = [];
         let recognitionSilenceTimer = null;
         let recognitionTranscript = '';
+        let currentSessionIsItalian = false;
         const recognition = window.webkitSpeechRecognition || window.SpeechRecognition;
         const SILENCE_THRESHOLD = 5000;
 
@@ -406,7 +424,6 @@
             
             speechRecognizer.onstart = () => { 
                 isListening = true;
-                        isListening = true;
                 recognitionTranscript = '';
                 document.getElementById('answerInput').value = '';
                 document.getElementById('answerInput').dataset.voiceRecording = 'true';
@@ -474,6 +491,12 @@
             } else {
                 document.getElementById('answerInput').value = '';
                 recognitionTranscript = '';
+                // Set language based on current exam
+                if (currentSessionIsItalian) {
+                    speechRecognizer.lang = 'it-IT';
+                } else {
+                    speechRecognizer.lang = 'en-US';
+                }
                 speechRecognizer.start();
             }
         }
@@ -511,7 +534,7 @@
             textarea.focus();
         }
 
-        // BUG FIX #4 & #6: Enhanced preload materials function with course assignment
+        // Enhanced preload materials with course assignment
         async function preloadMaterials() {
             const files = document.getElementById('homeUploadInput').files;
             const status = document.getElementById('homeUploadStatus');
@@ -533,7 +556,6 @@
                     });
                     loaded++;
                     if (loaded === files.length) {
-                        // BUG FIX #4: Show detailed confirmation with course assignment
                         status.textContent = `✓ ${loaded} file(s) loaded for ${courseAssignment || 'general materials'}`;
                         status.style.color = '#27ae60';
                     }
@@ -553,6 +575,7 @@
                 });
                 const data = await response.json();
                 currentSessionId = data.sessionId;
+                currentSessionIsItalian = data.isItalianCourse || false;
                 messageHistory = [];
                 currentHintCache = null;
                 
@@ -562,6 +585,15 @@
                 document.getElementById('chatArea').innerHTML = '';
                 document.getElementById('questionCount').textContent = '1';
                 document.getElementById('answerInput').value = '';
+                
+                // Show Italian button if Italian course
+                const italianArea = document.getElementById('italianButtonArea');
+                if (currentSessionIsItalian) {
+                    italianArea.classList.add('active');
+                } else {
+                    italianArea.classList.remove('active');
+                }
+                
                 speechSynthesis.cancel();
                 initializeVoiceForExam();
                 
@@ -578,7 +610,6 @@
             }
         }
 
-        // BUG FIX #4 & #6: Enhanced upload function with course assignment
         async function uploadPreloadedMaterial(material) {
             try {
                 const blob = new Blob([material.content], { type: 'text/plain' });
@@ -674,6 +705,10 @@
             await getQuestion(answer);
         }
 
+        function speakItalianPrompt() {
+            speakText('Risponda in italiano. Answer in Italian.');
+        }
+
         async function getScore() {
             try {
                 const response = await fetch(`${API_BASE}/api/exam/session/${currentSessionId}`, { method: 'GET' });
@@ -764,7 +799,7 @@
             }
         }
 
-        // BUG FIX #4: Enhanced handleAttachUpload with confirmation message
+        // Enhanced attach upload with confirmation
         function handleAttachUpload(event) {
             const file = event.target.files[0];
             if (file) {
@@ -779,8 +814,7 @@
                         });
                         if (response.ok) {
                             const result = await response.json();
-                            // BUG FIX #4: Show detailed confirmation message
-                            const confirmMsg = `[✓ Document uploaded: ${result.filename} - ${result.totalFilesLoaded} file(s) loaded]`;
+                            const confirmMsg = `✓ ${result.filename} loaded (${result.totalFilesLoaded} file(s) in session)`;
                             getQuestion(confirmMsg);
                         } else {
                             alert('Failed to upload file');
@@ -828,7 +862,7 @@
             
             let lang = 'en-US';
             const courseName = document.getElementById('courseName')?.textContent || '';
-            if (courseName.includes('Italian') || voiceLanguage.includes('Italian') || voiceLanguage.includes('Aronica')) {
+            if (courseName.includes('Italian') || currentSessionIsItalian) {
                 lang = 'it-IT';
                 utterance.lang = 'it-IT';
             } else if (voiceLanguage.includes('Spanish')) {
@@ -843,14 +877,11 @@
                 lang = 'en-US';
             }
             
-            if (lang === 'it-IT') {
-                if (speechRecognizer) speechRecognizer.lang = 'it-IT';
-            }
             utterance.lang = lang;
             
             if (voice) {
                 utterance.voice = voice;
-                console.log('✓ Speaking with:', voice.name, 'lang:', lang);
+                console.log('Speaking with:', voice.name, 'lang:', lang);
             }
             
             speechSynthesis.speak(utterance);
@@ -942,18 +973,20 @@
                 try {
                     const response = await fetch(`${API_BASE}/api/exam/session/${currentSessionId}`, { 
                         method: 'DELETE',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ isEnding: true })
+                        headers: { 'Content-Type': 'application/json' }
                     });
                     const data = await response.json();
-                    if (data.score) {
-                        saveScore(data.score);
+                    if (data.scoreData) {
+                        saveScore(data.scoreData);
                     }
-                } catch (e) {}
+                } catch (e) {
+                    console.error('Error ending exam:', e);
+                }
                 
                 document.querySelector('.exam-screen').classList.remove('active');
                 document.querySelector('.start-screen').classList.add('active');
                 currentSessionId = null;
+                currentSessionIsItalian = false;
                 messageHistory = [];
                 currentHintCache = null;
                 recognitionTranscript = '';
@@ -961,26 +994,30 @@
         }
 
         function saveScore(scoreData) {
-            let scores = JSON.parse(localStorage.getItem('examScores') || '{}');
-            const courseName = scoreData.courseName || 'Unknown Course';
-            if (!scores[courseName]) scores[courseName] = [];
-            scores[courseName].push({
-                correct: scoreData.correct,
-                total: scoreData.total,
-                percentage: scoreData.percentage,
-                italianScore: scoreData.italianScore,
-                date: scoreData.date || new Date().toLocaleDateString()
-            });
-            localStorage.setItem('examScores', JSON.stringify(scores));
+            try {
+                let scores = JSON.parse(localStorage.getItem('examScores') || '{}');
+                const courseName = scoreData.courseName || 'Unknown Course';
+                if (!scores[courseName]) scores[courseName] = [];
+                scores[courseName].push({
+                    correct: scoreData.correct,
+                    total: scoreData.total,
+                    percentage: scoreData.percentage,
+                    italianScore: scoreData.italianScore,
+                    date: scoreData.date || new Date().toLocaleDateString()
+                });
+                localStorage.setItem('examScores', JSON.stringify(scores));
+                console.log('Score saved:', scoreData);
+            } catch (e) {
+                console.error('Error saving score:', e);
+            }
         }
 
-        // BUG FIX #2: Enhanced viewPastScores with localStorage validation
+        // Enhanced viewPastScores with validation
         function viewPastScores() {
             try {
                 const scoresStr = localStorage.getItem('examScores') || '{}';
                 const scores = JSON.parse(scoresStr);
                 
-                // BUG FIX #2: Validate JSON structure and filter invalid entries
                 let validScores = {};
                 Object.entries(scores).forEach(([course, attempts]) => {
                     if (Array.isArray(attempts)) {
