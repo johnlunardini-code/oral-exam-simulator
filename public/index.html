@@ -146,8 +146,8 @@
 
             <div class="bottom-controls">
                 <button onclick="viewPastScores()" style="background: #27ae60; color: white;">📊 Past Scores</button>
+                <button onclick="clearAllData()" style="background: #95a5a6; color: white;">🗑️ Clear Scores</button>
                 <button onclick="openHelp()" style="background: #3498db; color: white;">❓ Help</button>
-                <button onclick="clearAllData()" style="background: #95a5a6; color: white;">🗑️ Clear</button>
             </div>
 
             <p class="courses-label">Select a course:</p>
@@ -227,6 +227,7 @@
                     <option value="Google UK English">Google UK English</option>
                 </select>
                 <button onclick="testVoice()" style="width: 100%; padding: 10px; background: #27ae60; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; margin-bottom: 12px;">🔊 Test Voice</button>
+                <button onclick="openHelpInSettings()" style="width: 100%; padding: 10px; background: #3498db; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; margin-bottom: 6px;">❓ Help</button>
                 <button onclick="closeSettings()" style="width: 100%; padding: 10px; background: #667eea; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Close</button>
             </div>
         </div>
@@ -787,6 +788,11 @@
 
         function closeHelp() {
             document.getElementById('helpSidebar').classList.remove('active');
+        }
+
+        function openHelpInSettings() {
+            closeSettings();
+            openHelp();
         }
 
         async function generateHint() {

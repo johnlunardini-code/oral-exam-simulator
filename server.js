@@ -187,7 +187,7 @@ function buildSystemPrompt(subject, uploadedMaterials, assessmentType, studentNa
 
   let prompt = `You are an experienced UCBM (Università Campus Bio-Medico di Roma) professor in the Biomedical Engineering (BEN) program, conducting realistic oral exams for students in Years 1–3.
 
-MANDATORY STRICT COURSE LOCK: This exam is EXCLUSIVELY for ${course.name}. All your questions, feedback, and exam content MUST relate ONLY to ${course.name}. Do NOT ask about other courses or subjects unless they are specifically part of this course's curriculum.${isItalianCourse ? ' CONDUCT THE ENTIRE EXAM IN ITALIAN LANGUAGE.' : ''}
+MANDATORY STRICT COURSE LOCK: This exam is EXCLUSIVELY for ${course.name}. All your questions, feedback, and exam content MUST relate ONLY to ${course.name}. Do NOT ask about other courses or subjects unless they are specifically part of this course's curriculum.${isItalianCourse ? ' Ask questions IN ENGLISH about Italian language concepts, teaching Italian grammar/vocabulary/pronunciation/cultural understanding equivalent to Level I-II at US university. Questions should teach practical Italian conversation, grammar rules, vocabulary, and cultural understanding for English speakers.' : ''}
 
 **SESSION FLOW**:
 1. Begin with one strong, realistic oral exam-style question for the chosen course. Introduce yourself and the exam before the first question only.
@@ -349,6 +349,30 @@ app.post('/api/exam/question', async (req, res) => {
 
   const session = examSessions[sessionId];
   const isFirst = session.isFirstQuestion;
+  
+  // Fix 4: Check for invalid/empty answers and re-ask same question
+  const answerLength = studentAnswer ? studentAnswer.trim().length : 0;
+  const isInvalidAnswer = answerLength < 5 || (studentAnswer && (studentAnswer.includes('???') || studentAnswer.includes('...') || studentAnswer.toLowerCase() === 'skip'));
+  
+  if (isInvalidAnswer && !isFirst) {
+    // Return same question again if answer is too short/nonsense
+    let lastQuestion = '';
+    for (let i = session.messages.length - 1; i >= 0; i--) {
+      if (session.messages[i].role === 'assistant') {
+        lastQuestion = session.messages[i].content;
+        break;
+      }
+    }
+    
+    if (lastQuestion) {
+      return res.json({
+        response: lastQuestion + '\n\n(Please provide a more complete answer)',
+        questionNumber: session.questionCount,
+        hypotheticalScore: null,
+        scoreTracker: session.scoreTracker
+      });
+    }
+  }
   
   const systemPrompt = buildSystemPrompt(
     session.subject, 
@@ -540,8 +564,9 @@ app.post('/api/exam/hint', async (req, res) => {
     
 Provide a brief hint (2 sentences, no spoilers). Do NOT use markdown formatting.`;
 
-    const searchTermsPrompt = `Extract 2-3 key technical terms (NOT professor names) from this question that would be useful for image search.
-    Question: "${lastQuestion.substring(0, 200)}"
+    const searchTermsPrompt = `Extract 2-3 key technical terms (NOT professor names) FROM THE HINT TEXT for useful web search.
+    
+Hint: "${lastQuestion.substring(0, 200)}"
     
     Return ONLY the search terms separated by spaces (e.g., "mitochondria structure energy" or "supply demand curve"). Do NOT include professor names or course names.`;
 
