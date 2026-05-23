@@ -1,4 +1,21 @@
-<!DOCTYPE html>
+        function renderLaTeX(elementId) {
+            const el = document.getElementById(elementId);
+            if (!el || typeof katex === 'undefined') return;
+            
+            try {
+                const html = el.innerHTML;
+                const rendered = html.replace(/\\\(([^\\)]+)\\\)/g, (match, formula) => {
+                    try {
+                        return katex.renderToString(formula);
+                    } catch (e) {
+                        return match;
+                    }
+                });
+                el.innerHTML = rendered;
+            } catch (e) {
+                console.error('LaTeX rendering error:', e);
+            }
+        }<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -68,20 +85,20 @@
         .action-btn { background: #667eea; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 10px; font-weight: 600; }
         .action-btn:hover { background: #764ba2; }
         
-        .input-area { display: flex; gap: 8px; margin-bottom: 10px; flex-shrink: 0; align-items: flex-end; }
-        .text-editor { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+        .input-area { display: flex; gap: 8px; margin-bottom: 8px; flex-shrink: 0; align-items: flex-start; }
+        .text-editor { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
         .formatting-toolbar { background: #f0f0f0; border: 1px solid #ddd; border-radius: 4px 4px 0 0; padding: 6px; display: flex; gap: 4px; flex-wrap: wrap; font-size: 11px; }
         .format-btn { background: white; border: 1px solid #ddd; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-weight: 600; font-size: 11px; transition: all 0.2s; }
         .format-btn:hover { background: #e8f0fe; border-color: #667eea; }
-        textarea { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 0 0 4px 4px; font-family: 'Segoe UI', Tahoma, Geneva, sans-serif; font-size: 12px; resize: both; overflow: auto; min-height: 60px; line-height: 1.5; }
+        textarea { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 0 0 4px 4px; font-family: 'Segoe UI', Tahoma, Geneva, sans-serif; font-size: 12px; resize: vertical; overflow: auto; min-height: 60px; line-height: 1.5; max-height: 300px; }
         
         button { padding: 8px 16px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
         .btn-primary { background: #667eea; color: white; }
         .btn-secondary { background: #764ba2; color: white; }
         .btn-danger { background: #e74c3c; color: white; }
         .btn-success { background: #27ae60; color: white; }
-        .button-col { display: flex; gap: 6px; flex-direction: column; }
-        .icon-btn { flex: 1; padding: 10px 8px; font-size: 12px; border-radius: 6px; display: flex; align-items: center; justify-content: center; gap: 4px; font-weight: 600; }
+        .button-col { display: flex; gap: 6px; flex-direction: column; flex-shrink: 0; }
+        .icon-btn { flex: 0 0 auto; padding: 10px 8px; font-size: 12px; border-radius: 6px; display: flex; align-items: center; justify-content: center; gap: 4px; font-weight: 600; white-space: nowrap; min-width: 60px; }
         .icon-btn:hover { transform: translateY(-2px); box-shadow: 0 3px 10px rgba(0,0,0,0.15); }
         @media (max-width: 600px) { .button-col { flex-direction: row; flex-wrap: wrap; } .icon-btn { flex: 0 1 45%; } }
         
@@ -91,7 +108,7 @@
         .sidebar-header h3 { margin: 0; font-size: 14px; }
         .sidebar-close { background: none; border: none; color: white; font-size: 20px; cursor: pointer; }
         .sidebar-content { padding: 12px; }
-        .sidebar-btn { position: fixed; right: 16px; bottom: 16px; width: 50px; height: 50px; border-radius: 50%; background: #667eea; color: white; border: none; font-size: 20px; cursor: pointer; box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); z-index: 999; }
+        .sidebar-btn { position: fixed; right: 16px; bottom: 90px; width: 50px; height: 50px; border-radius: 50%; background: #667eea; color: white; border: none; font-size: 20px; cursor: pointer; box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); z-index: 999; }
         .loading { text-align: center; color: #667eea; font-weight: 600; padding: 10px; font-size: 12px; }
         
         .upload-box { background: #fff3cd; border: 1px solid #ffc107; padding: 10px; border-radius: 6px; margin-bottom: 10px; font-size: 11px; flex-shrink: 0; }
@@ -216,7 +233,8 @@
                 </div>
             </div>
 
-            <button class="btn-danger" onclick="endExam()" style="width: 100%;">End Exam</button>
+            <button class="btn-danger" onclick="endExam()" style="width: 100%; margin-bottom: 8px;">End Exam</button>
+            <button class="btn-primary" onclick="toggleHintSidebar()" style="width: 100%; background: #667eea;">💡 Study Hint</button>
         </div>
 
         <!-- Hint Sidebar -->
@@ -231,7 +249,7 @@
                 </div>
             </div>
         </div>
-        <button class="sidebar-btn tooltip" onclick="generateHint()" title="Get Study Hint"><span class="tooltiptext">Study Hints</span>💡</button>
+        <button class="sidebar-btn tooltip" onclick="generateHint()" title="Get Study Hint" id="hintButtonExam"><span class="tooltiptext">Study Hints</span>💡</button>
     </div>
 
     <script>
@@ -243,8 +261,9 @@
         const recognition = window.webkitSpeechRecognition || window.SpeechRecognition;
         let speechRecognizer = null;
         let currentQuestion = '';
-        let messageHistory = [];
-        let voiceLanguage = 'en-US';
+        let currentHintCache = null;
+        let speechSynthesisEnabled = true;
+        let isAISpeaking = false;
 
         const yearStructure = {
             'Year 1': [
@@ -562,12 +581,14 @@
                 const msg = document.createElement('div');
                 msg.className = 'message question';
                 currentQuestion = data.response;
-                msg.innerHTML = `<div class="message-label">Professor</div><div class="message-text">${data.response}</div>
+                msg.innerHTML = `<div class="message-label">Professor</div><div class="message-text" id="msgText_${data.questionNumber}">${data.response}</div>
                     <div class="message-actions">
                         <button class="action-btn" onclick="speakText('${data.response.replace(/'/g, "\\'")}')">🔊 Speak</button>
                     </div>`;
                 group.appendChild(msg);
                 chatArea.appendChild(group);
+                
+                renderLaTeX(`msgText_${data.questionNumber}`);
                 
                 messageHistory.push({ role: 'professor', text: data.response, index: messageHistory.filter(m => m.role === 'professor').length });
                 
@@ -606,6 +627,18 @@
             const answer = document.getElementById('answerInput').value.trim();
             if (!answer) return;
             await getQuestion(answer);
+        }
+
+        function setupTextareaEnter() {
+            const textarea = document.getElementById('answerInput');
+            if (!textarea) return;
+            textarea.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    submitAnswer();
+                }
+                // Shift+Enter allows newline
+            });
         }
 
         async function openFeedbackHistory() {
@@ -673,11 +706,48 @@
         }
 
         function speakText(text) {
+            if (!speechSynthesisEnabled) return;
+            
+            isAISpeaking = true;
+            if (speechRecognizer && isListening) {
+                speechRecognizer.stop();
+            }
+            
             speechSynthesis.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.rate = 0.9;
-            utterance.lang = voiceLanguage;
+            utterance.lang = getRecognitionLanguage();
+            
+            utterance.onend = () => {
+                isAISpeaking = false;
+            };
+            
             speechSynthesis.speak(utterance);
+        }
+        
+        function toggleMute() {
+            speechSynthesisEnabled = !speechSynthesisEnabled;
+            const btn = document.getElementById('muteButton');
+            if (btn) {
+                btn.textContent = speechSynthesisEnabled ? '🔊' : '🔇';
+                btn.style.background = speechSynthesisEnabled ? '#667eea' : '#e74c3c';
+            }
+        }
+        
+        function getRecognitionLanguage() {
+            const langMap = {
+                'en-GB-Standard-A': 'en-GB',
+                'en-US-Standard-A': 'en-US',
+                'en-US-Standard-C': 'en-US',
+                'en-US-Standard-E': 'en-US',
+                'en-GB-Standard-B': 'en-GB',
+                'en-GB-Standard-C': 'en-GB',
+                'it-IT-Standard-A': 'it-IT',
+                'es-ES-Standard-A': 'es-ES',
+                'fr-FR-Standard-A': 'fr-FR',
+                'de-DE-Standard-A': 'de-DE'
+            };
+            return langMap[voiceLanguage] || 'en-GB';
         }
 
         function toggleSidebar() {
@@ -686,9 +756,15 @@
 
         async function generateHint() {
             if (!currentSessionId) { alert('Start an exam first'); return; }
-            toggleSidebar();
+            toggleHintSidebar();
             document.getElementById('sidebarTitle').textContent = 'Study Hint';
             const hintResult = document.getElementById('hintResult');
+            
+            if (currentHintCache) {
+                displayTextHint(currentHintCache);
+                return;
+            }
+            
             hintResult.innerHTML = '<p style="text-align: center; color: #667eea; font-size: 12px;">Generating hint...</p>';
             try {
                 const response = await fetch(`${API_BASE}/api/exam/hint`, {
@@ -702,10 +778,15 @@
                     throw new Error('Hint generation failed');
                 }
                 
+                currentHintCache = data;
                 displayTextHint(data);
             } catch (error) {
                 hintResult.innerHTML = '<p style="color: #e74c3c; font-size: 12px;">Error generating hint. Try again.</p>';
             }
+        }
+        
+        function toggleHintSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
         }
 
         function displayTextHint(data) {
