@@ -726,7 +726,9 @@
 
         function searchHint(terms) {
             const query = decodeURIComponent(terms);
-            window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
+            if (query && query.trim()) {
+                window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
+            }
         }
 
         async function endExam() {
