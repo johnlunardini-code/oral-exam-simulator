@@ -242,9 +242,12 @@ Tip: ${assessmentHint}
 
 Begin now. Do NOT use markdown formatting.`;
 
+  // INCLUDE ACTUAL UPLOADED MATERIAL CONTENT
   if (uploadedMaterials && uploadedMaterials.length > 0) {
-    const materials = uploadedMaterials.map(m => m.filename).join(', ');
-    prompt += `\n\nSTUDENT MATERIALS: ${materials}`;
+    prompt += `\n\nSTUDENT MATERIALS (USE THESE FOR QUESTIONS & FEEDBACK):\n`;
+    uploadedMaterials.forEach(material => {
+      prompt += `\n[${material.filename}]\n${material.content.substring(0, 30000)}\n---\n`;
+    });
   }
 
   return prompt;
@@ -366,6 +369,33 @@ app.post('/api/exam/question', async (req, res) => {
     session.questionCount += 1;
     session.scoreTracker.total += 1;
     session.isFirstQuestion = false;
+
+    // Score the student's answer (if they gave one)
+    if (studentAnswer && studentAnswer.trim()) {
+      const scoringPrompt = `Based on this exam question and student answer, rate how correct/complete the answer was.
+      
+Question (excerpt): "${session.messages[session.messages.length - 2]?.content?.substring(0, 200) || 'Previous question'}"
+Student Answer: "${studentAnswer.substring(0, 300)}"
+
+Rate 1-5 where: 1=incorrect/incomplete, 2=poor, 3=partial/fair, 4=good, 5=excellent
+
+RESPOND WITH ONLY A NUMBER 1-5, nothing else.`;
+
+      try {
+        const scoreResponse = await client.chat.completions.create({
+          model: 'grok-4.3',
+          messages: [{ role: 'user', content: scoringPrompt }],
+          temperature: 0.3,
+          max_tokens: 10,
+        });
+        const scoreNum = parseInt(scoreResponse.choices[0].message.content.trim());
+        if (scoreNum >= 4) {
+          session.scoreTracker.correct += 1;
+        }
+      } catch (e) {
+        console.log('Scoring error (non-critical):', e.message);
+      }
+    }
 
     let hypotheticalScore = null;
     if (session.questionCount % 10 === 0) {

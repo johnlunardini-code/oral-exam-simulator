@@ -67,16 +67,17 @@
         .action-btn { background: #667eea; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 10px; font-weight: 600; }
         .action-btn:hover { background: #764ba2; }
         
-        .input-area { display: flex; gap: 8px; margin-bottom: 8px; flex-shrink: 0; align-items: flex-start; }
-        .text-editor { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+        .input-container { display: flex; gap: 8px; margin-bottom: 8px; flex-shrink: 0; }
+        .text-editor { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
         .formatting-toolbar { background: #f0f0f0; border: 1px solid #ddd; border-radius: 4px 4px 0 0; padding: 6px; display: flex; gap: 4px; flex-wrap: wrap; font-size: 11px; }
         .format-btn { background: white; border: 1px solid #ddd; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-weight: 600; font-size: 11px; transition: all 0.2s; }
         .format-btn:hover { background: #e8f0fe; border-color: #667eea; }
-        textarea { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 0 0 4px 4px; font-family: 'Segoe UI', Tahoma, Geneva, sans-serif; font-size: 12px; resize: vertical; overflow: auto; min-height: 80px; max-height: 500px; line-height: 1.5; }
+        textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 0 0 4px 4px; font-family: 'Segoe UI', Tahoma, Geneva, sans-serif; font-size: 12px; resize: vertical; overflow: auto; min-height: 120px; max-height: 600px; line-height: 1.5; }
         
         .button-col { display: flex; gap: 6px; flex-direction: column; flex-shrink: 0; }
-        .icon-btn { flex: 0 0 auto; padding: 10px 8px; font-size: 11px; border-radius: 6px; display: flex; align-items: center; justify-content: center; gap: 4px; font-weight: 600; white-space: nowrap; min-width: 55px; cursor: pointer; border: none; transition: all 0.3s; }
+        .icon-btn { padding: 10px 8px; font-size: 11px; border-radius: 6px; display: flex; align-items: center; justify-content: center; gap: 4px; font-weight: 600; white-space: nowrap; min-width: 60px; cursor: pointer; border: none; transition: all 0.3s; }
         .icon-btn:hover { transform: translateY(-2px); box-shadow: 0 3px 10px rgba(0,0,0,0.15); }
+        .icon-btn.active { box-shadow: 0 0 10px rgba(0,0,0,0.3); border: 2px solid #333; }
         .btn-primary { background: #667eea; color: white; }
         .btn-secondary { background: #764ba2; color: white; }
         .btn-success { background: #27ae60; color: white; }
@@ -162,7 +163,7 @@
 
             <div class="chat-area" id="chatArea"></div>
 
-            <div class="input-area">
+            <div class="input-container">
                 <div class="text-editor">
                     <div class="formatting-toolbar">
                         <button class="format-btn" onclick="insertBold()"><strong>B</strong></button>
@@ -178,22 +179,23 @@
                     <button class="icon-btn btn-primary" onclick="submitAnswer()">✓ Send</button>
                     <button class="icon-btn btn-secondary" onclick="toggleSpeech()" id="speechButton">🎤 Speak</button>
                     <button class="icon-btn btn-secondary" onclick="toggleMute()" id="muteButton">🔊 Mute</button>
-                    <button class="icon-btn btn-secondary" onclick="document.getElementById('imageInput').click()">📷 Image</button>
+                    <button class="icon-btn btn-secondary" onclick="document.getElementById('docInput').click()">📄 Docs</button>
                     <button class="icon-btn btn-success" onclick="openFeedbackHistory()">💬 Feedback</button>
-                    <button class="icon-btn btn-secondary" onclick="document.getElementById('docInput').click()">📎 Attach</button>
-                    <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
-                    <input type="file" id="docInput" accept=".pdf,.docx,.txt,.jpg,.png" style="display: none;" onchange="handleDocUpload(event)">
+                    <button class="icon-btn btn-secondary" onclick="document.getElementById('attachInput').click()">📎 Attach</button>
+                    <input type="file" id="docInput" accept=".pdf,.docx,.txt,.jpg,.png,.pptx" style="display: none;" onchange="handleDocUpload(event)">
+                    <input type="file" id="attachInput" accept="*" style="display: none;" onchange="handleDocUpload(event)">
                 </div>
             </div>
 
             <div class="bottom-controls">
                 <button class="btn-primary" onclick="getScore()" style="flex: 1;">📊 Get Score</button>
                 <button class="btn-secondary" onclick="generateHint()" style="flex: 1;">💡 Hint</button>
+                <button class="btn-success" onclick="openFeedbackHistory()" style="flex: 1;">💬 Feedback</button>
                 <button class="btn-danger" onclick="endExam()" style="flex: 1;">End Exam</button>
             </div>
         </div>
 
-        <!-- Hint Sidebar -->
+        <!-- Hint/Feedback Sidebar -->
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <h3 id="sidebarTitle">Study Hint</h3>
@@ -217,6 +219,7 @@
         let currentHintCache = null;
         let speechSynthesisEnabled = true;
         let messageHistory = [];
+        let recognitionSilenceTimer = null;
         const recognition = window.webkitSpeechRecognition || window.SpeechRecognition;
         const SILENCE_THRESHOLD = 3000;
 
@@ -292,7 +295,6 @@
             header.querySelector('.toggle').textContent = coursesDiv.classList.contains('collapsed') ? '▶' : '▼';
         }
 
-        // Initialize voices
         if (speechSynthesis.onvoiceschanged !== undefined) {
             speechSynthesis.onvoiceschanged = () => {};
         }
@@ -306,20 +308,27 @@
             speechRecognizer.interimResults = true;
             speechRecognizer.lang = 'en-US';
             
-            let silenceTimer = null;
-            speechRecognizer.onstart = () => { isListening = true; };
-            speechRecognizer.onend = () => { isListening = false; };
+            speechRecognizer.onstart = () => { 
+                isListening = true;
+                document.getElementById('speechButton').classList.add('active');
+            };
+            
+            speechRecognizer.onend = () => { 
+                isListening = false;
+                document.getElementById('speechButton').classList.remove('active');
+            };
+            
             speechRecognizer.onresult = (event) => {
                 let transcript = '';
                 for (let i = event.resultIndex; i < event.results.length; i++) {
-                    transcript += event.results[i][0].transcript;
+                    transcript += event.results[i][0].transcript + ' ';
                 }
-                document.getElementById('answerInput').value = transcript;
+                document.getElementById('answerInput').value = transcript.trim();
                 
-                if (silenceTimer) clearTimeout(silenceTimer);
+                if (recognitionSilenceTimer) clearTimeout(recognitionSilenceTimer);
                 if (event.results[event.results.length - 1].isFinal) {
-                    silenceTimer = setTimeout(() => {
-                        if (transcript.trim()) submitAnswer();
+                    recognitionSilenceTimer = setTimeout(() => {
+                        if (transcript.trim() && isListening) submitAnswer();
                     }, SILENCE_THRESHOLD);
                 }
             };
@@ -331,8 +340,12 @@
 
         function toggleSpeech() {
             if (!speechRecognizer) { alert('Speech not supported'); return; }
-            if (isListening) speechRecognizer.stop();
-            else speechRecognizer.start();
+            if (isListening) {
+                speechRecognizer.stop();
+            } else {
+                document.getElementById('answerInput').value = '';
+                speechRecognizer.start();
+            }
         }
 
         function toggleMute() {
@@ -413,6 +426,7 @@
                 document.getElementById('courseName').textContent = data.courseName;
                 document.getElementById('chatArea').innerHTML = '';
                 document.getElementById('questionCount').textContent = '1';
+                document.getElementById('answerInput').value = '';
                 
                 for (let material of preloadedMaterials) {
                     await uploadPreloadedMaterial(material);
@@ -495,7 +509,7 @@
                     const scoreMsg = document.createElement('div');
                     scoreMsg.className = 'message-group';
                     const scoreMsgContent = document.createElement('div');
-                    scoreMsgContent.style.cssText = 'text-align: center; background: #e8f0fe; padding: 8px; border-radius: 6px; font-weight: bold;';
+                    scoreMsgContent.style.cssText = 'text-align: center; background: #e8f0fe; padding: 8px; border-radius: 6px; font-weight: bold; color: #333;';
                     scoreMsgContent.innerHTML = `📊 Hypothetical Score: ${data.hypotheticalScore}/30`;
                     scoreMsg.appendChild(scoreMsgContent);
                     chatArea.appendChild(scoreMsg);
@@ -503,6 +517,7 @@
 
                 document.getElementById('questionCount').textContent = qNum;
                 document.getElementById('answerInput').value = '';
+                if (speechRecognizer && isListening) speechRecognizer.stop();
                 chatArea.scrollTop = chatArea.scrollHeight;
             } catch (error) {
                 console.error('Question error:', error);
@@ -512,6 +527,7 @@
         async function submitAnswer() {
             const answer = document.getElementById('answerInput').value.trim();
             if (!answer) return;
+            if (speechRecognizer && isListening) speechRecognizer.stop();
             await getQuestion(answer);
         }
 
@@ -528,6 +544,7 @@
                 const total = data.scoreTracker.total;
                 const percentage = total > 0 ? Math.round(correct / total * 100) : 0;
                 const italianScore = Math.round(percentage * 30 / 100);
+                msg.style.cssText = 'background: #e8f0fe; border-left: 4px solid #667eea; align-self: center;';
                 msg.innerHTML = `<div class="message-label">Score Report</div><div class="message-text">Correct: ${correct}/${total}\nPercentage: ${percentage}%\nItalian Score: ${italianScore}/30</div>`;
                 group.appendChild(msg);
                 chatArea.appendChild(group);
@@ -566,26 +583,10 @@
             }
         }
 
-        function handleImageUpload(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    getQuestion(`[Image attached: ${file.name}]`);
-                };
-                reader.readAsDataURL(file);
-            }
-            event.target.value = '';
-        }
-
         function handleDocUpload(event) {
             const file = event.target.files[0];
             if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    getQuestion(`[Document attached: ${file.name}]`);
-                };
-                reader.readAsText(file);
+                getQuestion(`[Document attached: ${file.name}]`);
             }
             event.target.value = '';
         }
@@ -657,6 +658,8 @@
                 document.querySelector('.exam-screen').classList.remove('active');
                 document.querySelector('.start-screen').classList.add('active');
                 currentSessionId = null;
+                messageHistory = [];
+                currentHintCache = null;
             }
         }
 
