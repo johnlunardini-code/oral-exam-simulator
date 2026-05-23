@@ -1,0 +1,5 @@
+            <div class="bottom-controls">
+                <button onclick="viewPastScores()" style="background: #27ae60; color: white;">📊 Past Scores</button>
+                <button onclick="clearAllData()" style="background: #95a5a6; color: white;">🗑️ Clear Scores</button>
+                <button onclick="openHelp()" style="background: #3498db; color: white;">❓ Help</button>
+            </div>
