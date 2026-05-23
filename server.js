@@ -297,6 +297,7 @@ app.post('/api/exam/start', (req, res) => {
     uploadedMaterials: [],
     scoreTracker: { correct: 0, total: 0 },
     isFirstQuestion: true,
+    lastAnswerIncomplete: false,
   };
 
   res.json({ 
@@ -350,12 +351,12 @@ app.post('/api/exam/question', async (req, res) => {
   const session = examSessions[sessionId];
   const isFirst = session.isFirstQuestion;
   
-  // Fix 4: Check for invalid/empty answers and re-ask same question
+  // ISSUE 1 FIX: Check for invalid/incomplete answers and handle without advancing question
   const answerLength = studentAnswer ? studentAnswer.trim().length : 0;
   const isInvalidAnswer = answerLength < 5 || (studentAnswer && (studentAnswer.includes('???') || studentAnswer.includes('...') || studentAnswer.toLowerCase() === 'skip'));
   
   if (isInvalidAnswer && !isFirst) {
-    // Return same question again if answer is too short/nonsense
+    // Return feedback without incrementing questionCount - same question restatement
     let lastQuestion = '';
     for (let i = session.messages.length - 1; i >= 0; i--) {
       if (session.messages[i].role === 'assistant') {
@@ -365,11 +366,13 @@ app.post('/api/exam/question', async (req, res) => {
     }
     
     if (lastQuestion) {
+      const feedbackMessage = `Your answer seems incomplete. Please provide more details.\n\nQuestion ${session.questionCount} was: ${lastQuestion.substring(0, 300)}`;
       return res.json({
-        response: lastQuestion + '\n\n(Please provide a more complete answer)',
+        response: feedbackMessage,
         questionNumber: session.questionCount,
         hypotheticalScore: null,
-        scoreTracker: session.scoreTracker
+        scoreTracker: session.scoreTracker,
+        isIncompleteAnswer: true
       });
     }
   }
@@ -410,6 +413,7 @@ app.post('/api/exam/question', async (req, res) => {
       content: professorMessage,
     });
 
+    // ISSUE 1 FIX: Only increment if this wasn't marked as incomplete
     session.questionCount += 1;
     session.scoreTracker.total += 1;
     session.isFirstQuestion = false;
@@ -564,33 +568,34 @@ app.post('/api/exam/hint', async (req, res) => {
     
 Provide a brief hint (2 sentences, no spoilers). Do NOT use markdown formatting.`;
 
-    const searchTermsPrompt = `Extract 2-3 key technical terms (NOT professor names) FROM THE HINT TEXT for useful web search.
-    
-Hint: "${lastQuestion.substring(0, 200)}"
-    
-    Return ONLY the search terms separated by spaces (e.g., "mitochondria structure energy" or "supply demand curve"). Do NOT include professor names or course names.`;
-
-    const [hintResponse, termsResponse] = await Promise.all([
-      client.chat.completions.create({
-        model: 'grok-4.3',
-        messages: [{ role: 'user', content: hintPrompt }],
-        temperature: 0.7,
-        max_tokens: 200,
-      }),
-      client.chat.completions.create({
-        model: 'grok-4.3',
-        messages: [{ role: 'user', content: searchTermsPrompt }],
-        temperature: 0.3,
-        max_tokens: 50,
-      })
-    ]);
+    // ISSUE 2 FIX: First generate the hint, then extract 2-3 concise keywords from it
+    const hintResponse = await client.chat.completions.create({
+      model: 'grok-4.3',
+      messages: [{ role: 'user', content: hintPrompt }],
+      temperature: 0.7,
+      max_tokens: 200,
+    });
 
     let textHint = hintResponse.choices[0].message.content;
     textHint = cleanMarkdown(textHint);
     
+    // ISSUE 2 FIX: Extract 2-3 key technical keywords from the HINT TEXT, not the question
+    const searchTermsPrompt = `From this hint text, extract ONLY 2-3 key technical noun phrases (5-8 words max total) suitable for Google search.
+    
+Hint: "${textHint}"
+    
+Return ONLY the keywords separated by spaces (e.g., "mediastinum subdivisions anatomy" or "enzyme inhibition kinetics"). No professor names, course names, or full sentences. Just compact technical terms.`;
+
+    const termsResponse = await client.chat.completions.create({
+      model: 'grok-4.3',
+      messages: [{ role: 'user', content: searchTermsPrompt }],
+      temperature: 0.3,
+      max_tokens: 30,
+    });
+
     let searchTerms = termsResponse.choices[0].message.content.trim();
-    if (!searchTerms || searchTerms.includes('professor') || searchTerms.length < 3) {
-      const words = lastQuestion.split(/\s+/).filter(w => w.length > 5 && !['question', 'explain', 'describe', 'professor', 'course', 'exam'].includes(w.toLowerCase())).slice(0, 3);
+    if (!searchTerms || searchTerms.includes('professor') || searchTerms.includes('course') || searchTerms.length < 3) {
+      const words = textHint.split(/\s+/).filter(w => w.length > 4 && !['question', 'explain', 'describe', 'professor', 'course', 'exam', 'hint', 'provide', 'brief'].includes(w.toLowerCase())).slice(0, 3);
       searchTerms = words.join(' ') || 'course concepts';
     }
 
