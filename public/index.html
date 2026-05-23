@@ -723,30 +723,25 @@
             console.log('Available voices:', voices.map(v => `"${v.name}"`).join(', '));
             console.log('Requested voice:', voiceLanguage);
             
-            // Exact match first
             let voice = voices.find(v => v.name === voiceLanguage);
             console.log('Exact match found:', !!voice);
             
-            // If no exact match, try prefix match (for full Windows names)
             if (!voice && voiceLanguage.includes(' - ')) {
                 const prefix = voiceLanguage.split(' - ')[0];
                 voice = voices.find(v => v.name && v.name.includes(prefix));
                 console.log('Prefix match (' + prefix + ') found:', !!voice);
             }
             
-            // Try Google voices
             if (!voice && voiceLanguage.includes('Google')) {
                 voice = voices.find(v => v.name && v.name.includes('Google'));
                 console.log('Google match found:', !!voice);
             }
             
-            // Fallback: first available voice
             if (!voice && voices.length > 0) {
                 voice = voices[0];
                 console.log('Using fallback voice:', voice.name);
             }
             
-            // Determine language from voice selection
             let lang = 'en-US';
             if (voiceLanguage.includes('Italian') || voiceLanguage.includes('Aronica')) {
                 lang = 'it-IT';
@@ -795,6 +790,8 @@
         function closeHelp() {
             document.getElementById('helpSidebar').classList.remove('active');
         }
+
+        async function generateHint() {
             if (!currentSessionId) { alert('Start exam first'); return; }
             document.getElementById('sidebar').classList.add('active');
             document.getElementById('sidebarTitle').textContent = 'Study Hint';
@@ -838,7 +835,11 @@
             if (confirm('End exam?')) {
                 speechSynthesis.cancel();
                 if (speechRecognizer && isListening) speechRecognizer.stop();
+                
+                // Close ALL sidebars
                 document.getElementById('sidebar').classList.remove('active');
+                document.getElementById('settingsSidebar').style.right = '-100vw';
+                document.getElementById('helpSidebar').classList.remove('active');
                 
                 try {
                     const response = await fetch(`${API_BASE}/api/exam/session/${currentSessionId}`, { method: 'DELETE' });

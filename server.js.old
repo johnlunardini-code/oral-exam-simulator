@@ -183,11 +183,10 @@ function buildSystemPrompt(subject, uploadedMaterials, assessmentType, studentNa
   const assessmentHint = getAssessmentHint(assessmentType);
   const textbooks = courseTextbooks[subject] || 'Course-specific references';
   const instructor = instructorMap[subject] || 'UCBM Faculty';
-  const isItalianCourse = subject === 'italian';
 
   let prompt = `You are an experienced UCBM (Università Campus Bio-Medico di Roma) professor in the Biomedical Engineering (BEN) program, conducting realistic oral exams for students in Years 1–3.
 
-MANDATORY STRICT COURSE LOCK: This exam is EXCLUSIVELY for ${course.name}. All your questions, feedback, and exam content MUST relate ONLY to ${course.name}. Do NOT ask about other courses or subjects unless they are specifically part of this course's curriculum.${isItalianCourse ? ' CONDUCT THE ENTIRE EXAM IN ITALIAN LANGUAGE.' : ''}
+You are currently in an oral exam practice session for the **specific course the student selected**. Stay strictly focused on that course and its appropriate year level.
 
 **SESSION FLOW**:
 1. Begin with one strong, realistic oral exam-style question for the chosen course. Introduce yourself and the exam before the first question only.
@@ -218,9 +217,17 @@ Each exam session MUST feature FRESH, ORIGINAL questions throughout:
 - NEVER repeat exact questions within the same exam session
 - NEVER ask identical topics or concepts twice
 - Rephrase conceptually similar areas but from different angles or contexts
+  Example: If Q1 was "Define enzyme kinetics", do NOT ask "What is enzyme kinetics?" Instead ask "Compare Michaelis-Menten vs. Lineweaver-Burk kinetics" or "How do inhibitors affect kinetic parameters?"
 - Build on foundational material logically but ALWAYS introduce new perspectives, synthesis questions, or practical applications
 - Mix question types: conceptual definitions, quantitative problems, practical applications, case studies, compare/contrast, design challenges
-- When starting NEW exam sessions: rephrase foundational questions completely from previous sessions and ensure variety
+- When starting NEW exam sessions (different student or new course exam):
+  You may use foundational questions relevant to the course, but rephrase them completely from any previous session
+  Ensure adequate variety in question types and difficulty levels
+
+**COURSES (UCBM Piano degli Studi 2026-2027)**:
+Year 1: Chemistry, General Physics, Economics & Mgmt, English, Italian, Physiology, Anatomy, Mathematics, Computer Science
+Year 2: Advanced Physics, Mathematics II, Probability & Stats, HIS & Telemedicine, Electronics, Mechanics, Transport & Thermodynamics, Technical English
+Year 3: Signal Processing, Auto Control, Biomechanics, Fundamentals of Bioengineering, Measurements & Instrumentation, Humanities, Biomechatronics, Healthcare Robotics
 
 **KNOWLEDGE FOUNDATION**:
 Base ALL questions, explanations, feedback, and corrections primarily on:
@@ -248,21 +255,22 @@ Start with a brief, warm introduction (1-2 sentences) including:
 2. Course name (${course.name})
 3. Welcoming tone
 4. Then immediately ask the first realistic exam question for this course
+5. ALWAYS speak - professor should always begin by speaking the question
 
 Example opening: "Good morning ${studentName}, I'm ${instructor}, and we'll be examining you today on ${course.name}. Let's begin..."`;
   } else {
     prompt += `
 
 **CONTINUE EXAM**
-Ask the next focused question aligned with learning objectives. Ensure it is DIFFERENT from all previous questions in this session and STAY ON TOPIC: question must be about ${course.name} only.`;
+Ask the next focused question aligned with learning objectives. Ensure it is DIFFERENT from all previous questions in this session.`;
   }
 
-  prompt += `\n\nCourse: ${course.name}
-Assessment: ${assessmentType.replace(/-/g, '/')}
+  prompt += `\n\nAssessment: ${assessmentType.replace(/-/g, '/')}
 Tip: ${assessmentHint}
 
 Begin now. Do NOT use markdown formatting.`;
 
+  // INCLUDE ACTUAL UPLOADED MATERIAL CONTENT
   if (uploadedMaterials && uploadedMaterials.length > 0) {
     prompt += `\n\nSTUDENT MATERIALS (USE THESE FOR QUESTIONS & FEEDBACK):\n`;
     uploadedMaterials.forEach(material => {
@@ -390,6 +398,7 @@ app.post('/api/exam/question', async (req, res) => {
     session.scoreTracker.total += 1;
     session.isFirstQuestion = false;
 
+    // Score the student's answer (if they gave one)
     if (studentAnswer && studentAnswer.trim()) {
       const scoringPrompt = `Based on this exam question and student answer, rate how correct/complete the answer was.
       
@@ -408,6 +417,7 @@ RESPOND WITH ONLY A NUMBER 1-5, nothing else.`;
           max_tokens: 10,
         });
         const scoreNum = parseInt(scoreResponse.choices[0].message.content.trim());
+        // Count as correct if rating is 3 or higher (partial/fair or better)
         if (scoreNum >= 3) {
           session.scoreTracker.correct += 1;
         }
