@@ -91,7 +91,7 @@
         .sidebar-header h3 { margin: 0; font-size: 14px; }
         .sidebar-close { background: none; border: none; color: white; font-size: 20px; cursor: pointer; }
         .sidebar-content { padding: 12px; }
-        .sidebar-btn { position: fixed; right: 16px; bottom: 80px; width: 50px; height: 50px; border-radius: 50%; background: #667eea; color: white; border: none; font-size: 20px; cursor: pointer; box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); z-index: 999; }
+        .sidebar-btn { position: fixed; right: 16px; bottom: 16px; width: 50px; height: 50px; border-radius: 50%; background: #667eea; color: white; border: none; font-size: 20px; cursor: pointer; box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); z-index: 999; }
         .loading { text-align: center; color: #667eea; font-weight: 600; padding: 10px; font-size: 12px; }
         
         .upload-box { background: #fff3cd; border: 1px solid #ffc107; padding: 10px; border-radius: 6px; margin-bottom: 10px; font-size: 11px; flex-shrink: 0; }
@@ -149,12 +149,16 @@
                 <div class="voice-select">
                     <label>🎤 Voice Language:</label>
                     <select id="voiceLanguage" onchange="changeVoiceLanguage()" style="font-size: 12px;">
-                        <option value="en-US">English (US)</option>
-                        <option value="en-GB">English (UK)</option>
-                        <option value="it-IT">Italian</option>
-                        <option value="es-ES">Spanish</option>
-                        <option value="fr-FR">French</option>
-                        <option value="de-DE">German</option>
+                        <option value="en-GB-Standard-A">Sonia (UK)</option>
+                        <option value="en-US-Standard-A">English (US)</option>
+                        <option value="en-US-Standard-C">English US Female</option>
+                        <option value="en-US-Standard-E">English US Male</option>
+                        <option value="en-GB-Standard-B">English GB Male</option>
+                        <option value="en-GB-Standard-C">English GB Female 2</option>
+                        <option value="it-IT-Standard-A">Italian Female</option>
+                        <option value="es-ES-Standard-A">Spanish Female</option>
+                        <option value="fr-FR-Standard-A">French Female</option>
+                        <option value="de-DE-Standard-A">German Female</option>
                     </select>
                 </div>
             </div>
@@ -279,7 +283,19 @@
         function changeVoiceLanguage() {
             voiceLanguage = document.getElementById('voiceLanguage').value;
             if (speechRecognizer) {
-                speechRecognizer.lang = voiceLanguage;
+                const langMap = {
+                    'en-GB-Standard-A': 'en-GB',
+                    'en-US-Standard-A': 'en-US',
+                    'en-US-Standard-C': 'en-US',
+                    'en-US-Standard-E': 'en-US',
+                    'en-GB-Standard-B': 'en-GB',
+                    'en-GB-Standard-C': 'en-GB',
+                    'it-IT-Standard-A': 'it-IT',
+                    'es-ES-Standard-A': 'es-ES',
+                    'fr-FR-Standard-A': 'fr-FR',
+                    'de-DE-Standard-A': 'de-DE'
+                };
+                speechRecognizer.lang = langMap[voiceLanguage] || 'en-GB';
             }
         }
 
@@ -430,12 +446,16 @@
             try {
                 const studentName = document.getElementById('studentName').value || 'Student';
                 
+                console.log('Starting exam for:', subject, 'as', studentName);
+                
                 const response = await fetch(`${API_BASE}/api/exam/start`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ subject, studentName }),
                 });
                 const data = await response.json();
+                console.log('Start response:', data);
+                
                 currentSessionId = data.sessionId;
                 currentCourseName = data.courseName;
                 messageHistory = [];
@@ -444,16 +464,16 @@
                 document.querySelector('.exam-screen').classList.add('active');
                 document.getElementById('courseName').textContent = data.courseName;
                 document.getElementById('chatArea').innerHTML = '';
-                document.getElementById('examUploadStatus').style.display = 'none';
-                document.getElementById('scoreDisplay').textContent = 'Score: 0%';
+                document.getElementById('questionCount').textContent = '1';
                 
                 for (let material of preloadedMaterials) {
                     await uploadPreloadedMaterial(material);
                 }
                 
-                getQuestion('');
+                setTimeout(() => getQuestion(''), 500);
             } catch (error) {
-                alert('Error: ' + error.message);
+                console.error('startExam error:', error);
+                alert('Error starting exam: ' + error.message);
             }
         }
 
@@ -577,6 +597,7 @@
                 
                 saveSessionScore(currentSessionId, data.scoreTracker);
             } catch (error) {
+                console.error('getQuestion error:', error);
                 alert('Error: ' + error.message);
             }
         }
