@@ -229,6 +229,7 @@
                         <option value="Google UK English">Google UK English</option>
                     </select>
                 </div>
+                <button onclick="testVoice()" style="width: 100%; padding: 10px; background: #27ae60; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; margin-bottom: 8px;">🔊 Test Voice</button>
                 <button onclick="closeSettings()" style="width: 100%; padding: 10px; background: #667eea; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Close</button>
             </div>
         </div>
@@ -680,16 +681,62 @@
             speechSynthesis.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.rate = 0.9;
-            utterance.lang = 'en-US';
             
             const voices = speechSynthesis.getVoices();
-            const voice = voices.find(v => v.name === voiceLanguage);
+            console.log('Available voices:', voices.map(v => `"${v.name}"`).join(', '));
+            console.log('Requested voice:', voiceLanguage);
+            
+            // Exact match first
+            let voice = voices.find(v => v.name === voiceLanguage);
+            console.log('Exact match found:', !!voice);
+            
+            // If no exact match, try prefix match (for full Windows names)
+            if (!voice && voiceLanguage.includes(' - ')) {
+                const prefix = voiceLanguage.split(' - ')[0];
+                voice = voices.find(v => v.name && v.name.includes(prefix));
+                console.log('Prefix match (' + prefix + ') found:', !!voice);
+            }
+            
+            // Try Google voices
+            if (!voice && voiceLanguage.includes('Google')) {
+                voice = voices.find(v => v.name && v.name.includes('Google'));
+                console.log('Google match found:', !!voice);
+            }
+            
+            // Fallback: first available voice
+            if (!voice && voices.length > 0) {
+                voice = voices[0];
+                console.log('Using fallback voice:', voice.name);
+            }
+            
+            // Determine language from voice selection
+            let lang = 'en-US';
+            if (voiceLanguage.includes('Italian') || voiceLanguage.includes('Aronica')) {
+                lang = 'it-IT';
+            } else if (voiceLanguage.includes('Spanish')) {
+                lang = 'es-ES';
+            } else if (voiceLanguage.includes('French')) {
+                lang = 'fr-FR';
+            } else if (voiceLanguage.includes('German')) {
+                lang = 'de-DE';
+            } else if (voiceLanguage.includes('UK') || voiceLanguage.includes('United Kingdom')) {
+                lang = 'en-GB';
+            } else if (voiceLanguage.includes('United States')) {
+                lang = 'en-US';
+            }
+            
+            utterance.lang = lang;
+            
             if (voice) {
                 utterance.voice = voice;
-                console.log('Using voice:', voice.name);
+                console.log('✓ Speaking with:', voice.name, 'lang:', lang);
             }
             
             speechSynthesis.speak(utterance);
+        }
+
+        function testVoice() {
+            speakText('Testing ' + voiceLanguage + ' voice. This is a test message.');
         }
 
         function closeSidebar() {

@@ -212,6 +212,18 @@ You are currently in an oral exam practice session for the **specific course the
 - Process uploaded documents: acknowledge them, use their content when relevant.
 - Gently redirect off-topic messages back to the exam.
 
+**QUESTION UNIQUENESS AND VARIETY (MANDATORY)**:
+Each exam session MUST feature FRESH, ORIGINAL questions throughout:
+- NEVER repeat exact questions within the same exam session
+- NEVER ask identical topics or concepts twice
+- Rephrase conceptually similar areas but from different angles or contexts
+  Example: If Q1 was "Define enzyme kinetics", do NOT ask "What is enzyme kinetics?" Instead ask "Compare Michaelis-Menten vs. Lineweaver-Burk kinetics" or "How do inhibitors affect kinetic parameters?"
+- Build on foundational material logically but ALWAYS introduce new perspectives, synthesis questions, or practical applications
+- Mix question types: conceptual definitions, quantitative problems, practical applications, case studies, compare/contrast, design challenges
+- When starting NEW exam sessions (different student or new course exam):
+  You may use foundational questions relevant to the course, but rephrase them completely from any previous session
+  Ensure adequate variety in question types and difficulty levels
+
 **COURSES (UCBM Piano degli Studi 2026-2027)**:
 Year 1: Chemistry, General Physics, Economics & Mgmt, English, Italian, Physiology, Anatomy, Mathematics, Computer Science
 Year 2: Advanced Physics, Mathematics II, Probability & Stats, HIS & Telemedicine, Electronics, Mechanics, Transport & Thermodynamics, Technical English
@@ -250,7 +262,7 @@ Example opening: "Good morning ${studentName}, I'm ${instructor}, and we'll be e
     prompt += `
 
 **CONTINUE EXAM**
-Ask the next focused question aligned with learning objectives.`;
+Ask the next focused question aligned with learning objectives. Ensure it is DIFFERENT from all previous questions in this session.`;
   }
 
   prompt += `\n\nAssessment: ${assessmentType.replace(/-/g, '/')}
