@@ -1,0 +1,29 @@
+CRITICAL BUGS REQUIRING FIXES:
+
+BUG #1: Exam Flow - Asks question then gives score before answer, then undefined
+- Issue: getQuestion() being called twice - once for score, once for next question
+- Fix: Remove early score prompt, only ask for next question sequentially
+
+BUG #2: Past Scores button doesn't work
+- Issue: localStorage not initializing properly, viewPastScores() logic broken
+- Fix: Ensure examScores JSON structure is valid on first exam completion
+
+BUG #3: Same first questions every exam
+- Issue: No deduplication/variety logic for question generation
+- Fix: Add askedQuestions tracking per session, vary prompts
+
+BUG #4: Upload confirmation missing
+- Issue: Upload completes silently, no feedback to student
+- Fix: Return confirmation message showing file loaded and course assignment
+
+BUG #5: Uploaded materials not used by LLM
+- Issue: uploadedMaterials array not being passed to system prompt
+- Fix: Include uploadedMaterials content in buildSystemPrompt(), mention them
+
+BUG #6: No way to specify which course materials are for
+- Issue: Student uploads anatomy doc on home page, doesn't specify it's for anatomy
+- Fix: Add courseAssignment dropdown/selector when uploading
+
+All fixes need to go in:
+1. server.js - upload endpoint, system prompt building, session tracking
+2. index.html - upload UI, confirmation messages, course selector for uploads

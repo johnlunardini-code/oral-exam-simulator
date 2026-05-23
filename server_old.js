@@ -174,33 +174,6 @@ function generateSessionId() {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
 }
 
-// BUG FIX #3: Initialize askedQuestions tracking per session
-function initializeSessionWithTracking(subject, studentName) {
-  const sessionId = generateSessionId();
-  const course = courseMap[subject];
-  const emoji = getEmojiForCourse(course.name);
-  const assessmentType = assessmentTypeMap[subject] || 'oral';
-  
-  examSessions[sessionId] = {
-    subject,
-    studentName: studentName || 'Student',
-    courseName: `${emoji} ${course.name}`,
-    courseData: course,
-    assessmentType,
-    messages: [],
-    questionCount: 0,
-    uploadedMaterials: [],
-    scoreTracker: { correct: 0, total: 0 },
-    isFirstQuestion: true,
-    lastAnswerIncomplete: false,
-    hintHistory: {},
-    askedQuestions: [],
-    uploadedMaterialsByAssignment: {}
-  };
-  return sessionId;
-}
-
-// BUG FIX #5: Build system prompt with uploadedMaterials content included
 function buildSystemPrompt(subject, uploadedMaterials, assessmentType, studentName, isFirstQuestion) {
   const course = courseMap[subject];
   if (!course) {
@@ -290,17 +263,11 @@ Tip: ${assessmentHint}
 
 Begin now. Do NOT use markdown formatting.`;
 
-  // BUG FIX #5: Include uploaded materials content in system prompt
   if (uploadedMaterials && uploadedMaterials.length > 0) {
-    prompt += `\n\nSTUDENT UPLOADED MATERIALS (USE THESE FOR QUESTIONS & FEEDBACK - These are critical reference documents):\n`;
+    prompt += `\n\nSTUDENT MATERIALS (USE THESE FOR QUESTIONS & FEEDBACK):\n`;
     uploadedMaterials.forEach(material => {
       prompt += `\n[${material.filename}]\n${material.content.substring(0, 30000)}\n---\n`;
     });
-    prompt += `\nIMPORTANT: Use the uploaded materials above to:
-1. Generate questions that reference these materials
-2. Ask about concepts covered in these documents
-3. Provide feedback that connects student answers to the material content
-4. Encourage students to apply knowledge from these materials`;
   }
 
   return prompt;
@@ -314,28 +281,42 @@ app.post('/api/exam/start', (req, res) => {
     return res.status(400).json({ error: `Invalid subject` });
   }
 
-  // BUG FIX #3: Use new initialization function with tracking
-  const sessionId = initializeSessionWithTracking(subject, studentName);
-  const session = examSessions[sessionId];
+  const sessionId = generateSessionId();
+  const course = courseMap[subject];
+  const emoji = getEmojiForCourse(course.name);
+  const assessmentType = assessmentTypeMap[subject] || 'oral';
+  
+  examSessions[sessionId] = {
+    subject,
+    studentName: studentName || 'Student',
+    courseName: `${emoji} ${course.name}`,
+    courseData: course,
+    assessmentType,
+    messages: [],
+    questionCount: 0,
+    uploadedMaterials: [],
+    scoreTracker: { correct: 0, total: 0 },
+    isFirstQuestion: true,
+    lastAnswerIncomplete: false,
+    hintHistory: {},
+  };
 
   res.json({ 
     sessionId, 
     subject, 
-    courseName: session.courseName,
-    assessmentType: session.assessmentType,
-    studentName: session.studentName,
+    courseName: `${emoji} ${course.name}`,
+    assessmentType,
+    studentName: studentName || 'Student',
     courseInfo: {
       instructor: instructorMap[subject],
-      ects: session.courseData.ects,
-      assessment: session.courseData.assessment
+      ects: course.ects,
+      assessment: course.assessment
     }
   });
 });
 
-// BUG FIX #4 & #6: Enhanced upload endpoint with courseAssignment and confirmation
 app.post('/api/exam/upload/:sessionId', upload.single('file'), (req, res) => {
   const { sessionId } = req.params;
-  const { courseAssignment } = req.body;
 
   if (!sessionId || !examSessions[sessionId]) {
     return res.status(404).json({ error: 'Session not found' });
@@ -350,31 +331,18 @@ app.post('/api/exam/upload/:sessionId', upload.single('file'), (req, res) => {
     mimetype: req.file.mimetype,
     size: req.file.size,
     content: req.file.buffer.toString('utf-8', 0, Math.min(50000, req.file.size)),
-    courseAssignment: courseAssignment || 'general'
   };
 
   examSessions[sessionId].uploadedMaterials.push(material);
-  
-  // BUG FIX #6: Track by assignment if provided
-  if (courseAssignment) {
-    if (!examSessions[sessionId].uploadedMaterialsByAssignment[courseAssignment]) {
-      examSessions[sessionId].uploadedMaterialsByAssignment[courseAssignment] = [];
-    }
-    examSessions[sessionId].uploadedMaterialsByAssignment[courseAssignment].push(material);
-  }
 
-  // BUG FIX #4: Return detailed confirmation message
   res.json({
-    message: 'File successfully uploaded and loaded',
+    message: 'Uploaded',
     filename: req.file.originalname,
-    courseAssignment: courseAssignment || 'general',
-    totalFilesLoaded: examSessions[sessionId].uploadedMaterials.length,
-    fileSize: req.file.size,
-    confirmation: `Material "${req.file.originalname}" has been loaded for ${courseAssignment || 'this exam'}. Total materials loaded: ${examSessions[sessionId].uploadedMaterials.length}`
+    count: examSessions[sessionId].uploadedMaterials.length,
   });
 });
 
-// BUG FIX #1: Reorder getQuestion calls to prevent double-scoring and display sequence issues
+// BUG FIX #4: Add tracking to prevent double-scoring
 app.post('/api/exam/question', async (req, res) => {
   const { sessionId, studentAnswer } = req.body;
 
@@ -385,14 +353,17 @@ app.post('/api/exam/question', async (req, res) => {
   const session = examSessions[sessionId];
   const isFirst = session.isFirstQuestion;
   
+  // BUG FIX #5: Mark if user is ending exam to prevent late answers
   if (req.body.isEnding) {
     return res.json({ response: 'Exam ended', questionNumber: session.questionCount, scoreTracker: session.scoreTracker, isEnded: true });
   }
   
+  // ISSUE 1 FIX: Check for invalid/incomplete answers and handle without advancing question
   const answerLength = studentAnswer ? studentAnswer.trim().length : 0;
   const isInvalidAnswer = answerLength < 5 || (studentAnswer && (studentAnswer.includes('???') || studentAnswer.includes('...') || studentAnswer.toLowerCase() === 'skip'));
   
   if (isInvalidAnswer && !isFirst) {
+    // Return feedback without incrementing questionCount - same question restatement
     let lastQuestion = '';
     for (let i = session.messages.length - 1; i >= 0; i--) {
       if (session.messages[i].role === 'assistant') {
@@ -449,15 +420,12 @@ app.post('/api/exam/question', async (req, res) => {
       content: professorMessage,
     });
 
-    // BUG FIX #3: Track the question asked
-    session.askedQuestions.push(professorMessage.substring(0, 200));
+    // ISSUE 1 FIX: Only increment if this wasn't marked as incomplete
+    session.questionCount += 1;
+    session.scoreTracker.total += 1;
+    session.isFirstQuestion = false;
 
-    // BUG FIX #1: Only score if user provided a valid answer
-    let scoreData = null;
-    if (studentAnswer && studentAnswer.trim() && !isInvalidAnswer) {
-      session.questionCount += 1;
-      session.scoreTracker.total += 1;
-
+    if (studentAnswer && studentAnswer.trim()) {
       const scoringPrompt = `Based on this exam question and student answer, rate how correct/complete the answer was.
       
 Question (excerpt): "${session.messages[session.messages.length - 2]?.content?.substring(0, 200) || 'Previous question'}"
@@ -474,24 +442,20 @@ RESPOND WITH ONLY A NUMBER 1-5, nothing else.`;
           temperature: 0.3,
           max_tokens: 10,
         });
+        // BUG FIX #4: Safely parse score, default to 0 if invalid
         const scoreText = scoreResponse.choices[0]?.message?.content?.trim() || '0';
         const scoreNum = parseInt(scoreText) || 0;
         if (scoreNum >= 3) {
           session.scoreTracker.correct += 1;
         }
-        scoreData = scoreNum;
       } catch (e) {
         console.log('Scoring error (non-critical):', e.message);
       }
-    } else if (!studentAnswer && isFirst) {
-      session.questionCount = 1;
-      session.scoreTracker.total = 1;
     }
-
-    session.isFirstQuestion = false;
 
     let hypotheticalScore = null;
     if (session.questionCount % 10 === 0) {
+      // BUG FIX #4: Ensure safe division
       if (session.scoreTracker.total > 0) {
         const percentage = (session.scoreTracker.correct / session.scoreTracker.total) * 100;
         hypotheticalScore = Math.round(percentage * 3) / 10;
@@ -626,13 +590,17 @@ Provide a brief hint (2 sentences, no spoilers). Do NOT use markdown formatting.
     let textHint = hintResponse.choices[0].message.content;
     textHint = cleanMarkdown(textHint);
     
+    // BUG FIX #1: Use FULL question text as search terms, not extracted terms
+    // This ensures mobile browser gets the professor's actual question for better Google search
     let searchTerms = lastQuestion.substring(0, 150).trim();
+    // Clean up question formatting
     searchTerms = searchTerms.replace(/[?:!.]+$/, '').trim();
     if (searchTerms.length < 5) {
       const words = lastQuestion.split(/\s+/).filter(w => w.length > 4 && !['question', 'explain', 'describe', 'professor', 'course', 'exam', 'hint', 'provide', 'brief', 'please', 'how', 'what', 'which', 'where', 'when', 'about', 'the', 'and', 'or', 'is', 'are'].includes(w.toLowerCase())).slice(0, 3);
       searchTerms = words.join(' ') || 'course concepts';
     }
 
+    // Store hint with question number
     const questionNum = session.questionCount;
     if (!session.hintHistory[questionNum]) {
       session.hintHistory[questionNum] = [];

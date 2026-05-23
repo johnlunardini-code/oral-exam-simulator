@@ -147,9 +147,21 @@
                 </div>
             </div>
 
+            <!-- BUG FIX #6: Add course selector for uploads -->
             <div class="upload-section">
                 <h3>📚 Pre-load Materials</h3>
-                <p>Upload syllabi, notes, or slides.</p>
+                <p>Upload syllabi, notes, or slides for study.</p>
+                <div style="margin-bottom: 8px;">
+                    <label style="display: block; color: #333; font-weight: 600; margin-bottom: 4px; font-size: 12px;">Course Assignment (optional):</label>
+                    <select id="homeUploadCourse" style="width: 100%; padding: 6px; border: 1px solid #667eea; border-radius: 4px; font-size: 11px; background: white;">
+                        <option value="">General Materials</option>
+                        <option value="anatomy">Anatomy</option>
+                        <option value="physiology">Physiology</option>
+                        <option value="chemistry">Chemistry</option>
+                        <option value="mathematics">Mathematics</option>
+                        <option value="general-physics">General Physics</option>
+                    </select>
+                </div>
                 <input type="file" id="homeUploadInput" accept=".pdf,.docx,.pptx,.txt,.jpg,.png,.gif,.webp" multiple onchange="preloadMaterials()">
                 <div id="homeUploadStatus" style="font-size: 11px; margin-top: 4px; display: none;"></div>
             </div>
@@ -395,7 +407,6 @@
             speechRecognizer.onstart = () => { 
                 isListening = true;
                         isListening = true;
-                // BUG FIX #2: Clear transcript AND set flag before starting recognition
                 recognitionTranscript = '';
                 document.getElementById('answerInput').value = '';
                 document.getElementById('answerInput').dataset.voiceRecording = 'true';
@@ -410,7 +421,6 @@
             };
             
             speechRecognizer.onresult = (event) => {
-                // BUG FIX #2: Only add final results, not interim ones
                 let isFinal = false;
                 for (let i = event.resultIndex; i < event.results.length; i++) {
                     if (event.results[i].isFinal) {
@@ -418,12 +428,9 @@
                         isFinal = true;
                     }
                 }
-                // Display final transcript without repeating
                 document.getElementById('answerInput').value = recognitionTranscript.trim();
                 
                 if (recognitionSilenceTimer) clearTimeout(recognitionSilenceTimer);
-                // BUG FIX #7: Do NOT auto-submit. Wait for user to click Stop button
-                // This fixes the issue where voice continues after pressing End
             };
 
             speechRecognizer.onerror = (event) => {
@@ -434,7 +441,6 @@
         function changeVoiceLanguage() {
             voiceLanguage = document.getElementById('voiceLanguage').value;
             localStorage.setItem('userVoicePreference', voiceLanguage);
-            // FIX 4: Ensure sync on mobile
             const examSelect = document.getElementById('examVoiceSelect');
             if (examSelect) examSelect.value = voiceLanguage;
         }
@@ -446,7 +452,6 @@
             if (homeSelect) homeSelect.value = voiceLanguage;
         }
         
-        // FIX 4: Delay voice check for mobile browsers
         function initializeVoiceForExam() {
             setTimeout(() => {
                 const examSelect = document.getElementById('examVoiceSelect');
@@ -460,7 +465,6 @@
         function toggleSpeech() {
             if (!speechRecognizer) { alert('Speech not supported'); return; }
             if (isListening) {
-                // BUG FIX #7: When user stops recording, submit the answer
                 speechRecognizer.stop();
                 document.getElementById('answerInput').dataset.voiceRecording = 'false';
                 const answer = document.getElementById('answerInput').value.trim();
@@ -468,7 +472,6 @@
                     setTimeout(() => submitAnswer(), 500);
                 }
             } else {
-                // BUG FIX #2: Clear everything before starting recognition to prevent duplication
                 document.getElementById('answerInput').value = '';
                 recognitionTranscript = '';
                 speechRecognizer.start();
@@ -508,12 +511,14 @@
             textarea.focus();
         }
 
+        // BUG FIX #4 & #6: Enhanced preload materials function with course assignment
         async function preloadMaterials() {
             const files = document.getElementById('homeUploadInput').files;
             const status = document.getElementById('homeUploadStatus');
+            const courseAssignment = document.getElementById('homeUploadCourse').value;
             if (!files.length) { status.style.display = 'none'; return; }
             
-            status.textContent = `Loading ${files.length} file(s)...`;
+            status.textContent = `Loading ${files.length} file(s) for ${courseAssignment || 'general materials'}...`;
             status.style.display = 'block';
             preloadedMaterials = [];
             let loaded = 0;
@@ -524,10 +529,12 @@
                     preloadedMaterials.push({
                         name: file.name,
                         content: e.target.result.substring(0, 50000),
+                        courseAssignment: courseAssignment || 'general'
                     });
                     loaded++;
                     if (loaded === files.length) {
-                        status.textContent = `✓ ${loaded} ready`;
+                        // BUG FIX #4: Show detailed confirmation with course assignment
+                        status.textContent = `✓ ${loaded} file(s) loaded for ${courseAssignment || 'general materials'}`;
                         status.style.color = '#27ae60';
                     }
                 };
@@ -556,7 +563,6 @@
                 document.getElementById('questionCount').textContent = '1';
                 document.getElementById('answerInput').value = '';
                 speechSynthesis.cancel();
-                // FIX 4: Initialize voice with delay for mobile
                 initializeVoiceForExam();
                 
                 for (let material of preloadedMaterials) {
@@ -572,11 +578,13 @@
             }
         }
 
+        // BUG FIX #4 & #6: Enhanced upload function with course assignment
         async function uploadPreloadedMaterial(material) {
             try {
                 const blob = new Blob([material.content], { type: 'text/plain' });
                 const formData = new FormData();
                 formData.append('file', blob, material.name);
+                formData.append('courseAssignment', material.courseAssignment || 'general');
                 await fetch(`${API_BASE}/api/exam/upload/${currentSessionId}`, { method: 'POST', body: formData });
             } catch (e) { console.error('Preload error:', e); }
         }
@@ -656,7 +664,6 @@
             }
         }
 
-        // BUG FIX #2: Add language detection for Italian speech
         async function submitAnswer() {
             const answer = document.getElementById('answerInput').value.trim();
             if (!answer) return;
@@ -664,7 +671,6 @@
                 speechRecognizer.stop();
                 document.getElementById('answerInput').dataset.voiceRecording = 'false';
             }
-            // BUG FIX #6: If Italian exam, detection happens automatically via language setting
             await getQuestion(answer);
         }
 
@@ -691,7 +697,6 @@
             }
         }
 
-        // FIX 2: Open Hint History sidebar
         async function openHintHistory() {
             if (!currentSessionId) { alert('Start exam first'); return; }
             document.getElementById('sidebar').classList.add('active');
@@ -759,6 +764,7 @@
             }
         }
 
+        // BUG FIX #4: Enhanced handleAttachUpload with confirmation message
         function handleAttachUpload(event) {
             const file = event.target.files[0];
             if (file) {
@@ -772,7 +778,10 @@
                             body: formData
                         });
                         if (response.ok) {
-                            getQuestion(`[Document attached: ${file.name}]`);
+                            const result = await response.json();
+                            // BUG FIX #4: Show detailed confirmation message
+                            const confirmMsg = `[✓ Document uploaded: ${result.filename} - ${result.totalFilesLoaded} file(s) loaded]`;
+                            getQuestion(confirmMsg);
                         } else {
                             alert('Failed to upload file');
                         }
@@ -817,7 +826,6 @@
                 console.log('Using fallback voice:', voice.name);
             }
             
-            // BUG FIX #6: Detect language from course for Italian exam
             let lang = 'en-US';
             const courseName = document.getElementById('courseName')?.textContent || '';
             if (courseName.includes('Italian') || voiceLanguage.includes('Italian') || voiceLanguage.includes('Aronica')) {
@@ -835,7 +843,6 @@
                 lang = 'en-US';
             }
             
-            // BUG FIX #6: Set language for speech recognition too
             if (lang === 'it-IT') {
                 if (speechRecognizer) speechRecognizer.lang = 'it-IT';
             }
@@ -920,7 +927,6 @@
 
         async function endExam() {
             if (confirm('End exam?')) {
-                // BUG FIX #5: Stop speech and voice immediately, prevent any delayed submissions
                 speechSynthesis.cancel();
                 if (speechRecognizer) {
                     speechRecognizer.stop();
@@ -929,13 +935,11 @@
                 if (recognitionSilenceTimer) clearTimeout(recognitionSilenceTimer);
                 document.getElementById('answerInput').dataset.voiceRecording = 'false';
                 
-                // Close ALL sidebars
                 document.getElementById('sidebar').classList.remove('active');
                 document.getElementById('settingsSidebar').style.right = '-100vw';
                 document.getElementById('helpSidebar').classList.remove('active');
                 
                 try {
-                    // BUG FIX #5: Signal to server that exam is ending
                     const response = await fetch(`${API_BASE}/api/exam/session/${currentSessionId}`, { 
                         method: 'DELETE',
                         headers: { 'Content-Type': 'application/json' },
@@ -970,37 +974,61 @@
             localStorage.setItem('examScores', JSON.stringify(scores));
         }
 
+        // BUG FIX #2: Enhanced viewPastScores with localStorage validation
         function viewPastScores() {
-            const scores = JSON.parse(localStorage.getItem('examScores') || '{}');
-            if (!Object.keys(scores).length) { alert('No scores yet.'); return; }
-            
-            let html = '<div style="max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); z-index: 2001;">';
-            html += '<h2 style="color: #333; text-align: center; margin-bottom: 20px;">📊 Past Scores</h2>';
-            html += '<div style="max-height: 600px; overflow-y: auto;">';
-            
-            Object.entries(scores).forEach(([course, attempts]) => {
-                const valid = attempts.filter(a => a && a.percentage !== undefined);
-                if (!valid.length) return;
-                const avg = Math.round(valid.reduce((sum, a) => sum + (a.percentage || 0), 0) / valid.length);
-                const avgItalian = Math.round(avg * 30 / 100);
-                html += `<div style="background: #f9f9f9; padding: 12px; border-radius: 6px; margin-bottom: 10px; border-left: 4px solid #667eea;">`;
-                html += `<h4 style="margin: 0 0 8px 0; color: #333;">${course}</h4>`;
-                html += `<p style="margin: 0 0 8px 0; color: #666; font-size: 12px;"><strong>Average:</strong> ${avg}% (${avgItalian}/30)</p>`;
-                html += `<div style="font-size: 11px; color: #999;">`;
-                valid.forEach((a, i) => {
-                    const italianScore = Math.round((a.percentage || 0) * 30 / 100);
-                    html += `<div style="margin: 4px 0; padding: 4px; background: white; border-radius: 3px;">Attempt ${i + 1}: ${a.percentage}% (${italianScore}/30) - ${a.date}</div>`;
+            try {
+                const scoresStr = localStorage.getItem('examScores') || '{}';
+                const scores = JSON.parse(scoresStr);
+                
+                // BUG FIX #2: Validate JSON structure and filter invalid entries
+                let validScores = {};
+                Object.entries(scores).forEach(([course, attempts]) => {
+                    if (Array.isArray(attempts)) {
+                        const validAttempts = attempts.filter(a => 
+                            a && typeof a === 'object' && 
+                            a.percentage !== undefined && 
+                            typeof a.percentage === 'number'
+                        );
+                        if (validAttempts.length > 0) {
+                            validScores[course] = validAttempts;
+                        }
+                    }
                 });
-                html += `</div></div>`;
-            });
-            
-            html += '</div><button onclick="closePastScoresModal()" style="width:100%;margin-top:12px;background:#667eea;color:white;border:none;padding:10px;border-radius:6px;font-weight:600;cursor:pointer;">Close</button></div>';
-            
-            const modal = document.createElement('div');
-            modal.id = 'pastScoresModal';
-            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 2000;';
-            modal.innerHTML = html;
-            document.body.appendChild(modal);
+                
+                if (!Object.keys(validScores).length) { 
+                    alert('No scores yet.'); 
+                    return; 
+                }
+                
+                let html = '<div style="max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); z-index: 2001;">';
+                html += '<h2 style="color: #333; text-align: center; margin-bottom: 20px;">📊 Past Scores</h2>';
+                html += '<div style="max-height: 600px; overflow-y: auto;">';
+                
+                Object.entries(validScores).forEach(([course, attempts]) => {
+                    const avg = Math.round(attempts.reduce((sum, a) => sum + (a.percentage || 0), 0) / attempts.length);
+                    const avgItalian = Math.round(avg * 30 / 100);
+                    html += `<div style="background: #f9f9f9; padding: 12px; border-radius: 6px; margin-bottom: 10px; border-left: 4px solid #667eea;">`;
+                    html += `<h4 style="margin: 0 0 8px 0; color: #333;">${course}</h4>`;
+                    html += `<p style="margin: 0 0 8px 0; color: #666; font-size: 12px;"><strong>Average:</strong> ${avg}% (${avgItalian}/30)</p>`;
+                    html += `<div style="font-size: 11px; color: #999;">`;
+                    attempts.forEach((a, i) => {
+                        const italianScore = Math.round((a.percentage || 0) * 30 / 100);
+                        html += `<div style="margin: 4px 0; padding: 4px; background: white; border-radius: 3px;">Attempt ${i + 1}: ${a.percentage}% (${italianScore}/30) - ${a.date}</div>`;
+                    });
+                    html += `</div></div>`;
+                });
+                
+                html += '</div><button onclick="closePastScoresModal()" style="width:100%;margin-top:12px;background:#667eea;color:white;border:none;padding:10px;border-radius:6px;font-weight:600;cursor:pointer;">Close</button></div>';
+                
+                const modal = document.createElement('div');
+                modal.id = 'pastScoresModal';
+                modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 2000;';
+                modal.innerHTML = html;
+                document.body.appendChild(modal);
+            } catch (e) {
+                console.error('Score parsing error:', e);
+                alert('Error loading past scores. Data may be corrupted.');
+            }
         }
 
         function closePastScoresModal() {
