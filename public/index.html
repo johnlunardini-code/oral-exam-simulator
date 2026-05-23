@@ -72,7 +72,7 @@
         .formatting-toolbar { background: #f0f0f0; border: 1px solid #ddd; border-radius: 4px 4px 0 0; padding: 6px; display: flex; gap: 4px; flex-wrap: wrap; font-size: 11px; }
         .format-btn { background: white; border: 1px solid #ddd; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-weight: 600; font-size: 11px; transition: all 0.2s; }
         .format-btn:hover { background: #e8f0fe; border-color: #667eea; }
-        textarea { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 0 0 4px 4px; font-family: 'Segoe UI', Tahoma, Geneva, sans-serif; font-size: 12px; resize: vertical; overflow: auto; min-height: 60px; line-height: 1.5; max-height: 300px; }
+        textarea { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 0 0 4px 4px; font-family: 'Segoe UI', Tahoma, Geneva, sans-serif; font-size: 12px; resize: vertical; overflow: auto; min-height: 80px; max-height: 500px; line-height: 1.5; }
         
         .button-col { display: flex; gap: 6px; flex-direction: column; flex-shrink: 0; }
         .icon-btn { flex: 0 0 auto; padding: 10px 8px; font-size: 11px; border-radius: 6px; display: flex; align-items: center; justify-content: center; gap: 4px; font-weight: 600; white-space: nowrap; min-width: 55px; cursor: pointer; border: none; transition: all 0.3s; }
@@ -126,17 +126,11 @@
                 </div>
                 <div>
                     <label>🎤 Voice:</label>
-                    <select id="voiceLanguage" onchange="changeVoiceLanguage()">
-                        <option value="en-GB-Standard-A">Sonia (UK)</option>
-                        <option value="en-US-Standard-A">English (US)</option>
-                        <option value="en-US-Standard-C">US Female</option>
-                        <option value="en-US-Standard-E">US Male</option>
-                        <option value="en-GB-Standard-B">GB Male</option>
-                        <option value="en-GB-Standard-C">GB Female 2</option>
-                        <option value="it-IT-Standard-A">Italian</option>
-                        <option value="es-ES-Standard-A">Spanish</option>
-                        <option value="fr-FR-Standard-A">French</option>
-                        <option value="de-DE-Standard-A">German</option>
+                    <select id="voiceLanguage" onchange="changeVoiceLanguage()" style="font-size: 12px;">
+                        <option value="Microsoft Sonia">Sonia (UK) - Default</option>
+                        <option value="Microsoft David">David (US Male)</option>
+                        <option value="Microsoft Zira">Zira (US Female)</option>
+                        <option value="Microsoft Mark">Mark (US)</option>
                     </select>
                 </div>
             </div>
@@ -218,12 +212,13 @@
         let currentSessionId = null;
         let isListening = false;
         let preloadedMaterials = [];
-        let voiceLanguage = 'en-GB-Standard-A';
+        let voiceLanguage = 'Microsoft Sonia';
         let speechRecognizer = null;
         let currentHintCache = null;
         let speechSynthesisEnabled = true;
         let messageHistory = [];
         const recognition = window.webkitSpeechRecognition || window.SpeechRecognition;
+        const SILENCE_THRESHOLD = 3000;
 
         const yearStructure = {
             'Year 1': [
@@ -297,13 +292,19 @@
             header.querySelector('.toggle').textContent = coursesDiv.classList.contains('collapsed') ? '▶' : '▼';
         }
 
+        // Initialize voices
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = () => {};
+        }
+        speechSynthesis.getVoices();
+
         initializeCourses();
 
         if (recognition) {
             speechRecognizer = new recognition();
             speechRecognizer.continuous = true;
             speechRecognizer.interimResults = true;
-            speechRecognizer.lang = getLangForRecognition(voiceLanguage);
+            speechRecognizer.lang = 'en-US';
             
             let silenceTimer = null;
             speechRecognizer.onstart = () => { isListening = true; };
@@ -319,23 +320,13 @@
                 if (event.results[event.results.length - 1].isFinal) {
                     silenceTimer = setTimeout(() => {
                         if (transcript.trim()) submitAnswer();
-                    }, 2000);
+                    }, SILENCE_THRESHOLD);
                 }
             };
         }
 
-        function getLangForRecognition(lang) {
-            const map = {
-                'en-GB-Standard-A': 'en-GB', 'en-US-Standard-A': 'en-US', 'en-US-Standard-C': 'en-US',
-                'en-US-Standard-E': 'en-US', 'en-GB-Standard-B': 'en-GB', 'en-GB-Standard-C': 'en-GB',
-                'it-IT-Standard-A': 'it-IT', 'es-ES-Standard-A': 'es-ES', 'fr-FR-Standard-A': 'fr-FR', 'de-DE-Standard-A': 'de-DE'
-            };
-            return map[lang] || 'en-GB';
-        }
-
         function changeVoiceLanguage() {
             voiceLanguage = document.getElementById('voiceLanguage').value;
-            if (speechRecognizer) speechRecognizer.lang = getLangForRecognition(voiceLanguage);
         }
 
         function toggleSpeech() {
@@ -346,6 +337,9 @@
 
         function toggleMute() {
             speechSynthesisEnabled = !speechSynthesisEnabled;
+            if (!speechSynthesisEnabled) {
+                speechSynthesis.cancel();
+            }
             const btn = document.getElementById('muteButton');
             btn.textContent = speechSynthesisEnabled ? '🔊 Mute' : '🔇 Mute';
             btn.style.background = speechSynthesisEnabled ? '#764ba2' : '#e74c3c';
@@ -491,9 +485,12 @@
                 group.appendChild(msg);
                 chatArea.appendChild(group);
                 
-                messageHistory.push({ role: 'professor', text: data.response, index: messageHistory.filter(m => m.role === 'professor').length });
+                if (!messageHistory.some(m => m.role === 'professor' && m.text === data.response)) {
+                    messageHistory.push({ role: 'professor', text: data.response, index: messageHistory.filter(m => m.role === 'professor').length });
+                }
                 
-                if (data.shouldAutoRead) setTimeout(() => speakText(data.response), 500);
+                setTimeout(() => speakText(data.response), 800);
+
                 if (data.hypotheticalScore) {
                     const scoreMsg = document.createElement('div');
                     scoreMsg.className = 'message-group';
@@ -571,12 +568,26 @@
 
         function handleImageUpload(event) {
             const file = event.target.files[0];
-            if (file) getQuestion('Image uploaded - analyze');
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    getQuestion(`[Image attached: ${file.name}]`);
+                };
+                reader.readAsDataURL(file);
+            }
+            event.target.value = '';
         }
 
         function handleDocUpload(event) {
             const file = event.target.files[0];
-            if (file) getQuestion(`Document uploaded - ${file.name}`);
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    getQuestion(`[Document attached: ${file.name}]`);
+                };
+                reader.readAsText(file);
+            }
+            event.target.value = '';
         }
 
         function speakText(text) {
@@ -586,7 +597,15 @@
             speechSynthesis.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.rate = 0.9;
-            utterance.lang = getLangForRecognition(voiceLanguage);
+            utterance.lang = 'en-US';
+            
+            const voiceName = document.getElementById('voiceLanguage')?.value || 'Microsoft Sonia';
+            const voices = speechSynthesis.getVoices();
+            const voice = voices.find(v => v.name && v.name.includes(voiceName));
+            if (voice) {
+                utterance.voice = voice;
+            }
+            
             speechSynthesis.speak(utterance);
         }
 

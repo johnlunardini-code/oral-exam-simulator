@@ -227,6 +227,7 @@ Start with a brief, warm introduction (1-2 sentences) including:
 2. Course name (${course.name})
 3. Welcoming tone
 4. Then immediately ask the first realistic exam question for this course
+5. ALWAYS speak - professor should always begin by speaking the question
 
 Example opening: "Good morning ${studentName}, I'm ${instructor}, and we'll be examining you today on ${course.name}. Let's begin..."`;
   } else {
@@ -375,7 +376,6 @@ app.post('/api/exam/question', async (req, res) => {
     res.json({
       response: professorMessage,
       questionNumber: session.questionCount,
-      shouldAutoRead: true,
       hypotheticalScore: hypotheticalScore,
       scoreTracker: session.scoreTracker
     });
