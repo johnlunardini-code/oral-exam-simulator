@@ -607,26 +607,7 @@
         function handleAttachUpload(event) {
             const file = event.target.files[0];
             if (file) {
-                const reader = new FileReader();
-                reader.onload = async (e) => {
-                    try {
-                        const formData = new FormData();
-                        formData.append('file', file);
-                        const response = await fetch(`${API_BASE}/api/exam/upload/${currentSessionId}`, {
-                            method: 'POST',
-                            body: formData
-                        });
-                        if (response.ok) {
-                            getQuestion(`[File attached: ${file.name} - Please review and reference this in your questions and feedback]`);
-                        } else {
-                            alert('Failed to upload file');
-                        }
-                    } catch (err) {
-                        console.error('Upload error:', err);
-                        alert('Error uploading file');
-                    }
-                };
-                reader.readAsArrayBuffer(file);
+                getQuestion(`[File attached: ${file.name} - Please review and reference this in your questions and feedback]`);
             }
             event.target.value = '';
         }
