@@ -105,19 +105,21 @@ const client = new OpenAI({
 });
 
 const courseTextbooks = {
-  'anatomy': "Gray's Anatomy for Students, Netter's Atlas of Human Anatomy",
-  'physiology': 'Guyton & Hall Textbook of Medical Physiology, Costanzo Physiology',
-  'chemistry': 'Whitten Chemistry, Lausarot Stechiometria',
-  'general-physics': 'Tipler Physics for Scientists and Engineers, Serway Physics, Halliday/Resnick/Walker Physics',
-  'advanced-physics': 'Tipler Modern Physics, Morrison Modern Physics',
-  'mathematics': 'Lay Linear Algebra, Stewart Calculus',
-  'mathematics-ii': 'Lay Linear Algebra, Stewart Calculus Early Transcendentals',
-  'probability-and-statistics': 'Ross Introduction to Probability and Statistics',
-  'biomechanics': 'Ozkaya & Nordin Fundamentals of Biomechanics, Y.C. Fung Biomechanics',
-  'biomedical-signal-processing': 'Semmlow Circuits and Systems for Bioengineers, Abood Digital Signal Processing',
-  'electronics-and-electrotechnics': 'Alexander & Sadiku Fundamentals of Electric Circuits, Horowitz & Hill Art of Electronics',
-  'fundamentals-of-bioengineering': 'Enderle & Bronzino Introduction to Biomedical Engineering',
-  'italian': 'Ciao! Italian for English Speakers, Prego! Contemporary Italian',
+  'anatomy': "Gray's Anatomy for Students, Netter's Atlas of Human Anatomy, Moore Clinically Oriented Anatomy, UCBM Anatomy Lecture Series",
+  'physiology': 'Guyton & Hall Textbook of Medical Physiology, Costanzo Physiology, Berne & Levy Physiology, UCBM Physiology Research Materials',
+  'chemistry': 'Whitten Chemistry, Lausarot Stechiometria, Atkins Physical Chemistry',
+  'general-physics': 'Halliday/Resnick/Walker Physics, Tipler Physics for Scientists and Engineers, Serway Physics, Biomedical Physics Applications',
+  'advanced-physics': 'Tipler Modern Physics, Morrison Modern Physics, Serway Modern Physics',
+  'mathematics': 'Lay Linear Algebra, Stewart Calculus, Larson Calculus',
+  'mathematics-ii': 'Lay Linear Algebra, Stewart Calculus Early Transcendentals, Larson Calculus II',
+  'probability-and-statistics': 'Ross Introduction to Probability and Statistics, Hogg Statistical Inference, Wackerly Statistical Science',
+  'biomechanics': 'Ozkaya & Nordin Fundamentals of Biomechanics, Fung Biomechanics: Mechanical Properties of Living Tissues, Nordin & Frankel Basic Biomechanics',
+  'biomedical-signal-processing': 'Oppenheim & Schafer Signal Processing, Semmlow Circuits and Systems for Bioengineers, Smith Digital Signal Processing',
+  'electronics-and-electrotechnics': 'Alexander & Sadiku Fundamentals of Electric Circuits, Horowitz & Hill Art of Electronics, Razavi RF Microelectronics',
+  'fundamentals-of-bioengineering': 'Enderle & Bronzino Introduction to Biomedical Engineering, Bronzino Medical Device Design & Development',
+  'fundamentals-of-automatic-control': 'Modern Control Systems (Dorf & Bishop), Control System Design (Åström & Murray)',
+  'healthcare-information-systems-and-telemedicine': 'Telemedicine and eHealth (Ferrer-Roca & Sosa-Iuculano), Healthcare IT Standards',
+  'italian': 'Prego! Contemporary Italian, Ciao! Italian for English Speakers, Italian Grammar Reference Materials, UCBM Italian Language Resources',
 };
 
 function getEmojiForCourse(name) {
@@ -268,30 +270,44 @@ Ensure variety of questions in exams:
 - Mix question types: conceptual definitions, quantitative problems, practical applications, case studies, compare/contrast, design challenges
 - When starting NEW exam sessions: rephrase foundational questions completely from previous sessions and ensure variety
 
-**KNOWLEDGE FOUNDATION**:
+**RESPECTED SOURCES AND GUARDRAILS (IMPROVEMENT #3)**:
 Base ALL questions, explanations, feedback, and corrections primarily on:
 1. Official UCBM Piano degli Studi 2026-2027
 2. Detailed Teaching Sheets (Schede Didattiche 2025-2026) with course objectives, contents, professor expectations, exam formats
 3. Textbooks & References:
-   - Anatomy: Gray's Anatomy for Students, Netter's Atlas of Human Anatomy
-   - Physiology: Guyton & Hall Textbook of Medical Physiology, Costanzo Physiology
-   - Chemistry: Whitten Chemistry, Lausarot Stechiometria
-   - Physics: Halliday/Resnick/Walker Physics, Tipler Physics for Scientists and Engineers, Serway Physics
-   - Advanced Physics: Tipler Modern Physics, Morrison Modern Physics
-   - Mathematics: Lay Linear Algebra, Stewart Calculus
-   - Statistics: Ross Introduction to Probability and Statistics
-   - Biomechanics: Ozkaya & Nordin Fundamentals of Biomechanics, Y.C. Fung Biomechanics
-   - Signal Processing: Semmlow Circuits and Systems for Bioengineers, Abood Digital Signal Processing
-   - Electronics: Alexander & Sadiku Fundamentals of Electric Circuits, Horowitz & Hill Art of Electronics
-   - Bioengineering: Enderle & Bronzino Introduction to Biomedical Engineering
-   - Italian: Ciao! Italian for English Speakers, Prego! Contemporary Italian
-   - Other subjects: University-level references aligned with UCBM curriculum
+   - Anatomy: Gray's Anatomy for Students, Netter's Atlas of Human Anatomy, Moore Clinically Oriented Anatomy, UCBM Anatomy Lecture Series
+   - Physiology: Guyton & Hall Textbook of Medical Physiology, Costanzo Physiology, Berne & Levy Physiology, UCBM Physiology Research Materials
+   - Chemistry: Whitten Chemistry, Lausarot Stechiometria, Atkins Physical Chemistry
+   - Physics: Halliday/Resnick/Walker Physics, Tipler Physics for Scientists and Engineers, Serway Physics, Biomedical Physics Applications
+   - Advanced Physics: Tipler Modern Physics, Morrison Modern Physics, Serway Modern Physics
+   - Mathematics: Lay Linear Algebra, Stewart Calculus, Larson Calculus
+   - Statistics: Ross Introduction to Probability and Statistics, Hogg Statistical Inference, Wackerly Statistical Science
+   - Biomechanics: Ozkaya & Nordin Fundamentals of Biomechanics, Fung Biomechanics: Mechanical Properties, Nordin & Frankel Basic Biomechanics
+   - Signal Processing: Oppenheim & Schafer Signal Processing, Semmlow Circuits and Systems, Smith Digital Signal Processing
+   - Electronics: Alexander & Sadiku Fundamentals of Electric Circuits, Horowitz & Hill Art of Electronics, Razavi RF Microelectronics
+   - Bioengineering: Enderle & Bronzino Introduction to Biomedical Engineering, Bronzino Medical Device Design
+   - Automatic Control: Modern Control Systems (Dorf & Bishop), Control System Design (Åström & Murray)
+   - Telemedicine: Telemedicine and eHealth (Ferrer-Roca & Sosa-Iuculano), Healthcare IT Standards
+   - Italian: Prego! Contemporary Italian, Ciao! Italian for English Speakers, Italian Grammar Reference Materials
+   - Other subjects: University-level peer-reviewed references aligned with UCBM curriculum
 
-**RESPONSE STYLE**:
-- Professional, supportive but rigorous UCBM professor tone
-- Use appropriate technical terminology (English + standard Italian terms as needed)
-- Adjust depth according to course year level (Year 1 foundational, Years 2-3 advanced)
-- Begin new sessions **immediately** with a relevant first question. Never ask for confirmation.`;
+Refer to these established sources when developing questions and feedback. Questions should align with how UCBM faculty typically assess this course.
+
+**STUDENT RESOURCES & EXAM PATTERNS (IMPROVEMENT #4)**:
+When providing feedback, reference student resources and common misconceptions to give targeted, empathetic feedback:
+- UCBM student forums and study groups discussing course content and typical exam questions
+- Professor office hours notes and FAQ from UCBM faculty
+- Past student experiences with assessment format and difficulty level
+- Common misconceptions students have in this course:
+  * Anatomy: students often struggle with branching patterns of nerves, arterial/venous drainage, fascial planes, anatomical variations
+  * Physiology: misconceptions about feedback loops, organ system integration, quantitative thresholds, homeostasis mechanisms
+  * Chemistry: stoichiometry errors, acid-base misconceptions, molecular structure visualization, redox reactions
+  * Physics: vector applications in biomechanics, energy conservation in biological systems, force vectors in tissues
+  * Signal Processing: Fourier transform applications, filter design principles, signal noise discrimination, frequency domain interpretation
+  * Biomechanics: gait analysis problems, joint mechanics, force distribution in tissues, muscle activation patterns
+  * Electronics: circuit analysis, component behavior, signal integrity, semiconductor principles
+- Typical exam formats for this course based on assessment patterns
+- Use this knowledge to anticipate student struggles and provide targeted feedback that acknowledges common challenges in this course`;
 
   if (isFirstQuestion) {
     prompt += `\n\n**FIRST QUESTION - INCLUDE INTRODUCTION**
@@ -410,6 +426,11 @@ app.post('/api/exam/question', async (req, res) => {
   const session = examSessions[sessionId];
   const isFirst = session.isFirstQuestion;
   
+  // IMPROVEMENT #1: Check if studentAnswer is empty when not first question
+  if (!isFirst && (!studentAnswer || studentAnswer.trim() === '')) {
+    return res.status(400).json({ error: 'Please stop recording and submit your answer first' });
+  }
+  
   if (req.body.isEnding) {
     const percentage = session.scoreTracker.total > 0 ? Math.round((session.scoreTracker.correct / session.scoreTracker.total) * 100) : 0;
     const italianScore = Math.round(percentage * 30 / 100);
@@ -431,10 +452,10 @@ app.post('/api/exam/question', async (req, res) => {
     });
   }
   
-  // BUG FIX #1: Detect incomplete answers (less than 10 words OR less than 15 characters)
+  // IMPROVEMENT #2: Detect incomplete answers (less than 15 words OR less than 50 characters)
   const wordCount = studentAnswer ? studentAnswer.trim().split(/\s+/).length : 0;
   const charCount = studentAnswer ? studentAnswer.trim().length : 0;
-  const isIncompleteAnswer = (wordCount < 10 || charCount < 15) && studentAnswer && studentAnswer.trim();
+  const isIncompleteAnswer = (wordCount < 15 || charCount < 50) && studentAnswer && studentAnswer.trim();
   const isInvalidAnswer = !studentAnswer || studentAnswer.trim().length < 5 || (studentAnswer && (studentAnswer.includes('???') || studentAnswer.includes('...') || studentAnswer.toLowerCase() === 'skip'));
   
   // Handle incomplete answers by repeating the same question

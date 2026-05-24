@@ -297,7 +297,7 @@
                     <h4 style="color: #667eea; margin-top: 10px; margin-bottom: 6px; font-size: 12px;">📝 During Exam</h4>
                     <p style="margin: 3px 0;"><strong>Buttons Available:</strong></p>
                     <p style="margin: 3px 0;"><strong>✓ Send:</strong> Submit your typed or spoken answer.</p>
-                    <p style="margin: 3px 0;"><strong>🎤 Speak:</strong> Click to start recording, click again to stop. Recognized text appears in the text area.</p>
+                    <p style="margin: 3px 0;"><strong>🎤 Speak:</strong> Click to start recording, click again to stop. Recognized text appears in the text area.</p><p style="margin: 3px 0;"><strong>Mobile Speech:</strong> On mobile, you may need to click Speak again if your answer is long. Keep clicking until you are finished speaking, then click Speak once more to submit.</p>
                     <p style="margin: 3px 0;"><strong>🔊 Mute:</strong> Toggle audio on/off. When off, the professor's responses won't be spoken aloud.</p>
                     <p style="margin: 3px 0;"><strong>📎 Attach:</strong> Upload supporting files (PDFs, images, documents) for the tutor to review with your answer.</p>
                     <p style="margin: 3px 0;"><strong>📊 Get Score:</strong> View your current score: number correct, percentage, and Italian 30-point scale.</p>
@@ -308,7 +308,7 @@
                     <p style="margin: 3px 0;"><strong>End Exam:</strong> Finish the exam and save your score.</p>
                     
                     <h4 style="color: #667eea; margin-top: 10px; margin-bottom: 6px; font-size: 12px;">🎤 Audio Buttons</h4>
-                    <p style="margin: 3px 0;"><strong>🎤 Speak:</strong> Click to start recording your answer. The text field borders will pulse red. Click again to stop and submit.</p>
+                    <p style="margin: 3px 0;"><strong>🎤 Speak:</strong> Click to start recording your answer. The text field borders will pulse red. Click again to stop and submit.</p><p style="margin: 3px 0;"><strong>Mobile Speech:</strong> On mobile, you may need to click Speak again if your answer is long. Keep clicking until you are finished speaking, then click Speak once more to submit.</p>
                     <p style="margin: 3px 0;"><strong>🔊 Mute:</strong> Toggle text-to-speech on/off. Button changes color when muted.</p>
                     <p style="margin: 3px 0;"><strong>📎 Attach:</strong> Upload supporting files with your answer (PDFs, documents, images, audio, video).</p>
                     <p style="margin: 3px 0;"><strong>⚙️ Settings:</strong> Change voice output and test it before your exam.</p>
@@ -344,7 +344,7 @@
         let currentSessionLang = 'en-US';
         let currentSessionIsItalian = false;
         const recognition = window.webkitSpeechRecognition || window.SpeechRecognition;
-        const SILENCE_THRESHOLD = 8000;
+        const SILENCE_THRESHOLD = 300000; // IMPROVEMENT #1: 5 minutes, no auto-stop
 
         const yearStructure = {
             'Year 1': [
@@ -436,7 +436,7 @@
 
         if (recognition) {
             speechRecognizer = new recognition();
-            speechRecognizer.continuous = true;
+            speechRecognizer.continuous = true; speechRecognizer.maxAlternatives = 1;  // IMPROVEMENT #1: Reduce overhead
             speechRecognizer.interimResults = true;
             speechRecognizer.lang = 'en-US';
             
@@ -478,9 +478,7 @@
                 }
                 document.getElementById('answerInput').value = recognitionTranscript.trim();
                 if (recognitionSilenceTimer) clearTimeout(recognitionSilenceTimer);
-                recognitionSilenceTimer = setTimeout(() => {
-                    if (isListening) speechRecognizer.stop();
-                }, SILENCE_THRESHOLD);
+                // IMPROVEMENT #1: REMOVED recognitionSilenceTimer logic - no auto-stop on silence
             };
 
             speechRecognizer.onerror = (event) => {
@@ -1167,3 +1165,7 @@
     </script>
 </body>
 </html>
+
+
+
+
