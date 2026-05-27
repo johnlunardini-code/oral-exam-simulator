@@ -97,6 +97,44 @@ async function callGrok(systemPrompt, conversation, options = {}) {
 }
 
 // ============================================================
+// Question Type Helpers
+// ============================================================
+
+function getNextQuestionType(course, session) {
+  if (!course || !course.examFormat) return 'oral';
+  
+  const fmt = course.examFormat;
+  const askedOralCount = (session.askedQuestions || []).filter(q => q && q.type === 'oral').length;
+  const askedWrittenCount = (session.askedQuestions || []).filter(q => q && q.type === 'written').length;
+  const askedMCCount = (session.askedQuestions || []).filter(q => q && q.type === 'multiple-choice').length;
+  
+  // Biomechanics: 45-minute multiple-choice FOLLOWED BY oral exam
+  if (course.id === 'biomechanics') {
+    const estimatedMCQuestions = 12;
+    return askedMCCount >= estimatedMCQuestions ? 'oral' : 'multiple-choice';
+  }
+  
+  // Economics: oral + written mixed questions
+  if (course.id === 'economics-and-management') {
+    const estimatedOralQuestions = 4;
+    return askedOralCount >= estimatedOralQuestions ? 'written' : 'oral';
+  }
+  
+  // Math: open-form then multiple-choice
+  if (course.id === 'mathematics') {
+    const estimatedOpenQuestions = 2;
+    return askedWrittenCount >= estimatedOpenQuestions ? 'multiple-choice' : 'written';
+  }
+  
+  // General mixed format
+  if (fmt.primary === 'mixed' || fmt.primary === 'written + oral') {
+    return askedOralCount <= askedWrittenCount ? 'oral' : 'written';
+  }
+  
+  return fmt.primary === 'written' ? 'written' : 'oral';
+}
+
+// ============================================================
 // Session Helpers
 // ============================================================
 
@@ -120,7 +158,8 @@ function createSession(courseId, studentName) {
     hintHistory: {},
     uploads: [],
     questionCount: 0,
-    lastQuestion: null
+    lastQuestion: null,
+    lastQuestionType: 'oral'
   };
 
   sessions.set(sessionId, session);
@@ -141,15 +180,29 @@ function buildSystemPromptForSession(session, isFirstQuestion = false) {
     if (course.examFormat) {
       prompt += `\nExam format: ${JSON.stringify(course.examFormat)}`;
     }
+    
+    const nextType = getNextQuestionType(course, session);
+    session.lastQuestionType = nextType;
+    prompt += `\n\n**QUESTION TYPE FOR THIS QUESTION**: ${nextType.toUpperCase()}`;
+    
+    if (nextType === 'multiple-choice') {
+      prompt += `\n\nFormat Instructions: Provide a clear, focused question with exactly 4 options labeled A, B, C, D. At the END of your response, explicitly state the correct answer as: [CORRECT_ANSWER: A] (or B/C/D as appropriate).`;
+    } else if (nextType === 'written') {
+      prompt += `\n\nFormat Instructions: Ask an open-form question that requires a detailed written answer (ideally 200+ words). Student must provide comprehensive explanation.`;
+    } else if (nextType === 'numerical') {
+      prompt += `\n\nFormat Instructions: Ask a numerical problem that requires calculation and numeric answer with units or explanation.`;
+    } else {
+      prompt += `\n\nFormat Instructions: Ask a conversational oral question suitable for spoken response.`;
+    }
   }
 
   if (session.isItalianCourse) {
-    prompt += `\n\n**LANGUAGE MODE**: This is an Italian-language course. Conduct the exam primarily in Italian. Accept answers in Italian or English.`;
+    prompt += `\n\n**LANGUAGE MODE - ITALIAN COURSE**: Present questions in English but include probes about Italian comprehension and content knowledge. Accept answers in BOTH English AND Italian (code-switching is completely fine). Student can mix languages freely.\\n\\nIMPORTANT: When grading feedback, differentiate between:\\n1. Language skill testing (mark Italian grammar/vocabulary errors)\\n2. Content knowledge testing (ignore language mixing, focus on concepts)\\n\\nClarify in context which aspect you are testing.`;
   }
 
   if (session.askedQuestions.length > 0) {
     prompt += `\n\n**PREVIOUSLY ASKED IN THIS SESSION (DO NOT REPEAT)**:\n`;
-    prompt += session.askedQuestions.slice(-8).map((q, i) => `  ${i + 1}. ${q}`).join('\n');
+    prompt += session.askedQuestions.slice(-8).map((q, i) => `  ${i + 1}. ${typeof q === 'string' ? q : q.text || q}`).join('\n');
   }
 
   if (session.uploads.length > 0) {
@@ -225,7 +278,13 @@ app.post('/api/exam/question', async (req, res) => {
     session.messages.push({ role: 'assistant', content: professorResponse });
     session.lastQuestion = professorResponse;
     session.questionCount += 1;
-    session.askedQuestions.push(professorResponse.slice(0, 220));
+    
+    const qObj = {
+      text: professorResponse.slice(0, 220),
+      type: session.lastQuestionType,
+      number: session.questionCount
+    };
+    session.askedQuestions.push(qObj);
 
     let hypotheticalScore = null;
     if (session.questionCount % 5 === 0 && session.scoreTracker.total > 0) {
@@ -236,6 +295,7 @@ app.post('/api/exam/question', async (req, res) => {
     res.json({
       response: professorResponse,
       questionNumber: session.questionCount,
+      questionType: session.lastQuestionType,
       hypotheticalScore,
       scoreTracker: session.scoreTracker
     });
@@ -291,7 +351,7 @@ app.get('/api/exam/hint-history/:id', (req, res) => {
 
 app.post('/api/exam/feedback', async (req, res) => {
   try {
-    const { sessionId, questionIndex } = req.body || {};
+    const { sessionId, questionIndex, isSpokenAnswer } = req.body || {};
     const session = getSession(sessionId);
     if (!session) return res.status(404).json({ error: 'Session not found' });
 
@@ -299,7 +359,22 @@ app.post('/api/exam/feedback', async (req, res) => {
     const idx = Math.max(0, Math.min(questionIndex ?? studentTurns.length - 1, studentTurns.length - 1));
     const studentAnswer = studentTurns[idx]?.content || 'No answer recorded';
 
-    const fbPrompt = `Provide structured feedback on this student answer (max 180 words). Cover: (1) What was good, (2) What was missing, (3) One improvement. Use bullets.\n\n${studentAnswer}`;
+    let fbPrompt = `Provide structured feedback on this student answer (max 180 words). Cover: (1) What was good, (2) What was missing, (3) One improvement. Use bullets.\n\n`;
+    
+    if (isSpokenAnswer) {
+      fbPrompt += `NOTE: This answer came from speech recognition. DO NOT cite spelling or minor grammar issues from speech-to-text errors. Focus on content quality and comprehension.\n\n`;
+    }
+    
+    fbPrompt += `Student answer:\n${studentAnswer}`;
+    
+    // If course has uploaded materials, include them in feedback
+    if (session.uploads.length > 0) {
+      fbPrompt += `\n\nAvailable course materials:\n`;
+      for (const u of session.uploads.slice(-3)) {
+        fbPrompt += `- ${u.filename}\n`;
+      }
+      fbPrompt += `\nConsider referencing these materials in feedback if relevant.`;
+    }
 
     const feedback = await callGrok(fbPrompt, [], { temperature: 0.5, max_tokens: 400 });
     res.json({ feedback });

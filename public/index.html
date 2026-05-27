@@ -23,7 +23,8 @@
         
         .feature-list { background: #f9f9f9; padding: 10px; border-radius: 6px; margin: 8px 0; font-size: 12px; flex-shrink: 0; }
         .feature-list h3 { color: #333; margin: 0 0 8px 0; font-size: 13px; }
-        .feature-list ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+        .feature-list ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; transition: max-height 0.3s ease-out; }
+        .feature-list ul.collapsed { display: none; }
         .feature-list li { padding: 4px 0; color: #666; display: flex; align-items: center; gap: 4px; font-size: 11px; }
         .feature-list li::before { content: '✓'; color: #667eea; font-weight: bold; }
         
@@ -129,9 +130,12 @@
         <!-- Start Screen -->
         <div class="start-screen active">
             <div class="feature-list">
-                <h3>🌟 Features</h3>
-                <ul>
-                    <li>27+ UCBM courses</li>
+                <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleFeatures()">
+                    <h3 style="margin: 0;">🌟 Features</h3>
+                    <span id="featuresToggle" style="font-size: 16px; transition: transform 0.3s;">▶</span>
+                </div>
+                <ul id="featuresList" style="display: none;">
+                    <li id="courseCount">27+ UCBM courses</li>
                     <li>Auto Q-generation</li>
                     <li>Live feedback</li>
                     <li>Speech support</li>
@@ -226,6 +230,7 @@
             <div class="bottom-controls">
                 <button class="btn-primary" onclick="getScore()" style="flex: 1;">📊 Get Score</button>
                 <button class="btn-secondary" onclick="generateHint()" style="flex: 1;">💡 Hint</button>
+                <button class="btn-secondary" onclick="searchGoogle()" style="flex: 1;">🔍 Google</button>
                 <button class="btn-success" onclick="openHintHistory()" style="flex: 1;">📋 History</button>
                 <button class="btn-success" onclick="openFeedbackHistory()" style="flex: 1;">💬 Feedback</button>
                 <button class="btn-danger" onclick="endExam()" style="flex: 1;">End Exam</button>
@@ -242,6 +247,7 @@
                 <div id="hintResult">
                     <p style="color: #999; font-size: 12px;">Click Hint button to start.</p>
                 </div>
+                <button id="googleSearchBtn" class="icon-btn btn-primary" style="width: 100%; margin-top: 12px; display: none;">🔍 Search Google</button>
             </div>
         </div>
 
@@ -315,6 +321,36 @@
 
         let yearStructure = {};
         let courseDataMap = {};
+        let currentQuestionText = '';
+
+        function toggleFeatures() {
+            const list = document.getElementById('featuresList');
+            const toggle = document.getElementById('featuresToggle');
+            if (list.style.display === 'none') {
+                list.style.display = 'grid';
+                toggle.textContent = '\u25bc';
+            } else {
+                list.style.display = 'none';
+                toggle.textContent = '\u25b6';
+            }
+        }
+
+        function updateCourseCount() {
+            const count = Object.values(yearStructure).reduce((sum, courses) => sum + courses.length, 0);
+            const courseCountEl = document.getElementById('courseCount');
+            if (courseCountEl) {
+                courseCountEl.textContent = count + ' UCBM courses';
+            }
+        }
+
+        function searchGoogle() {
+            if (!currentQuestionText.trim()) {
+                alert('No question text available.');
+                return;
+            }
+            const query = encodeURIComponent(currentQuestionText);
+            window.open(`https://www.google.com/search?q=${query}`, '_blank');
+        }
 
         const colorPalette = [
             '#667eea', '#764ba2', '#e74c3c', '#f39c12', '#16a085',
@@ -375,6 +411,7 @@
         function initializeCourses() {
             const container = document.getElementById('coursesContainer');
             container.innerHTML = '';
+            updateCourseCount();
             
             Object.entries(yearStructure).forEach(([year, courses], yearIndex) => {
                 const yearDiv = document.createElement('div');
@@ -684,6 +721,13 @@
                 group.appendChild(msg);
                 chatArea.appendChild(group);
                 
+                currentQuestionText = data.response;
+                const googleBtn = document.getElementById('googleSearchBtn');
+                if (googleBtn) {
+                    googleBtn.style.display = 'inline-block';
+                    googleBtn.onclick = searchGoogle;
+                }
+                
                 if (!messageHistory.some(m => m.role === 'professor' && m.text === data.response)) {
                     messageHistory.push({ role: 'professor', text: data.response, index: messageHistory.filter(m => m.role === 'professor').length });
                 }
@@ -911,6 +955,12 @@
             if (confirm('End exam?')) {
                 speechSynthesis.cancel();
                 if (speechRecognizer) speechRecognizer.stop();
+                // Close all sidebars
+                document.getElementById('sidebar').classList.remove('active');
+                document.getElementById('sidebar').style.display = 'none';
+                document.getElementById('settingsSidebar').style.right = '-100vw';
+                document.getElementById('helpSidebar').classList.remove('active');
+                document.getElementById('helpSidebar').style.display = 'none';
                 
                 try {
                     const response = await fetch(`${API_BASE}/api/exam/session/${currentSessionId}`, { 
