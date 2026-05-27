@@ -8,7 +8,7 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 
-import { initKnowledgeBase, getCourseContext, addStudentMaterial, getCourse } from './knowledge-base.js';
+import { initKnowledgeBase, addStudentMaterial } from './knowledge-base.js';
 import { SYSTEM_PROMPT } from './system-prompt.js';
 
 const app = express();
@@ -17,10 +17,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
-// Serve the UI (this is the critical part for Railway)
+// Serve the frontend UI
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Explicit root route - fixes Bad Gateway
+// Explicit root route (this fixes the Bad Gateway)
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
@@ -48,11 +48,9 @@ app.post('/api/upload', async (req, res) => {
   }
 });
 
-// Catch-all for SPA routes
+// Catch-all for SPA
 app.get('*', (req, res) => {
-  if (req.path.startsWith('/api')) {
-    return res.status(404).json({ error: 'API endpoint not found' });
-  }
+  if (req.path.startsWith('/api')) return res.status(404).json({ error: 'API not found' });
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
