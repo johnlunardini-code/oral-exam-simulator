@@ -1,6 +1,11 @@
 #!/usr/bin/env node
-// server.js
+// server.js - UCBM Exam Simulator
 console.log('[STARTUP] Starting UCBM Exam Simulator');
+console.log('[STARTUP] Environment:', {
+  NODE_ENV: process.env.NODE_ENV,
+  PORT: process.env.PORT,
+  XAI_KEY_SET: !!process.env.XAI_API_KEY
+});
 
 import express from 'express';
 import cors from 'cors';
@@ -13,69 +18,72 @@ import { SYSTEM_PROMPT } from './system-prompt.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
-// Global error handlers — this will help us see real crashes in Railway logs
+// Global error handlers
 process.on('uncaughtException', (err) => {
-  console.error('UNCAUGHT EXCEPTION:', err);
+  console.error('[UNCAUGHT EXCEPTION]', err);
 });
 process.on('unhandledRejection', (reason) => {
-  console.error('UNHANDLED REJECTION:', reason);
+  console.error('[UNHANDLED REJECTION]', reason);
 });
 
 const app = express();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-// In-memory exam sessions
 const sessions = new Map();
 let sessionCounter = 0;
 
+// Middleware
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
-// Health check - placed very early so Railway can reach it as soon as the server starts
+// ============================================================
+// ROUTES
+// ============================================================
+
+// Health check (Railway uses this)
 app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok' });
+  console.log('[HEALTH CHECK]');
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Serve static files from public folder (includes index.html, CSS, JS, etc.)
-app.use(express.static(path.join(__dirname, 'public'), {
-  setHeaders: (res, filePath, stat) => {
-    // Prevent caching of index.html so updates are visible
-    if (filePath.endsWith('index.html')) {
-      res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-    }
-  }
-}));
+// Static files (CSS, JS, index.html)
+const publicPath = path.join(__dirname, 'public');
+console.log('[STARTUP] Serving static files from:', publicPath);
+app.use(express.static(publicPath));
 
-// Make course-specs.json available to the frontend
+// Course specs endpoint
 app.get('/course-specs.json', (req, res) => {
-  res.sendFile(path.join(__dirname, 'course-specs.json'));
+  const filePath = path.join(__dirname, 'course-specs.json');
+  console.log('[API] GET /course-specs.json from:', filePath);
+  res.sendFile(filePath);
 });
 
-// Basic courses list
+// API: List courses
 app.get('/api/courses', (req, res) => {
   try {
     const data = JSON.parse(fs.readFileSync(path.join(__dirname, 'course-specs.json'), 'utf8'));
+    console.log('[API] GET /api/courses - returning', data.courses?.length || 0, 'courses');
     res.json({ success: true, courses: data.courses || [] });
   } catch (err) {
+    console.error('[API ERROR] /api/courses:', err.message);
     res.status(500).json({ error: 'Failed to load courses' });
   }
 });
 
-/* ============================================================
-   XAI Grok Integration
-   ============================================================ */
+// ============================================================
+// XAI Grok Integration
+// ============================================================
 
 const XAI_API_KEY = process.env.XAI_API_KEY;
 const XAI_MODEL = process.env.XAI_MODEL || 'grok-4';
 const XAI_BASE_URL = process.env.XAI_BASE_URL || 'https://api.x.ai/v1';
 
 if (!XAI_API_KEY) {
-  console.warn('[STARTUP] WARNING: XAI_API_KEY is not set. The UI will load but exam features will fail until the key is added in Railway.');
+  console.warn('[STARTUP] WARNING: XAI_API_KEY not set - UI will load, exam features unavailable');
 }
 
 async function callGrok(systemPrompt, conversation, options = {}) {
   if (!XAI_API_KEY) {
-    throw new Error('XAI_API_KEY is not configured on the server');
+    throw new Error('XAI_API_KEY not configured');
   }
 
   const messages = [
@@ -109,9 +117,9 @@ async function callGrok(systemPrompt, conversation, options = {}) {
   return content;
 }
 
-/* ============================================================
-   Session Helpers
-   ============================================================ */
+// ============================================================
+// Session Management
+// ============================================================
 
 function createSession(courseId, studentName) {
   const course = getCourse(courseId);
@@ -183,9 +191,9 @@ function buildSystemPromptForSession(session, isFirstQuestion = false) {
   return prompt;
 }
 
-/* ============================================================
-   Exam API Endpoints
-   ============================================================ */
+// ============================================================
+// API: Exam Endpoints
+// ============================================================
 
 app.post('/api/exam/start', async (req, res) => {
   try {
@@ -195,7 +203,7 @@ app.post('/api/exam/start', async (req, res) => {
     await initKnowledgeBase();
 
     const session = createSession(subject, studentName);
-    console.log(`[EXAM] New session for ${session.courseName}`);
+    console.log(`[EXAM] New session: ${session.id} - ${session.courseName}`);
 
     res.json({
       sessionId: session.id,
@@ -203,6 +211,7 @@ app.post('/api/exam/start', async (req, res) => {
       isItalianCourse: session.isItalianCourse
     });
   } catch (err) {
+    console.error('[EXAM START ERROR]', err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -234,6 +243,7 @@ app.post('/api/exam/question', async (req, res) => {
     try {
       professorResponse = await callGrok(systemPrompt, recent, { temperature: isFirst ? 0.65 : 0.72 });
     } catch (apiErr) {
+      console.error('[GROK API ERROR]', apiErr.message);
       return res.status(502).json({ error: 'LLM call failed', details: apiErr.message });
     }
 
@@ -255,6 +265,7 @@ app.post('/api/exam/question', async (req, res) => {
       scoreTracker: session.scoreTracker
     });
   } catch (err) {
+    console.error('[EXAM QUESTION ERROR]', err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -294,6 +305,7 @@ app.post('/api/exam/hint', async (req, res) => {
 
     res.json({ textHint: hint });
   } catch (err) {
+    console.error('[HINT ERROR]', err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -319,6 +331,7 @@ app.post('/api/exam/feedback', async (req, res) => {
     const feedback = await callGrok(fbPrompt, [], { temperature: 0.5, max_tokens: 400 });
     res.json({ feedback });
   } catch (err) {
+    console.error('[FEEDBACK ERROR]', err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -350,51 +363,63 @@ app.post('/api/exam/upload/:sessionId', (req, res) => {
       session.uploads.push({ filename, content, size, uploadedAt: new Date().toISOString() });
       res.json({ success: true, filename, size });
     } catch (e) {
+      console.error('[UPLOAD ERROR]', e.message);
       res.status(400).json({ error: e.message });
     }
   });
 });
 
-/* SPA fallback - serve index.html for all non-API, non-static routes */
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'), (err) => {
-    if (err) {
-      console.error('[ROOT HANDLER ERROR]', err.message);
-      res.status(500).json({ error: 'Failed to load index.html' });
-    }
-  });
-});
+// ============================================================
+// SPA Fallback (serve index.html for all unmatched routes)
+// ============================================================
 
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api')) {
+    console.log('[API 404]', req.path);
     return res.status(404).json({ error: 'API endpoint not found' });
   }
-  res.sendFile(path.join(__dirname, 'public', 'index.html'), (err) => {
+  
+  // Serve index.html for SPA routing
+  const indexPath = path.join(publicPath, 'index.html');
+  console.log('[SPA FALLBACK] Serving index.html from:', indexPath);
+  res.sendFile(indexPath, (err) => {
     if (err) {
       console.error('[SPA FALLBACK ERROR]', err.message);
-      res.status(500).json({ error: 'Failed to load index.html' });
+      res.status(500).json({ error: 'Failed to load application' });
     }
   });
 });
 
-/* Startup */
-const PORT = process.env.PORT || 3000;
+// ============================================================
+// STARTUP
+// ============================================================
+
+const PORT = parseInt(process.env.PORT || '3000', 10);
+console.log('[STARTUP] PORT resolved to:', PORT);
 
 const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 UCBM Exam Simulator running on port ${PORT}`);
-  console.log(`   Model: ${XAI_MODEL} via ${XAI_BASE_URL}`);
-  if (!XAI_API_KEY) {
-    console.log('   ⚠️  No XAI_API_KEY set — add it in Railway Variables tab');
-  }
-  console.log('[STARTUP] Server ready to accept connections');
+  console.log(`[STARTUP] ✅ Server listening on port ${PORT}`);
+  console.log(`[STARTUP] URL: http://0.0.0.0:${PORT}`);
+  console.log(`[STARTUP] Health check: http://localhost:${PORT}/health`);
+  console.log(`[STARTUP] XAI Model: ${XAI_MODEL}`);
+  console.log('[STARTUP] Ready to accept requests');
 });
 
 server.on('error', (err) => {
   console.error('[SERVER ERROR]', err);
+  process.exit(1);
 });
 
 process.on('SIGTERM', () => {
-  console.log('[SHUTDOWN] SIGTERM received, closing server gracefully');
+  console.log('[SHUTDOWN] SIGTERM received');
+  server.close(() => {
+    console.log('[SHUTDOWN] Server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('[SHUTDOWN] SIGINT received');
   server.close(() => {
     console.log('[SHUTDOWN] Server closed');
     process.exit(0);
