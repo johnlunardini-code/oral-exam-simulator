@@ -52,6 +52,23 @@ app.post('/api/exam/simulate', async (req, res) => {
     const context = await getCourseContext(courseId);
     const course = context.courseSpecs;
 
+    const apiKey = process.env.XAI_API_KEY;
+    
+    // If no API key, return mock response for testing
+    if (!apiKey) {
+      console.log('[API] XAI_API_KEY not configured, returning demo response');
+      return res.json({
+        success: true,
+        courseName: course.name,
+        courseCode: course.code,
+        mode: mode,
+        response: `[DEMO MODE] Course: ${course.name}\n\nThis is a demonstration response. To enable AI-powered exam simulation, set XAI_API_KEY in your environment.\n\nCourse Details:\n- Professor: ${course.professor}\n- Exam Format: ${course.examFormat.primary}\n- CFU: ${course.cfu}\n- Student: ${studentId}`,
+        examFormat: course.examFormat,
+        score: null,
+        feedback: null
+      });
+    }
+
     // Build the full prompt for xAI
     const userMessage = `${SYSTEM_PROMPT}
 
@@ -70,11 +87,6 @@ Previous Exchange:
 ${JSON.stringify(previousContext, null, 2)}
 
 Generate the next exam question or interaction.`;
-
-    const apiKey = process.env.XAI_API_KEY;
-    if (!apiKey) {
-      return res.status(500).json({ error: 'XAI_API_KEY not configured' });
-    }
 
     const response = await fetch('https://api.x.ai/v1/chat/completions', {
       method: 'POST',
@@ -96,7 +108,7 @@ Generate the next exam question or interaction.`;
 
     if (!response.ok) {
       const error = await response.text();
-      console.error('xAI API error:', error);
+      console.error('[API] xAI error:', error);
       return res.status(response.status).json({ error: `xAI API error: ${error}` });
     }
 
@@ -115,14 +127,14 @@ Generate the next exam question or interaction.`;
     });
 
   } catch (err) {
-    console.error('Exam simulation error:', err);
+    console.error('[API] Exam simulation error:', err);
     res.status(500).json({ error: err.message });
   }
 });
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err);
+  console.error('[ERROR] Unhandled error:', err);
   res.status(500).json({ error: 'Internal server error', message: err.message });
 });
 
