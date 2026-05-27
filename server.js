@@ -32,7 +32,9 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
 // Health check - placed very early so Railway can reach it as soon as the server starts
-app.get('/health', (req, res) => res.json({ status: 'ok' }));
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
 
 // Serve static files from public folder (includes index.html, CSS, JS, etc.)
 app.use(express.static(path.join(__dirname, 'public'), {
@@ -354,22 +356,47 @@ app.post('/api/exam/upload/:sessionId', (req, res) => {
 });
 
 /* SPA fallback - serve index.html for all non-API, non-static routes */
-app.use((req, res, next) => {
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'), (err) => {
+    if (err) {
+      console.error('[ROOT HANDLER ERROR]', err.message);
+      res.status(500).json({ error: 'Failed to load index.html' });
+    }
+  });
+});
+
+app.get('*', (req, res) => {
   if (req.path.startsWith('/api')) {
     return res.status(404).json({ error: 'API endpoint not found' });
   }
-  // For all other routes (SPA routing), serve index.html
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'index.html'), (err) => {
+    if (err) {
+      console.error('[SPA FALLBACK ERROR]', err.message);
+      res.status(500).json({ error: 'Failed to load index.html' });
+    }
+  });
 });
 
 /* Startup */
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, '0.0.0.0', () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 UCBM Exam Simulator running on port ${PORT}`);
   console.log(`   Model: ${XAI_MODEL} via ${XAI_BASE_URL}`);
   if (!XAI_API_KEY) {
     console.log('   ⚠️  No XAI_API_KEY set — add it in Railway Variables tab');
   }
-  // knowledge-base.js already prints its own success message on init
+  console.log('[STARTUP] Server ready to accept connections');
+});
+
+server.on('error', (err) => {
+  console.error('[SERVER ERROR]', err);
+});
+
+process.on('SIGTERM', () => {
+  console.log('[SHUTDOWN] SIGTERM received, closing server gracefully');
+  server.close(() => {
+    console.log('[SHUTDOWN] Server closed');
+    process.exit(0);
+  });
 });
