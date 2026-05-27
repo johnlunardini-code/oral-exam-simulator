@@ -13,6 +13,14 @@ import { SYSTEM_PROMPT } from './system-prompt.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
+// Global error handlers — this will help us see real crashes in Railway logs
+process.on('uncaughtException', (err) => {
+  console.error('UNCAUGHT EXCEPTION:', err);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('UNHANDLED REJECTION:', reason);
+});
+
 const app = express();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -23,21 +31,23 @@ let sessionCounter = 0;
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
-// Serve the UI
-app.use(express.static(path.join(__dirname, 'public')));
+// Health check - placed very early so Railway can reach it as soon as the server starts
+app.get('/health', (req, res) => res.json({ status: 'ok' }));
+
+// Serve static files from public folder (includes index.html, CSS, JS, etc.)
+app.use(express.static(path.join(__dirname, 'public'), {
+  setHeaders: (res, filePath, stat) => {
+    // Prevent caching of index.html so updates are visible
+    if (filePath.endsWith('index.html')) {
+      res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    }
+  }
+}));
 
 // Make course-specs.json available to the frontend
 app.get('/course-specs.json', (req, res) => {
   res.sendFile(path.join(__dirname, 'course-specs.json'));
 });
-
-// Root route
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-// Health check
-app.get('/health', (req, res) => res.json({ status: 'ok', uptime: process.uptime() }));
 
 // Basic courses list
 app.get('/api/courses', (req, res) => {
@@ -343,27 +353,23 @@ app.post('/api/exam/upload/:sessionId', (req, res) => {
   });
 });
 
-/* SPA fallback */
-app.get('*', (req, res) => {
+/* SPA fallback - serve index.html for all non-API, non-static routes */
+app.use((req, res, next) => {
   if (req.path.startsWith('/api')) {
     return res.status(404).json({ error: 'API endpoint not found' });
   }
+  // For all other routes (SPA routing), serve index.html
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 /* Startup */
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, '0.0.0.0', async () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 UCBM Exam Simulator running on port ${PORT}`);
   console.log(`   Model: ${XAI_MODEL} via ${XAI_BASE_URL}`);
   if (!XAI_API_KEY) {
     console.log('   ⚠️  No XAI_API_KEY set — add it in Railway Variables tab');
   }
-  try {
-    await initKnowledgeBase();
-    console.log('   ✅ Knowledge base initialized');
-  } catch (e) {
-    console.error('   ❌ Knowledge base init failed:', e.message);
-  }
+  // knowledge-base.js already prints its own success message on init
 });
