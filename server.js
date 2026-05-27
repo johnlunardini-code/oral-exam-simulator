@@ -1,8 +1,16 @@
+#!/usr/bin/env node
 // server.js
+
+console.log('[STARTUP] Starting UCBM Exam Simulator');
+console.log('[STARTUP] NODE_ENV:', process.env.NODE_ENV);
+console.log('[STARTUP] PORT:', process.env.PORT);
+
 import express from 'express';
 import cors from 'cors';
 import { initKnowledgeBase, getCourseContext, addStudentMaterial, retrieveRelevantContext } from './knowledge-base.js';
 import { SYSTEM_PROMPT } from './system-prompt.js';
+
+console.log('[STARTUP] Imports successful');
 
 const app = express();
 app.use(cors());
@@ -18,10 +26,10 @@ let kbReady = false;
 initKnowledgeBase()
   .then(() => { 
     kbReady = true;
-    console.log('✅ Knowledge base ready');
+    console.log('[STARTUP] ✅ Knowledge base ready');
   })
   .catch(err => { 
-    console.error('❌ Knowledge base init failed:', err); 
+    console.error('[STARTUP] ❌ Knowledge base init failed:', err); 
     process.exit(1); 
   });
 
@@ -125,21 +133,21 @@ app.use((req, res) => {
 
 const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 UCBM Exam Simulator running on port ${PORT}`);
+  console.log(`[STARTUP] 🚀 UCBM Exam Simulator running on port ${PORT}`);
 });
 
 process.on('SIGTERM', () => {
-  console.log('SIGTERM received, shutting down gracefully');
+  console.log('[SHUTDOWN] SIGTERM received');
   server.close(() => {
-    console.log('Server closed');
+    console.log('[SHUTDOWN] Server closed');
     process.exit(0);
   });
 });
 
 process.on('SIGINT', () => {
-  console.log('SIGINT received, shutting down gracefully');
+  console.log('[SHUTDOWN] SIGINT received');
   server.close(() => {
-    console.log('Server closed');
+    console.log('[SHUTDOWN] Server closed');
     process.exit(0);
   });
 });
