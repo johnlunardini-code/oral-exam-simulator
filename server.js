@@ -137,7 +137,7 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Not found' });
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 
 console.log('[STARTUP] About to listen on port', PORT);
 
