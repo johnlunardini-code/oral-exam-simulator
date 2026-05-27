@@ -17,10 +17,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
-// Serve the frontend UI
+// Serve the UI (this is the most important part)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Explicit root route (this fixes the Bad Gateway)
+// Explicit root route - fixes Bad Gateway on Railway
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
@@ -48,9 +48,11 @@ app.post('/api/upload', async (req, res) => {
   }
 });
 
-// Catch-all for SPA
+// Catch-all for SPA (important for Railway)
 app.get('*', (req, res) => {
-  if (req.path.startsWith('/api')) return res.status(404).json({ error: 'API not found' });
+  if (req.path.startsWith('/api')) {
+    return res.status(404).json({ error: 'API endpoint not found' });
+  }
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
