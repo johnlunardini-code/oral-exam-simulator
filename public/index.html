@@ -1163,6 +1163,43 @@
             }
         }
     </script>
+
+    <script src="/js/exam-client.js"></script>
+
+    <script>
+      // Simple connection to your existing UI
+      document.addEventListener('DOMContentLoaded', () => {
+        console.log('✅ UCBM Exam Tutor UI connected to backend');
+
+        // Example: Connect the Upload button
+        const uploadBtn = document.querySelector('button[onclick*="upload"], #upload-button, button:contains("Choose Files")');
+        if (uploadBtn) {
+          uploadBtn.addEventListener('click', async () => {
+            const fileInput = document.querySelector('input[type="file"]');
+            if (!fileInput || !fileInput.files[0]) return alert('Please select a file first');
+            
+            const courseSelect = document.querySelector('#course-assignment, select');
+            const courseId = courseSelect ? courseSelect.value.toLowerCase().replace(/\s+/g, '-') : 'general-materials';
+            
+            // For demo - in real use you'd read the actual file content
+            alert('Upload functionality connected! (Full file handling will be added next)');
+          });
+        }
+
+        // Example: Make course cards clickable to start an exam
+        document.querySelectorAll('.course-card, div[style*="background"], button, div').forEach(card => {
+          if (card.textContent.includes('Economics') || card.textContent.includes('Physiology') || card.textContent.includes('Mathematics')) {
+            card.style.cursor = 'pointer';
+            card.addEventListener('click', () => {
+              const courseName = card.textContent.trim();
+              const courseId = courseName.toLowerCase().replace(/\s+/g, '-').replace('&', 'and');
+              simulateExam('student123', courseId, 'oral')
+                .then(result => console.log('Exam started:', result));
+            });
+          }
+        });
+      });
+    </script>
 </body>
 </html>
 

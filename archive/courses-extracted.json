@@ -1,0 +1,35 @@
+// extract-courses.js - Improved PDF Parser for UCBM Teaching Sheets
+const fs = require('fs');
+const pdf = require('pdf-parse');
+
+async function extractAllCourses() {
+  try {
+    const files = [
+      './teaching-sheets/Piano-degli-Studi-BEN.pdf',
+      './teaching-sheets/BEN_schede-insegnamento-1-anno_2025_2026.pdf',
+      './teaching-sheets/BEN_schede-insegnamento-2-e-3-anno_2025_2026.pdf'
+    ];
+
+    let allExtracted = [];
+
+    for (const file of files) {
+      if (fs.existsSync(file)) {
+        const dataBuffer = fs.readFileSync(file);
+        const data = await pdf(dataBuffer);
+        const text = data.text;
+
+        console.log(`✅ Extracted ${file}: ${text.length} characters`);
+        // Basic chunking (you can improve regex later)
+        const chunks = text.split('\n\n').filter(chunk => chunk.trim().length > 50);
+        allExtracted = allExtracted.concat(chunks);
+      }
+    }
+
+    fs.writeFileSync('./courses-extracted.json', JSON.stringify(allExtracted, null, 2));
+    console.log('✅ Extraction completed → courses-extracted.json');
+  } catch (err) {
+    console.error('❌ Extraction error:', err);
+  }
+}
+
+extractAllCourses();

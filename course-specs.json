@@ -1,448 +1,959 @@
 {
+  "academic_year": "2025-2026",
+  "program": "Bachelor in Biomedical Engineering (L-8)",
+  "language": "English",
+  "total_cfu": 180,
+  "cohort_rules": "Students follow the Piano di Studi of their year of enrollment",
+  "oral_exam_format": {
+    "duration": "15-30 minutes",
+    "style": "Conversational, deep conceptual understanding, strong emphasis on biomedical applications and integration",
+    "scoring": "18-30/30 (lode/honors possible)"
+  },
   "courses": [
     {
       "id": "fundamentals-of-computer-science",
+      "code": "2300101",
       "name": "Fundamentals of Computer Science",
       "emoji": "💻",
       "year": 1,
-      "difficulty": "beginner",
-      "language": "english",
-      "learningObjectives": [
-        "Understand basic programming concepts (variables, loops, conditionals)",
-        "Grasp algorithm design and analysis",
-        "Apply computational thinking to biomedical problems"
+      "semester": "II",
+      "cfu": 10,
+      "professor": "Rosa Sicilia",
+      "prerequisites": ["Knowledge of vectors and matrices from Mathematics course", "Ability to interact with a computer system as a user"],
+      "modules": [
+        "Elements of computer architecture, data representation, computer arithmetic, Boolean algebra (15 hours)",
+        "Structure of operating systems, process management, memory management, file system and user interface (15 hours)",
+        "Compiled and interpreted languages, Python programming: structure, basic types, control structures, sequences, file formats (csv, json), data manipulation and visualization (40 hours)",
+        "Object-oriented programming, classes, inheritance, polymorphism, modularity, information hiding (20 hours)",
+        "Fundamentals of software development and organization: error handling, version control, test-driven development (10 hours)"
       ],
-      "references": "Cormen et al., Silberschatz",
-      "exampleQuestions": [
-        "Explain the difference between an algorithm and a program, and provide an example from biomedical engineering.",
-        "What is the time complexity of binary search, and why is it important for large medical datasets?"
+      "teachingMethods": "Lectures and flipped classroom (70 hours total, 30% devoted to examples and exercises) + laboratory sessions for Python programming tools (30 hours)",
+      "examFormat": {
+        "primary": "practical + oral",
+        "practical": "Programming assessment (Python)",
+        "oral": "Discussion of theoretical topics",
+        "scoring": "Practical assessment contributes 3/5, oral contributes 2/5 of the final score. Minimum 18/30 in each part to pass.",
+        "minimumPass": 18
+      },
+      "textbooks": [
+        "J. Hunt - A Beginners Guide to Python 3 Programming, Springer",
+        "Luciano Ramalho - Fluent Python, O'Reilly",
+        "Online documentation of Python packages"
       ],
-      "questionDifficulty": "intermediate",
-      "priorKnowledge": "Basic mathematics"
+      "dublinDescriptors": {
+        "knowledgeAndUnderstanding": "Knowledge and understanding of the basic elements of computer architectures. Knowledge of the representation and storage of data in computer systems. Knowledge and understanding of the basic principles of object-oriented programming and reuse of software in a distributed environment.",
+        "applyingKnowledge": "Manage data and software applications in a standard computing environment. Understand how to use reusable software components from the available documentation. Perform quality control of software components and prepare the necessary documentation for their reuse.",
+        "autonomyInJudgement": "Manage the development cycle of software components.",
+        "communicationSkills": "Knowledge of user interfaces for interacting with a computer system.",
+        "learningSkills": "Knowledge and understanding of basic algorithms on multidimensional sequences and data structures."
+      },
+      "typical_oral_style": "Explain code, algorithmic thinking, biomedical data applications, and how the code solves real biomedical problems."
     },
     {
       "id": "mathematics",
+      "code": "2300102",
       "name": "Mathematics",
       "emoji": "📐",
       "year": 1,
-      "difficulty": "beginner",
-      "language": "english",
-      "learningObjectives": [
-        "Master calculus fundamentals (derivatives, integrals)",
-        "Understand linear algebra and matrix operations",
-        "Apply mathematical concepts to biomedical systems"
+      "semester": "I",
+      "cfu": 12,
+      "professor": "Marta Menci",
+      "prerequisites": ["Basic notions of mathematics and physics"],
+      "modules": [
+        "Linear Algebra: Vector spaces, vector subspaces, linear independence, generator sets, bases and dimensions of a vector space, vectors in Euclidean space, matrices, elementary matrices, operations with matrices and properties, transpose and inverse of a matrix and properties, rank and determinant of a matrix and properties, systems of linear equations (existence of solutions and calculation), Rouche-Capelli Theorem",
+        "Calculus and Real Analysis: Number sets, properties of real numbers and inequalities, complex numbers (operations with complex numbers and properties), functions and limits, fundamental functions and compound functions, definition of limit of a function of a real variable, computation of limits, derivatives (definition and geometric meaning), derivation rules, monotony, convexity and concavity, critical and inflection points, relative and absolute minima and maxima, continuity and differentiability of functions, approximation of functions, Taylor polynomials",
+        "Integration: Riemann integral, Riemann sums, integrable functions, fundamental theorem of calculus, primitives of a function, indefinite integrals, rules for calculating indefinite integrals, definite integrals, application to the calculation of areas",
+        "Linear ordinary differential equations of first and second order"
       ],
-      "references": "Standard calculus and linear algebra textbooks",
-      "exampleQuestions": [
-        "Define the derivative and explain its physical meaning in the context of biomedical signals.",
-        "Show how to solve a system of linear equations and relate it to circuit analysis."
+      "teachingMethods": "Face-to-face lectures and exercises with strong emphasis on problem-solving and biomedical applications",
+      "examFormat": {
+        "primary": "written",
+        "writtenType": "mixed",
+        "details": "4 practical open-form exercises + 4 multiple choice questions",
+        "topics": ["vector spaces", "matrices", "systems of linear equations", "functions of one real variable", "integration of real functions", "Linear Ordinary Differential Equations"],
+        "timeLimit": "2 hours",
+        "scoring": "Maximum total score 32. The test assesses effective learning and autonomous elaboration ability. Open-form exercises reward identifying key aspects and presenting them correctly and synthetically. Theoretical questions focus on the theoretical contents of the course program.",
+        "laudeOral": true,
+        "laudeOralDetails": "Possible oral follow-up for laude or borderline cases"
+      },
+      "dublinDescriptors": {
+        "knowledgeAndUnderstanding": "Master calculus fundamentals (derivatives, integrals) and linear algebra and matrix operations.",
+        "applyingKnowledge": "Apply mathematical concepts to model biomedical systems and solve engineering problems.",
+        "autonomyInJudgement": "Choose the appropriate mathematical tools and methods for different biomedical engineering problems.",
+        "communicationSkills": "Clearly present mathematical proofs, derivations, and solutions with appropriate technical language.",
+        "learningSkills": "Independently extend mathematical knowledge to new biomedical contexts and applications."
+      },
+      "textbooks": [
+        "Mathematics - solved exercises and theory review. Authors: M. Buscema, F. Lattanzi, THE. Mazzoli, TO. Veredice, M. Papi. Editor: Esculapio Publishing Company"
       ],
-      "questionDifficulty": "intermediate",
-      "priorKnowledge": "High school algebra and geometry"
-    },
-    {
-      "id": "chemistry",
-      "name": "Chemistry",
-      "emoji": "⚗️",
-      "year": 1,
-      "difficulty": "beginner",
-      "language": "english",
-      "learningObjectives": [
-        "Understand atomic structure and chemical bonding",
-        "Master organic and inorganic reaction mechanisms",
-        "Apply chemistry to biomedical contexts (biochemistry)"
-      ],
-      "references": "Standard chemistry textbooks (organic, inorganic, biochemistry)",
-      "exampleQuestions": [
-        "Explain peptide bonding and its role in protein structure.",
-        "What is an enzyme, and how does it catalyze biochemical reactions?"
-      ],
-      "questionDifficulty": "intermediate",
-      "priorKnowledge": "Basic chemistry"
+      "typical_oral_style": "Proofs, derivations, step-by-step problem solving, and clear connections to biomedical modeling (e.g., pharmacokinetics, population dynamics, signal analysis)."
     },
     {
       "id": "general-physics",
+      "code": "2300104",
       "name": "General Physics",
       "emoji": "⚡",
       "year": 1,
-      "difficulty": "intermediate",
-      "language": "english",
-      "learningObjectives": [
-        "Master mechanics (kinematics, dynamics, energy)",
-        "Understand waves, oscillations, and sound",
-        "Apply physics principles to biomedical devices"
+      "semester": "Ciclo Annuale Unico (I + II)",
+      "cfu": 12,
+      "professor": "Alessandro Loppini",
+      "prerequisites": ["Precalculus. A basic prior knowledge of calculus is recommended."],
+      "modules": [
+        "Modulus 1 (1st Semester) - Classical Mechanics: Introduction. Physical quantities, measurement units systems. Scalar and vector quantities. Kinematics in one and two dimensions. Displacement, velocity, acceleration. Motion at constant acceleration. Falling body. Circular motion. Projectile motion. Single particle dynamics: Newton's laws. Inertia principle. Mass and force. The second and third laws of motion. Rotational and non-inertial reference systems. Weight force. Constraints and contact forces. Strings and springs. Friction. Drag forces. Work and kinetic energy. Conservative forces and potential. Conservation of mechanical energy. Impulse and linear momentum. Systems of particles. Center of mass. Collisions. Conservation of linear momentum. Kinetic energy of a system. Rotational kinetic energy. Rigid body rotation with fixed axis. Rolling motion. Static equilibrium. Elastic properties of solids. Angular momentum and conservation of angular momentum. Newton's law of gravity and gravitational field. Kepler's laws. Oscillators. Harmonic motion. Damped oscillations. Driven oscillations and resonance.",
+        "Modulus 1 (continued) - Fluids: Density and pressure. Stevin's law. Buoyant force and Archimedes' principle. Fluids in motion: Inviscid fluids and Bernoulli equation. Torricelli's law. Viscid fluids and Poiseuille's law.",
+        "Modulus 1 (continued) - Thermodynamics and Thermodynamic Systems: Temperature and thermometers. Zero law of thermodynamics. Ideal gases. Heat and specific heats. Latent heat. Thermodynamic processes. Work. Joule's experiment and first law of thermodynamics. Internal energy. Transfer of heat. Heat engines and the second law of thermodynamics. Thermodynamic cycles. Carnot engine. Irreversibility and Entropy.",
+        "Modulus 2 (2nd Semester) - Electromagnetism: Electric charge. Conductors and insulators. Coulomb's law. Electric field of discrete charge distributions. Electric field of continuous charge distributions. Gauss's law. Electrostatic potential energy and electric potential. Capacitance and capacitors. Electrical energy. Batteries. Electric current and Direct-Current circuits. Ohm's laws. Kirchhoff's rules. Combination of capacitors and resistors. Joule's effect. RC circuits. Magnetic force on moving charged particles, straight current-carrying wires and current elements. Torques on current loops. Hall effect. Sources of magnetic field. Biot-Savart law. Gauss's law for magnetism. Ampere's law. Magnetic flux. Induced electromotive force and Faraday's law. Lenz's law. Inductance. Magnetic energy. RL circuits. Displacement current and Maxwell-Ampere law. Maxwell's equations in integral and local form. The wave equation for electromagnetic waves. Electromagnetic spectrum.",
+        "Modulus 2 (continued) - Properties of light: Reflection and Refraction. Polarization. Geometrical optics: lenses, mirrors, optical systems."
       ],
-      "references": "Halliday/Resnick/Walker, Serway",
-      "exampleQuestions": [
-        "Explain Newton's second law and how it applies to muscle contraction.",
-        "Describe the properties of ultrasound waves used in medical imaging."
+      "teachingMethods": "Face-to-face lectures and exercises",
+      "examFormat": {
+        "primary": "written",
+        "writtenType": "mixed",
+        "details": "Two written tests (2h 30min each): 4 practical problems + 2 theoretical proofs per test",
+        "scoring": "Minimum 18/30 in each test to pass. Final grade is the average of the two tests.",
+        "laudeOral": true,
+        "laudeOralDetails": "Possible oral follow-up for laude or borderline cases"
+      },
+      "dublinDescriptors": {
+        "knowledgeAndUnderstanding": "Students will achieve an adequate knowledge of classical physics, including: Kinematics and Newtonian dynamics. Fluids. Calorimetry and thermodynamics. Electromagnetism and geometrical optics.",
+        "applyingKnowledge": "At the end of the course, students will be able to correctly use theoretical knowledge to solve practical problems and applications. Students will be able to interpret physical laws and apply them in different fields typical of medical and bioengineering applications.",
+        "autonomyInJudgement": "At the end of the course, students will be able to combine the acquired theoretical knowledge and practical experience to assess and analyze physical phenomena, by making assumptions and decisions in a consistent and reasoned way.",
+        "communicationSkills": "Students will develop the ability to describe physical laws at different levels of detail. In particular, they will be able to use both a proper technical vocabulary and calculus skills to explain physical processes and the models behind them.",
+        "learningSkills": "The class will provide individual skills in learning new topics by working on the basic knowledge acquired during the lectures. Students will acquire the capacity to learn advanced details on the topics presented and to extend their knowledge on further aspects of modern physics and on biomedical and bioengineering applications."
+      },
+      "textbooks": [
+        "Physics for Scientists and Engineers, Extended Version, 6th Edition, Tipler & Mosca, Macmillan"
       ],
-      "questionDifficulty": "intermediate",
-      "priorKnowledge": "High school physics"
+      "typical_oral_style": "Physical principles and their direct application to biomedical instruments and devices (e.g., MRI, ECG, ultrasound, radiation therapy)."
     },
     {
       "id": "economics-and-management",
+      "code": "2300105",
       "name": "Economics and Management",
-      "emoji": "💼",
-      "year": 2,
-      "difficulty": "intermediate",
-      "language": "english",
-      "learningObjectives": [
-        "Understand healthcare economics and cost-benefit analysis",
-        "Apply project management to biomedical device development",
-        "Grasp regulatory and business frameworks for medical devices"
-      ],
-      "references": "Healthcare economics and medical device management texts",
-      "exampleQuestions": [
-        "What are the main regulatory frameworks (FDA, CE Mark) for medical device approval?",
-        "How would you conduct a cost-benefit analysis for a new diagnostic device?"
-      ],
-      "questionDifficulty": "intermediate",
-      "priorKnowledge": "Basic economics and business concepts"
-    },
-    {
-      "id": "general-english-italian",
-      "name": "General English/Italian",
-      "emoji": "🌍",
+      "emoji": "📊",
       "year": 1,
-      "difficulty": "beginner",
-      "language": "italian",
-      "learningObjectives": [
-        "Develop conversational Italian skills for biomedical contexts",
-        "Build professional communication vocabulary",
-        "Practice presenting scientific concepts in Italian"
+      "semester": "II",
+      "cfu": 6,
+      "professor": "Giuseppe Turchetti",
+      "prerequisites": ["Basic mathematical concepts (strongly suggested)"],
+      "modules": [
+        "Module 1 (10 hours): Fundamental concepts regarding business and competition. Civil definitions of organizational entities (enterprise, company, entrepreneur), different legal forms (sole proprietorships, partnerships, corporations), basics of sustainable development (economic, social, environmental), stakeholders, specific reference to the Healthcare sector",
+        "Module 2 (20 hours): Business system from an organizational point of view. Main organizational forms, advantages and disadvantages, specific reference to the Healthcare sector",
+        "Module 3 (10 hours): Fundamentals of marketing, constituents of marketing decisions, success of products and services, specific reference to the Healthcare sector",
+        "Module 4 (10 hours): Operations management tools. Introduction to financial statements, time value of cash flows, cost of capital, Net Present Value, Payback period, regulatory affairs related to the Healthcare sector"
       ],
-      "references": "UCBM language and professional communication guidelines",
-      "exampleQuestions": [
-        "Parla di te: qual è il tuo nome, dove vieni, e perché studi ingegneria biomedica?",
-        "Descrivi i tuoi interessi e i tuoi obiettivi nel campo della bioingegneria."
+      "teachingMethods": "Lectures (50 hours) + exercises (10 hours)",
+      "examFormat": {
+        "primary": "written",
+        "writtenType": "mixed",
+        "details": "Series of questions (multiple-choice and open questions) + exercises",
+        "scoring": "Theoretical part: 20 points (3 open-ended questions of 4 points each + 8 multiple choice questions). Numerical part: 12 points.",
+        "laudeOral": false
+      },
+      "dublinDescriptors": {
+        "knowledgeAndUnderstanding": "Ability to analyze and manage business decisions. Understanding of managerial tools and of the characteristics of the main company functions.",
+        "applyingKnowledge": "Ability to apply the knowledge acquired through the use of tools for analyzing and processing business choices in different organizational contexts.",
+        "autonomyInJudgement": "On the basis of the knowledge acquired, and thanks to the use of methodological tools learned during the course, ability to evaluate investments to be started and possible organizational forms to be adopted, for the improvement of organization performance.",
+        "communicationSkills": "Communication and interpretation skills, processing and synthesis of data relating to business decisions, acquisition of economic-business terminology suitable for the explanation, interpretation and communication of managerial choices.",
+        "learningSkills": "Articulated and organic learning skills that will allow the breakdown of problems in consideration of their complexity, the management of effective solutions."
+      },
+      "textbooks": [
+        "Essentials of Strategic Management: The Quest for Competitive Advantage, 2020, McGraw Hill",
+        "Corporate Finance, di J. Berk e P. De Marzo 2020, Pearson"
       ],
-      "questionDifficulty": "beginner",
-      "priorKnowledge": "Minimal Italian (A1 level expected)",
-      "isBeginner": true,
-      "mixLanguage": true
-    },
-    {
-      "id": "physiology",
-      "name": "Physiology",
-      "emoji": "❤️",
-      "year": 1,
-      "difficulty": "intermediate",
-      "language": "english",
-      "learningObjectives": [
-        "Understand organ system functions and homeostasis",
-        "Master physiological mechanisms (cardiovascular, respiratory, nervous systems)",
-        "Connect physiology to biomedical device design"
-      ],
-      "references": "Guyton & Hall, Costanzo Physiology",
-      "exampleQuestions": [
-        "Explain the cardiac action potential and its role in heartbeat generation.",
-        "Describe the regulation of blood pressure and how antihypertensive drugs work."
-      ],
-      "questionDifficulty": "intermediate",
-      "priorKnowledge": "Basic biology and anatomy"
+      "typical_oral_style": "Healthcare economics, business models, strategic management, investment decisions, and regulatory affairs in the healthcare sector."
     },
     {
       "id": "anatomy",
+      "code": "2300109A",
       "name": "Anatomy",
       "emoji": "🦴",
       "year": 1,
-      "difficulty": "beginner",
-      "language": "english",
-      "learningObjectives": [
-        "Understand human body structure and organization",
-        "Master anatomical terminology and relationships",
-        "Connect anatomy to physiological function and device design"
+      "semester": "I",
+      "cfu": 5,
+      "professor": "Giovanni Di Pino",
+      "prerequisites": ["Chemistry, Physics and general knowledge of Molecular Biology"],
+      "modules": [
+        "General organization of the body. Cytology and basic cell biology: structure of cellular membranes, cytoplasm and cytoplasmic organelles, principles of DNA and RNA visualization and function. Cells differentiation and specialization.",
+        "Stem cells. The different tissues of the body: epithelial tissue, connective tissues, muscular and nervous tissue.",
+        "Morphological bases of neuronal networks. Elements of tissue engineering.",
+        "Locomotor Apparatus: general overview, structure of the bones and anatomical bases of static and kinematics. Structure of the joints and focus on anatomical bases of prosthesis applications.",
+        "Organization of the Central Nervous System and peripheral nerves. Cerebral cortex and morphological bases of electroencephalography. Anatomical bases of perception, movement controls and memory function. Organization of sensory organs.",
+        "Cardiovascular System: general organization. Structure of the arteries and veins, detailed structure of the cardiac valves.",
+        "Respiratory System: general organization. The pulmonary Alveolus and anatomical bases of gas exchange.",
+        "The Urinary system: general organization, the glomerulus and the nephron. Anatomical bases of dialytic therapy."
       ],
-      "references": "Gray's Anatomy for Students, Netter's Atlas",
-      "exampleQuestions": [
-        "Describe the anatomy of the heart, including chambers, valves, and major vessels.",
-        "Explain the location and function of the major bones in the human skeleton."
+      "teachingMethods": "Face-to-face lectures",
+      "examFormat": {
+        "primary": "oral",
+        "details": "Oral exam consisting of 3 questions regarding the anatomical and histological aspects and the related functional correlates, with a precise terminology. Each question will be marked to a maximum of 9. The exam will be considered passed with a minimum mark of 18.",
+        "scoring": "Maximum of 34 (corresponding to 30 cum laude)"
+      },
+      "dublinDescriptors": {
+        "knowledgeAndUnderstanding": "Describe the general organisation of the human body considered on a macroscopic and microscopic level, relating the structural organisation to the corresponding functions of systems, organs and tissues.",
+        "applyingKnowledge": "Apply anatomical knowledge to understand the relationship between structure and function in biomedical devices, imaging techniques, and clinical applications.",
+        "autonomyInJudgement": "Analyze anatomical structures, variations, and their implications for biomedical engineering solutions such as prostheses and implants.",
+        "communicationSkills": "Use precise anatomical terminology and describe complex structures and relationships with clarity and accuracy.",
+        "learningSkills": "Independently study and integrate macroscopic and microscopic anatomy, relating the structural organisation to the corresponding functions of systems, organs and tissues."
+      },
+      "textbooks": ["Gray's Anatomy for Students. With Student Consult Online Access Paperback - Illustrated, 11 April 2019"],
+      "typical_oral_style": "Precise description of anatomical structures, histological features, functional correlates, and the general organisation of the human body considered on a macroscopic and microscopic level, relating the structural organisation to the corresponding functions of systems, organs and tissues."
+    },
+    {
+      "id": "physiology",
+      "code": "2300109",
+      "name": "Physiology",
+      "emoji": "🫀",
+      "year": 1,
+      "semester": "II",
+      "cfu": 5,
+      "professor": "Giorgio Vivacqua",
+      "prerequisites": ["Chemistry, Physics and general knowledge of Molecular Biology"],
+      "modules": [
+        "Feedback and feedforward controls and homeostasis (models in physiology, homeostasis, control systems, negative and positive feedback control)",
+        "Diffusion and transport (basic concepts of transport of material, Gibbs-Donnan equilibrium, mass and molecular transport, Fick's law of diffusion, transport of solutes across membranes)",
+        "Ion channels (types of ion channels, permeability, selectivity, transport mechanisms using conveyors)",
+        "Membrane resting potential and action potential (basic physical concepts, membrane potential, equilibrium potential, Nernst equation, Goldman-Hodgkin-Katz equation, equivalent circuit, action potential, Hodgkin-Huxley model, refractory period)",
+        "Conduction of electrical signals in nerve fibers (electrotonic conduction, point-by-point regeneration of action potential, electrical model of an axon, time and space constant, types of axons, saltatory conduction)",
+        "Synapses and synaptic integration and plasticity (types of synapses, postsynaptic potentials and receptors, neurotransmitters, neurosecretion, synaptic integration, synaptic plasticity)",
+        "Muscle physiology (properties of muscle cells, types of muscle tissue, structure of a skeletal muscle fibre, excitation-contraction coupling, muscle action potential, motor unit, isometric and isotonic contraction, length-tension relationship, types of reflexes, smooth muscle physiology)",
+        "Hill's model (mechanical model of the muscle, passive and active component, tetanus fibers, role of gamma-motoneurons)",
+        "Autonomic nervous system (autonomic branches, receptors of autonomic system, reflexes in autonomic motor system, central autonomic network)",
+        "Cardiac physiology (cardiac cycle, cardiac output regulation, cardiac metabolism, coronary circulation)",
+        "Blood volume and principles of haemodynamics",
+        "Respiratory system (respiratory mechanics, pressure in the respiratory gas, lung mechanics, pulmonary compliance, surface tension, respiratory resistance)",
+        "Blood transport of gas",
+        "Renal physiology (regulation of RBF and GFR, glomerular function, mechanics of urine production, renal clearance)",
+        "Renal hormones and acid-base balance",
+        "Digestive system and liver (digestive apparatus, enteric nervous system, gastrointestinal motility)",
+        "Endocrine system physiology and pancreas",
+        "Visual physiology (eye optics, retina, visual acuity, phototransduction, visual cortex)",
+        "Auditory physiology and vestibular system (sound waves, subdivision of the ear, transduction mechanism in the ear, sound characteristic, cochlea)",
+        "Somatosensory system (touch, proprioception, pain)",
+        "Motor system physiology (motor control, motor pathways, types of movements, motor centres, locomotion)"
       ],
-      "questionDifficulty": "beginner",
-      "priorKnowledge": "Basic biology"
+      "teachingMethods": "Face-to-face lectures",
+      "examFormat": {
+        "primary": "oral",
+        "details": "Oral interview. The acquired knowledge and understanding are assessed with questions on physiology of the main organs and neurophysiology. The ability to apply the knowledge and understanding, reworking them in a reasoned manner, is assessed with open-ended problems in applied physiology. Particular emphasis is placed on the students' communication skills and their ability to critically reformulate the learnt concepts. Students are also required to graphically represent models and relationships between physiological parameters.",
+        "scoring": "Final score in thirtieths. The examination takes place at the end of the course on the dates scheduled in the academic calendar."
+      },
+      "dublinDescriptors": {
+        "knowledgeAndUnderstanding": "Describe the general organisation of the human body considered on a macroscopic and microscopic level, relating the structural organisation to the corresponding functions of systems, organs and tissues. Know the main indicators and physiological parameters of bodily functions, their range of normality. Know the important theories behind the physiological functions and their key experimental bases.",
+        "applyingKnowledge": "Apply physiological principles, quantitative models, and mathematical tools to interpret organ system functions and solve problems in biomedical engineering contexts.",
+        "autonomyInJudgement": "Critically analyze physiological phenomena, make assumptions, and reach reasoned conclusions about the function of organs and systems.",
+        "communicationSkills": "Clearly describe complex physiological mechanisms and quantitatively model the interaction between physiological parameters using proper technical vocabulary and mathematical approaches.",
+        "learningSkills": "The class will provide individual skills in learning new topics by working on the basic knowledge acquired during the lectures. Students will acquire the capacity to learn advanced details on the topics presented and to extend their knowledge on further aspects of modern physics and on biomedical and bioengineering applications."
+      },
+      "textbooks": [
+        "John Hall, Guyton and Hall Textbook of Medical Physiology, 14th edition, 2020",
+        "Kandel/Koester/Mack/Siegelbaum, Principles of Neural Science, 6th edition, 2021",
+        "Joseph Feher, Quantitative Human Physiology: An Introduction, 2nd edition, 2016"
+      ],
+      "typical_oral_style": "Physiological mechanisms, homeostasis, control systems, quantitative modeling, and biomedical engineering applications."
     },
     {
       "id": "advanced-physics",
+      "code": "2303201",
       "name": "Advanced Physics",
-      "emoji": "🌌",
+      "emoji": "🔬",
       "year": 2,
-      "difficulty": "advanced",
-      "language": "english",
-      "learningObjectives": [
-        "Master quantum mechanics and wave-particle duality",
-        "Understand optics and applications in medical imaging",
-        "Apply modern physics to diagnostic technologies"
+      "semester": "I",
+      "cfu": 6,
+      "professor": "Letizia Chiodo",
+      "prerequisites": ["General Physics", "Calculus I"],
+      "modules": [
+        "Advanced Mechanics and Thermodynamics: Angular momentum theorem, physical pendulum, ellipsoid of inertia, Stirling/Otto/Diesel engines, microscopic origin of entropy (10 hours)",
+        "Advanced Electromagnetism: Dielectrics, polarization, magnetism in matter, Maxwell equations in differential form (in vacuum and in matter) (10 hours)",
+        "Waves: General properties, Fourier analysis, mechanical waves, sound waves, electromagnetic waves, interference and diffraction, photometry and radiometry (10 hours)",
+        "Introduction to Quantum Mechanics: Wave functions, Schrödinger wave equation and applications (step, barrier and potential well, tunneling effect, harmonic oscillator, hydrogen atom) (10 hours)",
+        "Basic of solid state physics: Maxwell-Boltzmann statistics, quantum statistics, metals, semiconductors, nanostructures, Scanning Tunneling Microscope (STM), tunnel diode, lasers (5 hours)",
+        "Radiation-Matter interaction: Classical and quantum description, photoelectric effect, interaction of photons, charged particles and neutrons with matter, energy transfer from radiation to matter (10 hours)",
+        "Technological applications: Nuclear Magnetic Resonance, Radioisotopes, Positrons and PET (5 hours)"
       ],
-      "references": "Advanced physics texts, biomedical imaging applications",
-      "exampleQuestions": [
-        "Explain the photoelectric effect and its application in medical imaging detectors.",
-        "Describe how X-ray generation involves quantum transitions."
+      "teachingMethods": "Lectures and flipped classrooms. Theoretical lessons focus on theoretical concepts and conceptual examples.",
+      "examFormat": {
+        "primary": "written + oral",
+        "written": "3 theoretical questions (2 hours total), each worth 10 points, divided into sub-questions",
+        "oral": "Discussion of the written exam to assess understanding and ability to organize a technical-scientific discussion",
+        "scoring": "Minimum 18/30 required in the written test. 30 cum laude granted for complete, deep and exhaustive understanding and advanced written/oral presentation skills.",
+        "laudeOral": true
+      },
+      "dublinDescriptors": {
+        "knowledgeAndUnderstanding": "Advanced physical mechanisms in mechanics, thermodynamics, electromagnetism, and the fundamentals of quantum mechanics and materials properties and behaviors.",
+        "applyingKnowledge": "Correctly use theoretical knowledge to interpret and understand the physical laws acting in the broad field of materials properties, radiation properties, and materials-radiation interaction, applying the acquired knowledge to technologies and devices of biomedical engineering interest.",
+        "autonomyInJudgement": "Properly use and apply physical laws in an original manner to analyze issues and problems and to design correct solutions.",
+        "communicationSkills": "Describe advanced physical laws, from the conceptual level to the mathematical description, both in written and in oral form.",
+        "learningSkills": "Acquire individual skills in learning advanced technical topics, to extend knowledge on further aspects of modern physics and engineering applications, with critical reasoning."
+      },
+      "textbooks": [
+        "Physics for Scientists and Engineers, Extended Version, 6th Edition, 2020. Paul A. Tipler, Gene Mosca. Macmillan.",
+        "Modern Physics for Scientists and Engineers, 2010. John C. Morrison. Elsevier.",
+        "Semiconductor devices, S.M. Sze, 2006. Wiley."
       ],
-      "questionDifficulty": "advanced",
-      "priorKnowledge": "General Physics and Calculus"
+      "typical_oral_style": "Deep theoretical explanations, mathematical derivations, and direct connections to biomedical technologies (MRI, PET, lasers, semiconductors, radiation-matter interaction)."
+    },
+    {
+      "id": "italian",
+      "code": "2300107",
+      "name": "Italian",
+      "emoji": "🇮🇹",
+      "year": 1,
+      "semester": "I",
+      "cfu": 1,
+      "professor": "Roberta Aronica",
+      "prerequisites": ["Placement test required to determine initial level. Students with B1 or higher may obtain exemption."],
+      "modules": [
+        "Elementary logical-grammatical structures of Italian",
+        "Basic Italian vocabulary and syntactic structures",
+        "Listening, reading, writing and speaking at elementary level",
+        "General everyday and academic communication in Italian"
+      ],
+      "teachingMethods": "Classroom lectures and exercises taught by native speakers",
+      "examFormat": {
+        "primary": "written",
+        "writtenType": "grammar exercises + text comprehension + writing + listening",
+        "details": "Written test with grammar exercises, text comprehension, writing and listening. Communication skills assessed through interactive activities during the course. Evaluated on a pass/fail basis."
+      },
+      "languageSupport": "The app must handle both written and spoken Italian for exam simulation, including listening comprehension and spoken responses.",
+      "dublinDescriptors": {
+        "knowledgeAndUnderstanding": "Acquire elementary level knowledge of Italian grammar, vocabulary and syntactic structures.",
+        "applyingKnowledge": "Understand conversations and answer questions about what has been heard; produce a written text on a general topic of at least 100 words.",
+        "autonomyInJudgement": "Develop a critical approach in comprehension capabilities by listening to Italian audios and in written production.",
+        "communicationSkills": "Understand conversations and answer questions; produce written texts and participate in interactive activities.",
+        "learningSkills": "Independently self-correct their own papers while verifying the level of understanding of other texts analyzed during the frontal lessons."
+      },
+      "textbooks": ["Teaching material provided by the teacher during the course"],
+      "typical_oral_style": "Basic conversation practice, listening comprehension, and everyday/academic communication in Italian at elementary level."
+    },
+    {
+      "id": "general-english",
+      "code": "2300106",
+      "name": "General English",
+      "emoji": "🇬🇧",
+      "year": 1,
+      "semester": "I",
+      "cfu": 1,
+      "professor": "Roberta Aronica (or equivalent)",
+      "prerequisites": ["NONE"],
+      "modules": [
+        "Reinforces C1 level general English",
+        "Academic and technical English language skills",
+        "Listening, reading, writing and speaking at C1 level"
+      ],
+      "teachingMethods": "Frontal lessons with interactive practice",
+      "examFormat": {
+        "primary": "written",
+        "writtenType": "level C1 written test",
+        "details": "The final exam is a level C1 written test. Material will be provided by teachers."
+      },
+      "languageSupport": "The app must handle both written and spoken English at C1 level for exam simulation, including listening comprehension, spoken responses, and technical/academic language.",
+      "dublinDescriptors": {
+        "knowledgeAndUnderstanding": "By the end of the course, students will have strengthened a C1 level of general English.",
+        "applyingKnowledge": "Use English effectively in academic and technical contexts.",
+        "autonomyInJudgement": "",
+        "communicationSkills": "Communicate fluently and accurately at C1 level, both in speaking and writing.",
+        "learningSkills": "Develop independent learning strategies for advancing English proficiency."
+      },
+      "textbooks": [
+        "Material provided by teachers",
+        "English File Advanced (Oxford University Press) or equivalent C1-level textbook"
+      ],
+      "typical_oral_style": "Conversation practice, technical terminology used in biomedical engineering, and C1-level discussion skills."
+    },
+    {
+      "id": "history-of-biomedical-engineering-in-twelve-machines",
+      "code": "23001C1",
+      "name": "The History of Biomedical Engineering in Twelve Machines",
+      "emoji": "🔬",
+      "year": 1,
+      "semester": "I",
+      "cfu": 6,
+      "professor": "Giampaolo Ghilardi, Luca Borghi",
+      "prerequisites": ["None"],
+      "modules": [
+        "1. Introduction. Specula and forceps: to the roots of medicine",
+        "2. The stethoscope and the instrumental diagnostic revolution",
+        "3. The inhaler. When surgery knocked out pain",
+        "4. The ophthalmoscope and the rise of modern ophthalmology",
+        "5. The sphygmograph. Étienne-Jules Marey, the physician who wanted to be an engineer",
+        "6. The X-rays apparatus. Wilhelm Röntgen and the radiological revolution",
+        "7. The negative pressure chamber and the controversial figure of Ernst Ferdinand Sauerbruch",
+        "8. The electrocardiograph. How to cope with a crazy heart",
+        "9. The iron lung and the long battle against polio",
+        "10. The microscope and the discovery of the invisible",
+        "11. The heart-lung machine and the taboo of open-heart surgery",
+        "12. The electroconvulsive therapy machine. Just a skeleton in the closet of modern psychiatry?"
+      ],
+      "teachingMethods": "Lectures and debate",
+      "examFormat": {
+        "primary": "oral",
+        "details": "Oral talk. The questions evaluate the student's ability to critically reformulate the learnt concepts and their ability to critically apply the knowledge and understanding.",
+        "scoring": "Evaluated on critical thinking, synthesis, and communication skills."
+      },
+      "dublinDescriptors": {
+        "knowledgeAndUnderstanding": "Knowledge and understanding of the importance of the 'human factor' in the history of technical-scientific instruments and their evolution over time.",
+        "applyingKnowledge": "Apply knowledge to the discovery and analysis of cases of 'cross-fertilization' between different disciplinary areas (engineering and medicine).",
+        "autonomyInJudgement": "Autonomy of judgment of the psychological, socio-cultural and ethical aspects of the instrumental evolution.",
+        "communicationSkills": "Communication skills to be exercised and demonstrated in the personal synthesis during the oral exam about the topics discussed in class.",
+        "learningSkills": "Ability to learn in the further independent analysis of other instrumental evolutions and in the comparison of these with similar current situations."
+      },
+      "textbooks": [
+        "Jessica Casaccia & Luca Borghi - Tools of the Trade. The History of the Relationship between Medicine and Engineering in Twelve Machines, Amazon KDP 2025",
+        "Luca Borghi - Sense of Humors. The Human Factor in the History of Medicine, Amazon KDP 2022"
+      ],
+      "typical_oral_style": "Critical discussion of the historical relationship between medicine and technology, the human factor of the protagonists, ethical and socio-cultural aspects, and cross-fertilization between engineering and medicine."
     },
     {
       "id": "mathematics-ii",
+      "code": "2303211",
       "name": "Mathematics II",
-      "emoji": "📊",
+      "emoji": "📐",
       "year": 2,
-      "difficulty": "advanced",
-      "language": "english",
-      "learningObjectives": [
-        "Master differential equations and their solutions",
-        "Understand vector calculus and multivariable analysis",
-        "Apply transforms (Fourier, Laplace) to biomedical signals"
+      "semester": "I/II",
+      "cfu": 13,
+      "professor": "Flavia Smarrazzo, Marco Papi",
+      "prerequisites": ["Mathematics I"],
+      "modules": [
+        "Linear Transformations between vector spaces. Null space and Col space. Matrix associated to a linear transformation. Eigenvalues and eigenvectors, diagonalization (15 hours - Papi)",
+        "Analytic geometry: lines and planes. Angle between lines, parallel lines. Distance from point to plane, line to plane (15 hours - Papi)",
+        "Differential calculus for functions of several variables: limits and continuity, partial derivatives, tangent plane, directional derivatives, Hessian matrix, optimization, local maxima and minima, constrained extrema (20 hours - Papi)",
+        "Integral calculus for functions of several variables: integrable functions on non-rectangular domains, reduction of variables, change of variables, parametric curves and surfaces, elements of differential geometry for curves, line integral of scalar-valued functions, parametric surfaces in R3 and surface integrals, divergence theorem (25 hours - Papi)",
+        "Vector Calculus: Conservative vector fields and potentials, differential forms, exact and closed differential forms in R^n, Gauss-Green formula in the plane, Stokes' theorem (20 hours - Smarrazzo)",
+        "Numerical sequences and series: main theorems on limit of sequences, basic properties of number series, convergence criteria for series with non-negative terms, absolute convergence criterion and alternating series, notes on Taylor series (15 hours - Smarrazzo)",
+        "Ordinary differential equations: linear and nonlinear first order ordinary differential equations. Existence and uniqueness of the local solution for the first order Cauchy problem. Maximal and global solutions. Linear systems of ordinary differential equations (15 hours - Smarrazzo)"
       ],
-      "references": "Advanced calculus, differential equations, vector calculus",
-      "exampleQuestions": [
-        "Solve the differential equation for RC circuit charging and explain its biological analogue.",
-        "What is the Fourier transform and how is it used in biomedical signal analysis?"
+      "teachingMethods": "Lessons (100 hours) and exercise sessions (30 hours, with weekly planning)",
+      "examFormat": {
+        "primary": "written",
+        "writtenType": "Full test (4 exercises + 2 open-ended questions) OR two partial exams",
+        "details": "The exam consists of a full test with four exercises and two open-ended questions covering the entire Multivariable Calculus and Advanced Mathematical Analysis syllabus. Maximum score 32 points, minimum 18 points. Time: 3 hours. OR Two partial proofs (PP1 and PP2) with specific scoring rules. Up to two points per test reserved for communication skills and clarity of exposition.",
+        "scoring": "Final grade in thirtieths. Laude awarded to students who achieve 31/32 or higher."
+      },
+      "dublinDescriptors": {
+        "knowledgeAndUnderstanding": "Knowledge and comprehension of the basic techniques of Linear Algebra concerning the study of linear operators.",
+        "applyingKnowledge": "Ability to apply the methodologies of Linear Algebra in the framework of Euclidean geometry and the main notions and techniques of Mathematical Analysis (differential and integral calculus for several variables, vector calculus, numerical sequences and series, qualitative properties of solutions to Cauchy problems for ordinary differential equations).",
+        "autonomyInJudgement": "Analytical skills, synthesis capability, and clarity of exposition in both verbal and written communication, with particular emphasis on the drafting of exam tasks with practical open-form exercises and open-form theoretical questions.",
+        "communicationSkills": "Analytical skills, synthesis capability, and clarity of exposition in both verbal and written communication.",
+        "learningSkills": "Ability to follow logical argumentation in arriving at a solution."
+      },
+      "textbooks": [
+        "D.C. Lay, \"Linear Algebra and Its Applications\", Addison-Wesley, Fourth Edition.",
+        "J. Stewart, \"Calculus, Early Transcendentals\", Brooks/Cole, Seventh Edition.",
+        "S. Lang, \"Undergraduate Analysis\", Springer, Second Edition."
       ],
-      "questionDifficulty": "advanced",
-      "priorKnowledge": "Mathematics I"
+      "typical_oral_style": "Discussion of solutions to open-form exercises and theoretical questions with emphasis on logical argumentation, clarity of exposition, and application to applied science problems."
     },
     {
       "id": "probability-and-statistics",
+      "code": "2303203",
       "name": "Probability and Statistics",
-      "emoji": "📈",
+      "emoji": "📊",
       "year": 2,
-      "difficulty": "intermediate",
-      "language": "english",
-      "learningObjectives": [
-        "Master probability distributions and their applications",
-        "Understand hypothesis testing and confidence intervals",
-        "Apply statistical methods to biomedical research and clinical trials"
+      "semester": "I",
+      "cfu": 6,
+      "professor": "Marco Papi",
+      "prerequisites": ["Mathematics I"],
+      "modules": [
+        "Descriptive Statistics: Types of data. Graphical representations. Frequency tables. Mean, median, mode, variance, standard deviation. Percentiles, interquartile range. Covariance and correlation. Simple and multiple linear regression.",
+        "Probability: Probability spaces. Classical, frequentist, and axiomatic definitions. Operations on events. Law of total probability. Bayes' theorem. Independence.",
+        "Random Variables: Discrete variables (binomial, geometric, Poisson distributions). Continuous variables (uniform, exponential, normal distributions). Cumulative distribution function. Expectation and variance. Bivariate random variables. Covariance and correlation. Marginal and conditional distributions.",
+        "Statistical Inference: Sampling. Sampling distributions. Central Limit Theorem. Point estimation, estimators and desirable properties. Confidence intervals for mean and proportion. Hypothesis testing: tests on means and proportions, type I and II errors, p-values. Applications to hypothesis validation in biomedical contexts."
       ],
-      "references": "Standard statistics and biomedical data analysis texts",
-      "exampleQuestions": [
-        "What is a confidence interval, and how would you interpret a 95% CI for a drug efficacy study?",
-        "Explain Type I and Type II errors in the context of a medical diagnostic test."
+      "teachingMethods": "Lectures (40 hours): theoretical exposition and discussion of examples from biomedical applications. Exercise sessions (20 hours): problem-solving and case studies using real or simulated data, including the use of statistical software (e.g., Matlab, Excel).",
+      "examFormat": {
+        "primary": "written",
+        "writtenType": "2 open-ended exercises + 2 multiple-choice questions",
+        "details": "Written exam with 2 open-ended exercises (on probabilistic modeling, probability computation, and statistical inference) and 2 multiple-choice questions on theoretical topics. Maximum score 32 points. Duration: 2 hours. Minimum passing grade 18/32. 30 cum laude if score is 30/32 or higher.",
+        "scoring": "The final grade is expressed in thirtieths."
+      },
+      "dublinDescriptors": {
+        "knowledgeAndUnderstanding": "Knowledge and understanding of descriptive statistics, probability theory, random variables, and statistical inference methods.",
+        "applyingKnowledge": "Describe and represent real-world datasets using descriptive and graphical tools. Build probabilistic models of observable phenomena. Conduct inferential analysis on samples from biomedical populations. Understand statistical results in clinical and experimental studies.",
+        "autonomyInJudgement": "Choose the most appropriate techniques for solving a given problem and follow logical argumentation in arriving at a solution.",
+        "communicationSkills": "Clearly communicate statistical reasoning and results in both verbal and written form.",
+        "learningSkills": "Develop the ability to independently analyse and interpret biomedical data using probabilistic and statistical tools."
+      },
+      "textbooks": [
+        "S.M. Ross - Introduction to Probability and Statistics for Engineers and Scientists, Academic Press (Elsevier), 6th edition, 2021",
+        "Dimitri P. Bertsekas and John N. Tsitsiklis - Introduction to Probability, Athena Scientific, 2nd edition, 2008",
+        "A. Agresti & C. Franklin - Statistics: The Art and Science of Learning from Data, Pearson, 5th edition, 2022",
+        "Sheldon M. Ross - Student Solutions Manual for Introduction to Probability and Statistics for Engineers and Scientists, 6th edition, 2021",
+        "Teaching materials provided by the instructor through the e-learning platform"
       ],
-      "questionDifficulty": "intermediate",
-      "priorKnowledge": "Mathematics I"
+      "typical_oral_style": "Discussion of probability models, statistical tests, interpretation of biomedical experimental data, logical reasoning, and application to real biomedical case studies."
     },
     {
-      "id": "healthcare-information-systems",
+      "id": "healthcare-information-systems-and-telemedicine",
+      "code": "2303204",
       "name": "Healthcare Information Systems and Telemedicine",
       "emoji": "🏥",
       "year": 2,
-      "difficulty": "intermediate",
-      "language": "english",
-      "learningObjectives": [
-        "Understand EHR systems and healthcare IT architecture",
-        "Master telemedicine platforms and remote patient monitoring",
-        "Apply IT standards (HL7, DICOM) in clinical settings"
+      "semester": "I",
+      "cfu": 6,
+      "professor": "Anna Sabatini",
+      "prerequisites": ["Fundamentals of Computer Science"],
+      "modules": [
+        "Module I: Healthcare Information Systems – What is a Healthcare Information System, Telemedicine and its evolution, Electronic Health Record (EHR), medical data processing, informed consent and privacy management, strategies for managing patients at a distance, outlines of Intelligent Systems applied to Telemedicine, examples and use cases",
+        "Module II: Computer Networks – What is a Computer Network, ISO/OSI model and TCP/IP, physical components (Data Link, Switch, Router), design of IP networks, addressing and subnetting, VLANs, HTTP/HTTPS, DNS, SMTP, POP, IMAP, Peer2Peer protocols, Elements of SOA (REST, SOAP)",
+        "Module III: Databases – Generalities and architecture of modern Databases, relational model (tables, queries using SQL and relational algebra), conceptual design using ER model, non-relational model, Data Warehousing",
+        "Module IV: Data representation and processing – User-side and physician-side interfaces, types of interfaces and GUIs (web), construction of a graphical user interface, querying a Database, quantitative analysis and representation of data via a graphical interface"
       ],
-      "references": "EHR systems, telemedicine platforms, healthcare IT standards",
-      "exampleQuestions": [
-        "What is HL7, and how does it enable interoperability between hospital systems?",
-        "Describe the security and privacy requirements for patient data in HIPAA compliance."
+      "teachingMethods": "Lectures and computer-based exercises (50%-50% split), using open-source or proprietary packages and simulation/code development tools",
+      "examFormat": {
+        "primary": "project + oral",
+        "details": "1. Individual project work: computer-based test simulating a computer system (macro-blocks of sending simulated data, construction of structured database, graphical interface for visualisation). 2. Oral interview verifying knowledge of modern Healthcare and Telemedicine models, design criteria of a Telemedicine system, and typical problems of data management through databases.",
+        "scoring": "Final grade expressed in thirtieths. Minimum passing grade 18/30."
+      },
+      "dublinDescriptors": {
+        "knowledgeAndUnderstanding": "Principles underlying Healthcare models in today's world, considering aspects of data privacy and the existence of intelligent systems, methods and tools for data for a Telemedicine system. Design criteria for a computer network. Software tools for the design and implementation of a Telemedicine system involving a database and graphical interface for the visualisation and analysis of the collected data.",
+        "applyingKnowledge": "Know how to design and analyse a Telemedicine system, with particular reference to sending data to a database remotely via the Internet. Know how to use the main protocols used to construct the database most suited to the objective of the Healthcare system. Know how to build an interface for requesting data from the database and analysing them in real time.",
+        "autonomyInJudgement": "The student should be able to judge which are the fundamental elements of a Telemedicine system to be used to solve real application cases in modern Healthcare.",
+        "communicationSkills": "The student should be able to design a telemedicine system in an appropriate development environment, and be able to explain the contents of the course in appropriate technical language.",
+        "learningSkills": "The student should be able to develop the 'wide ranging' learning and reasoning skills necessary to undertake further studies with a high degree of autonomy."
+      },
+      "textbooks": [
+        "Lecturer's slides and teaching materials provided on the e-learning platform",
+        "J. Kurose, K. Ross Pearson, \"Reti di calcolatori e Internet. Un approccio top-down\", 2017 (7a ed.)",
+        "P. Atzeni, S. Ceri, S. Paraboschi, R. Torlone, \"Database Systems concepts, languages and architectures\", McGraw-Hill, 1999",
+        "Dee W. Ford, Shawn R. Valenta, \"Telemedicine. Overview and Application in Pulmonary, Critical Care, and Sleep Medicine\", Humana Cham, 2021",
+        "Joan M. Kiel, George R. Kim, Marion J. Ball, \"Healthcare Information Management Systems\", Springer Cham, 2022 (5a ed.)"
       ],
-      "questionDifficulty": "intermediate",
-      "priorKnowledge": "Basic IT concepts"
+      "typical_oral_style": "Discussion of real-world Telemedicine systems, design criteria, data privacy, database implementation, network protocols, graphical interfaces, and practical case studies in healthcare environments."
     },
     {
       "id": "electronics-and-electrotechnics",
+      "code": "2303205",
       "name": "Electronics and Electrotechnics",
-      "emoji": "🔌",
+      "emoji": "⚡",
       "year": 2,
-      "difficulty": "intermediate",
-      "language": "english",
-      "learningObjectives": [
-        "Master circuit analysis and Kirchhoff's laws",
-        "Understand electronic components (resistors, capacitors, transistors)",
-        "Apply circuits to biomedical instrumentation design"
+      "semester": "II",
+      "cfu": 11,
+      "professor": "Mauro Parise",
+      "prerequisites": ["General Physics (Electromagnetism module strongly advised)"],
+      "modules": [
+        "Module A: Electrotechnics – Steady-state DC circuits and networks, linear time-invariant elements, Kirchhoff's laws, nodal/mesh analysis, network theorems (Thevenin, Norton, superposition, maximum power transfer), capacitors, magnetic circuits, transient response, sinusoidal steady-state, phasors, AC power, three-phase systems, transformers, rotary electrical machines (50 hours)",
+        "Module B: Electronics – Introduction to one-port/two-port networks, STC circuits, LP/HP filters (10 hours); Semiconductors, diodes, BJT and MOSFET (physics, I-V characteristics, amplifiers, biasing, small-signal models) (18 hours); Analog integrated circuits: differential amplifier, operational amplifier, current/voltage sources, feedback (22 hours); Introduction to digital electronics: inverter, logic families, A/D and D/A conversion, combinatory/sequential circuits, memories, microcontrollers (10 hours)"
       ],
-      "references": "Circuit theory, electronics textbooks, biomedical instrumentation",
-      "exampleQuestions": [
-        "Analyze a simple RC circuit and derive its transfer function.",
-        "Explain how an operational amplifier (op-amp) is used in biomedical sensor conditioning."
+      "teachingMethods": "Module A: Lectures (35 hours) + interactive exercises (15 hours). Module B: Lectures (36 hours) + practical training/simulation (6 hours) + discussion of commercial components (6 hours) + seminars on fabrication technologies (6 hours) + lab workgroups (6 hours)",
+      "examFormat": {
+        "primary": "written (Module A) + oral (Module B)",
+        "details": "Module A (Electrotechnics): Written numerical computation test (2.5 hours) with 3 exercises (6 questions total). Module B (Electronics): Oral test structured in three parts (written question 30 min + real problem application + classroom/lab exercises).",
+        "scoring": "Final grade in thirtieths (Module A: 5 × number of correct answers out of 6; Module B: sum of scores from three parts). Minimum passing grade 18/30 overall."
+      },
+      "dublinDescriptors": {
+        "knowledgeAndUnderstanding": "Fundamentals of electrical networks, magnetic circuits, AC systems, electronic components, analog and digital circuit topologies.",
+        "applyingKnowledge": "Analyze linear electrical networks, solve transient and steady-state problems, design and analyze basic analog/digital electronic circuits.",
+        "autonomyInJudgement": "Evaluate and select appropriate analysis methods for electrical and electronic circuits in biomedical applications.",
+        "communicationSkills": "Explain circuit operation, analysis procedures, and design choices in clear technical language.",
+        "learningSkills": "Independently apply circuit theory and electronics principles to new problems in bioengineering contexts."
+      },
+      "textbooks": [
+        "Module A: C. Alexander, M. Sadiku - Fundamentals of Electric Circuits, 6th ed., McGraw-Hill Education, 2017",
+        "Module A: S. Chapman - Electric Machinery Fundamentals, McGraw-Hill Education, 2003",
+        "Module B: P. Horowitz, W. Hill - The Art of Electronics, Cambridge University Press, Third Edition, 2015",
+        "Teaching materials and slides provided by the instructor on the e-learning platform"
       ],
-      "questionDifficulty": "intermediate",
-      "priorKnowledge": "General Physics"
-    },
-    {
-      "id": "mechanics-of-solids",
-      "name": "Mechanics of Solids",
-      "emoji": "🏗️",
-      "year": 2,
-      "difficulty": "intermediate",
-      "language": "english",
-      "learningObjectives": [
-        "Master stress, strain, and material properties",
-        "Understand deformation and elasticity in biological tissues",
-        "Apply mechanics to implant design and tissue engineering"
-      ],
-      "references": "Mechanics and materials science textbooks",
-      "exampleQuestions": [
-        "Define stress and strain, and explain Young's modulus in the context of bone mechanics.",
-        "How does material failure occur in orthopedic implants?"
-      ],
-      "questionDifficulty": "intermediate",
-      "priorKnowledge": "General Physics"
+      "typical_oral_style": "Step-by-step circuit analysis, derivation of equations, discussion of real biomedical applications (e.g., amplifiers, sensors, power systems), and explanation of component behavior."
     },
     {
       "id": "transport-phenomena-and-thermodynamics",
+      "code": "2303207",
       "name": "Transport Phenomena and Thermodynamics",
       "emoji": "🌡️",
       "year": 2,
-      "difficulty": "advanced",
-      "language": "english",
-      "learningObjectives": [
-        "Master heat and mass transport phenomena",
-        "Understand thermodynamic principles in biological systems",
-        "Apply transport models to drug delivery and perfusion"
+      "semester": "II",
+      "cfu": 6,
+      "professor": "Luisa Di Paola",
+      "prerequisites": ["None"],
+      "modules": [
+        "Molecular transport of momentum, heat, and mass and constitutive equations",
+        "Local mass balances and mass transport through dense membranes",
+        "Elements of fluid dynamics: turbulent and laminar flow",
+        "Mass transfer coefficients: Definition and examples related to membrane hemodialysis and membrane oxygenator",
+        "Thermodynamic state and state properties. Volumetric properties of pure fluids and mixtures",
+        "Thermodynamic potentials: fugacity, activity coefficients. Thermodynamic equilibrium condition",
+        "Liquid-vapor and gas-liquid equilibria",
+        "Macroscopic mass balances and fundamentals of bioreactor modeling",
+        "Artificial kidney: modeling and design of the dialysis module",
+        "Artificial liver: modeling and design of the dialysis module",
+        "Introduction to pharmacokinetic models",
+        "Exercises (15 hours)"
       ],
-      "references": "Transport phenomena and thermodynamics textbooks, biological applications",
-      "exampleQuestions": [
-        "Derive the heat diffusion equation and explain its application to thermal therapy.",
-        "Describe mass transport in biological membranes and its role in drug delivery."
+      "teachingMethods": "Lectures (40 hours) and exercises (20 hours) targeting practical cases in biomedical engineering. All teaching material (presentations, digital whiteboard, recorded video) provided on the e-learning platform or cloud-sharing service.",
+      "examFormat": {
+        "primary": "written + oral",
+        "details": "Written test (2 hours): solution of two problems dealing with the application of the methods provided during the course. Oral test (about 1 hour): discussion of two practical cases to evaluate problem-solving ability.",
+        "scoring": "Both written and oral contribute 50% of the final mark. Evaluation of processing capacity of each problem weighs 25% of the final grade. Final grade in thirtieths. Minimum passing grade 18/30. 30 cum laude possible."
+      },
+      "dublinDescriptors": {
+        "knowledgeAndUnderstanding": "Understand the laws of conservation of mass and momentum. Understand the thermodynamic principles underlying the description of fluid phase equilibria. Understand the operation of hepatic/renal dialysis modules.",
+        "applyingKnowledge": "Solve mass and momentum balances; Calculate equilibrium compositions for L-V and L-G phases. Evaluate the performance of hepatic/renal dialysis modules under different configurations. Setup and solve pharmacokinetic models to describe the patient-dialysis device interaction.",
+        "autonomyInJudgement": "Demonstrate independent judgment in modeling the cases of interest in the course.",
+        "communicationSkills": "Effectively communicate the solutions to the practical problems proposed during the assessments.",
+        "learningSkills": "Develop the wide-ranging learning and reasoning skills necessary to undertake further studies with a high degree of autonomy."
+      },
+      "textbooks": [
+        "M.C. Annesini, Fenomeni di trasporto fondamentali e applicazioni",
+        "R.B. Bird, W.E. Stewart and E.N. Lightfoot, Transport Phenomena 2nd Ed., John Wiley & Sons.",
+        "S.I. Sandler : Chemical, Biochemical and Engineering Thermodynamics. John Wiley&Sons (2006)",
+        "L. Marrelli - Termodinamica degli equilibri di fasi fluide. Ed. Efesto (2017)",
+        "Lecture notes by the teacher and solved exercises, available on the e-learning platform and through cloud sharing"
       ],
-      "questionDifficulty": "advanced",
-      "priorKnowledge": "General Physics, Mathematics II"
+      "typical_oral_style": "Discussion of modeling biomedical systems (hemodialysis, bioreactors, pharmacokinetic models), application of conservation laws, mass/heat transfer problems, and problem-solving in real biomedical engineering contexts."
     },
     {
-      "id": "technical-english-italian",
-      "name": "Technical English/Italian",
-      "emoji": "📝",
+      "id": "technical-italian",
+      "code": "2303208",
+      "name": "Technical Italian",
+      "emoji": "🇮🇹",
       "year": 2,
-      "difficulty": "intermediate",
-      "language": "italian",
-      "learningObjectives": [
-        "Master technical vocabulary in biomedical engineering Italian",
-        "Present research and technical concepts in Italian",
-        "Develop professional communication for international collaboration"
+      "semester": "I",
+      "cfu": 2,
+      "professor": "Roberta Aronica (or equivalent language instructor)",
+      "prerequisites": ["Italian (Year 1)"],
+      "modules": [
+        "Advanced technical and academic Italian for English-speaking biomedical engineering students",
+        "Specialized bioengineering, medical device, physiology, and clinical terminology in Italian",
+        "Reading and comprehension of scientific papers and technical documentation in Italian",
+        "Writing technical reports, abstracts, and professional correspondence in Italian",
+        "Oral presentation and discussion skills for conferences and professional settings",
+        "Bilingual technical communication (Italian-English code-switching and support)"
       ],
-      "references": "UCBM technical language and professional communication guidelines",
-      "exampleQuestions": [
-        "Spiega un articolo di ricerca biomedica in italiano: cos'è la ricerca, quali sono i metodi e i risultati?",
-        "Descrivi un dispositivo medico (ad esempio, un pacemaker) e il suo funzionamento in italiano."
+      "teachingMethods": "Frontal lessons with interactive practice, focused on technical Italian for English-speaking biomedical engineering students",
+      "examFormat": {
+        "primary": "written",
+        "writtenType": "C1-level technical Italian written test",
+        "details": "Final exam is a level C1 technical Italian written test covering specialized vocabulary, reading comprehension, and writing in biomedical engineering contexts. Material provided by teachers."
+      },
+      "languageSupport": "The app must handle both written and spoken Italian at C1 technical level AND spoken/written English, including code-switching between Italian and English during exam simulation and technical discussions.",
+      "dublinDescriptors": {
+        "knowledgeAndUnderstanding": "Strengthen C1-level technical Italian with focus on biomedical engineering terminology and academic communication for English-speaking students.",
+        "applyingKnowledge": "Use Italian effectively in technical and professional biomedical contexts (reading papers, writing reports, presenting data) while using English as support language when needed.",
+        "autonomyInJudgement": "Independently evaluate and produce technical Italian texts and presentations.",
+        "communicationSkills": "Communicate fluently and accurately at C1 technical level in Italian, with ability to code-switch to English when required.",
+        "learningSkills": "Develop independent learning strategies for continuing to improve technical Italian proficiency."
+      },
+      "textbooks": [
+        "Material provided by teachers",
+        "Technical Italian for Biomedical Engineering (specific resources provided during the course)",
+        "Italian technical language textbooks with biomedical engineering supplement (provided during the course)"
       ],
-      "questionDifficulty": "intermediate",
-      "priorKnowledge": "General English/Italian (A1-A2 level)",
-      "isBeginner": false,
-      "mixLanguage": true
+      "typical_oral_style": "Technical discussion of bioengineering topics in Italian, with possible code-switching to English, presentation of research findings, and professional communication in bilingual biomedical contexts."
     },
     {
-      "id": "biomedical-signal-processing",
-      "name": "Biomedical Signal Processing",
+      "id": "technical-english",
+      "code": "2303208",
+      "name": "Technical English",
+      "emoji": "🇬🇧",
+      "year": 2,
+      "semester": "I",
+      "cfu": 2,
+      "professor": "Roberta Aronica (or equivalent language instructor)",
+      "prerequisites": ["General English/Italian (Year 1)"],
+      "modules": [
+        "Advanced technical and academic English for non-native (Italian-speaking) biomedical engineering students",
+        "Specialized bioengineering, medical device, physiology, and clinical terminology in English",
+        "Reading and comprehension of scientific papers and technical documentation in English",
+        "Writing technical reports, abstracts, and professional correspondence in English",
+        "Oral presentation and discussion skills for conferences and professional settings",
+        "Bilingual technical communication (English-Italian code-switching and support)"
+      ],
+      "teachingMethods": "Frontal lessons with interactive practice, focused on technical English for non-English speaking biomedical engineering students",
+      "examFormat": {
+        "primary": "written",
+        "writtenType": "C1-level technical English written test",
+        "details": "Final exam is a level C1 technical English written test covering specialized vocabulary, reading comprehension, and writing in biomedical engineering contexts. Material provided by teachers."
+      },
+      "languageSupport": "The app must handle both written and spoken English at C1 technical level AND spoken/written Italian, including code-switching between English and Italian during exam simulation and technical discussions.",
+      "dublinDescriptors": {
+        "knowledgeAndUnderstanding": "Strengthen C1-level technical English with focus on biomedical engineering terminology and academic communication for non-native speakers.",
+        "applyingKnowledge": "Use English effectively in technical and professional biomedical contexts (reading papers, writing reports, presenting data) while using Italian as support language when needed.",
+        "autonomyInJudgement": "Independently evaluate and produce technical English texts and presentations.",
+        "communicationSkills": "Communicate fluently and accurately at C1 technical level in English, with ability to code-switch to Italian when required.",
+        "learningSkills": "Develop independent learning strategies for continuing to improve technical English proficiency."
+      },
+      "textbooks": [
+        "Material provided by teachers",
+        "Technical English for Biomedical Engineering (specific resources provided during the course)",
+        "English File Advanced or equivalent C1-level textbook with technical supplement"
+      ],
+      "typical_oral_style": "Technical discussion of bioengineering topics in English, with possible code-switching to Italian, presentation of research findings, and professional communication in bilingual biomedical contexts."
+    },
+    {
+      "id": "biomedical-signal-processing-i",
+      "code": "2303301",
+      "name": "Biomedical Signal Processing I",
       "emoji": "📡",
       "year": 3,
-      "difficulty": "advanced",
-      "language": "english",
-      "learningObjectives": [
-        "Master signal acquisition and digitization",
-        "Understand filtering and spectral analysis",
-        "Apply signal processing to ECG, EEG, and EMG analysis"
+      "semester": "I",
+      "cfu": 5,
+      "professor": "Leandro Pecchia",
+      "prerequisites": ["Mathematics", "Probability and Statistics", "Fundamentals of Computer Science", "Electronics and Electrotechnics", "Physiology and Anatomy"],
+      "modules": [
+        "Part 1: Biomedical Data and Statistics – Descriptive and inferential statistics, parametric vs. non-parametric tests, MATLAB for statistics",
+        "Part 2: Signal Acquisition and Fundamentals – Biomedical signal acquisition (ECG, EEG, EMG), sampling, quantization, filtering (FIR, IIR), artifact removal",
+        "Part 3: Applications in Biomedical Signals – Electrocardiography, heart rate variability, EEG and multichannel signals, QRS detection methods"
       ],
-      "references": "Signal processing textbooks, biomedical signal analysis",
-      "exampleQuestions": [
-        "Explain the Nyquist theorem and its importance in ECG sampling.",
-        "Design a low-pass filter to remove 60 Hz noise from a biomedical signal."
+      "teachingMethods": "Lectures and laboratory sessions using MATLAB/Python",
+      "examFormat": {
+        "primary": "written + practical",
+        "details": "Written exam + practical exercises on signal acquisition and basic processing (part of the full course assessment).",
+        "scoring": "Contributes to the overall 10-CFU final grade."
+      },
+      "dublinDescriptors": {
+        "knowledgeAndUnderstanding": "Core foundations of biomedical data, statistics, signal acquisition, and basic processing techniques.",
+        "applyingKnowledge": "Apply statistical methods and basic signal processing to real biomedical signals.",
+        "autonomyInJudgement": "Select appropriate basic processing techniques for biomedical data.",
+        "communicationSkills": "Present results of basic signal analysis clearly.",
+        "learningSkills": "Develop skills for further advanced signal processing studies."
+      },
+      "textbooks": [
+        "Handouts of Processing of Biomedical Signals, PowerPoint presentations, exercises (including exemplary exam tests), freely distributed in electronic document at http://elearning.unicampus.it/",
+        "Semmlow, J. Circuits, signals, and systems for bioengineers: a Matlab-based introduction (2024, Elsevier)",
+        "Aboof S. Digital Signal Processing: A primer with MATLAB (2020, CRC Press)",
+        "Hu L. & Zhang Z. EEG Signal Processing and Feature Extraction (2019, Springer)"
       ],
-      "questionDifficulty": "advanced",
-      "priorKnowledge": "Mathematics II, General Physics"
+      "typical_oral_style": "Discussion of signal acquisition, filtering, basic statistical analysis, and interpretation of ECG/EEG/EMG signals."
+    },
+    {
+      "id": "biomedical-signal-processing-ii",
+      "code": "2303301",
+      "name": "Biomedical Signal Processing II",
+      "emoji": "📡",
+      "year": 3,
+      "semester": "II",
+      "cfu": 5,
+      "professor": "Leandro Pecchia",
+      "prerequisites": ["Biomedical Signal Processing I"],
+      "modules": [
+        "Signals and Systems Theory",
+        "Classification of signals: energy vs power, periodic vs aperiodic, deterministic vs stochastic",
+        "Elementary signals: impulse, step, sinusoidal, exponential",
+        "Linear systems: time invariance, linearity, causality, stability",
+        "LTI systems and convolution",
+        "Fourier Series (periodic signals)",
+        "Fourier Transform: definition, properties, physical meaning",
+        "Frequency response of LTI systems",
+        "Part 2: Spectral and Time-Frequency Analysis – Power Spectral Density (periodogram, Welch), Short-Time Fourier Transform (STFT), spectrogram, Autoregressive models (Yule-Walker, model order selection), Z-transform overview, Introduction to wavelet transform",
+        "Module III: Machine Learning on Biomedical Signals – Feature extraction from biological signals (time, intervals, amplitudes, frequency, power spectral density, frequency-band features, non-linear features), Feature engineering (selection, scaling, dimensionality reduction), Classification algorithms (Logistic regression, k-Nearest Neighbors, SVM, Decision Trees, Random Forests, neural networks), Regression algorithms (Linear, polynomial, SVR, Random Forest Regression), Model validation & tuning (k-fold cross-validation, grid/random search), Performance metrics (accuracy, precision, recall, F1-score, AUC-ROC, MSE, RMSE, R²)",
+        "Final Group Project: Design a biomedical experiment, acquire/preprocess signals, extract and compare features statistically, and present results (with in-class mentoring)"
+      ],
+      "teachingMethods": "Lectures, laboratory sessions, and group project work using MATLAB/Python. Heavy emphasis on hands-on exercises and real biomedical signal analysis.",
+      "examFormat": {
+        "primary": "written + oral + group project",
+        "details": "Written exam on advanced topics + oral exam + final group project presentation.",
+        "scoring": "Final grade is the average of three equally weighted components (Module I, Modules II & III combined, final group project). Minimum passing grade 18/30 overall."
+      },
+      "dublinDescriptors": {
+        "knowledgeAndUnderstanding": "Advanced signal processing, spectral/time-frequency analysis, and machine learning applied to biomedical signals.",
+        "applyingKnowledge": "Apply machine learning methods for classification, regression, and clustering of biomedical data. Implement advanced processing techniques using MATLAB/Python.",
+        "autonomyInJudgement": "Develop independent judgment in selecting and evaluating advanced biomedical signal processing techniques and machine learning approaches.",
+        "communicationSkills": "Present advanced analysis results and project outcomes both orally and in written form.",
+        "learningSkills": "Strengthen ability to learn autonomously through project work and advanced topics in biomedical signal processing."
+      },
+      "textbooks": [
+        "Handouts of Processing of Biomedical Signals, PowerPoint presentations, exercises (including exemplary exam tests), freely distributed in electronic document at http://elearning.unicampus.it/",
+        "Semmlow, J. Circuits, signals, and systems for bioengineers: a Matlab-based introduction (2024, Elsevier)",
+        "Aboof S. Digital Signal Processing: A primer with MATLAB (2020, CRC Press)",
+        "Hu L. & Zhang Z. EEG Signal Processing and Feature Extraction (2019, Springer)"
+      ],
+      "typical_oral_style": "Discussion of advanced processing algorithms, spectral/time-frequency analysis, machine learning applications on biomedical signals, feature extraction, model validation, and presentation of the final group project results."
     },
     {
       "id": "fundamentals-of-automatic-control",
-      "name": "Fundamental of Automatic Control",
-      "emoji": "🎛️",
+      "code": "2303312",
+      "name": "Fundamentals of Automatic Control",
+      "emoji": "🔄",
       "year": 3,
-      "difficulty": "advanced",
-      "language": "english",
-      "learningObjectives": [
-        "Master feedback control systems and stability analysis",
-        "Understand PID control and tuning",
-        "Apply control theory to biomedical devices (pacemakers, infusion pumps)"
+      "semester": "I",
+      "cfu": 9,
+      "professor": "Filippo Cacace",
+      "prerequisites": ["Linear algebra", "Calculus", "Basic notions of programming in Matlab"],
+      "modules": [
+        "Systems theory: Linear continuous-time and discrete-time systems. Superposition principle. Natural modes, free and forced evolution. Stability. Lyapunov stability criteria. Laplace and transform. Transfer functions. Bode diagrams.",
+        "Control theory and design: Nyquist criterion. Transient and steady-state control specifications. Proportional, integral, derivative controls. Compensators with leading and retarding networks. Compensators with the roots locus. State space representation. Controller design in state space. Eigenvalue assignment. Observers. Separation principle.",
+        "Output feedback controller design. Numerical simulation of systems in Matlab. Numerical evaluation of controllers in Matlab."
       ],
-      "references": "Control theory textbooks, feedback systems",
-      "exampleQuestions": [
-        "Explain what makes a control system stable, and apply the Routh-Hurwitz criterion.",
-        "Design a PID controller for insulin delivery in an artificial pancreas."
+      "teachingMethods": "Lectures presenting the content of the course, guided exercises to show their application. Interactive simulation sessions in Matlab.",
+      "examFormat": {
+        "primary": "oral",
+        "details": "Oral discussion (approximately 20 minutes) with 3 questions: one on systems theory, one on frequency-based control design, and one on time-domain based control design. Students discuss the solution to homework downloaded from the e-learning platform.",
+        "scoring": "Final grade out of 30, calculated as the average of the three questions. Minimum passing grade 18/30."
+      },
+      "dublinDescriptors": {
+        "knowledgeAndUnderstanding": "The basic notions of stability, feedback and control. The specifications of the desired closed-loop system behavior.",
+        "applyingKnowledge": "Understand the behavior of a linear time invariant system from the diagram of its frequency response. Tune a PID controller to meet the control specifications. Develop the conceptual design of a state-feedback and output-feedback controller in state space form.",
+        "autonomyInJudgement": "The knowledge and understanding skills acquired must give the student the ability to evaluate a control design with respect to the control specifications.",
+        "communicationSkills": "The student will develop the ability to understand the features of a system described by frequency response diagrams and to write the control specifications relevant to a given application.",
+        "learningSkills": "The student will possess the core concepts to learn more advanced control approaches for broader classes of systems."
+      },
+      "textbooks": [
+        "Astrom, K. J., & Murray, R. (2021). Feedback systems: an introduction for scientists and engineers. Princeton University Press.",
+        "Lecture notes, exercises, and Matlab simulation files provided on the e-learning platform"
       ],
-      "questionDifficulty": "advanced",
-      "priorKnowledge": "Mathematics II, Electronics"
+      "typical_oral_style": "Oral discussion of systems theory, frequency and time-domain control design, state-space methods, controller tuning (PID, state feedback), and numerical simulation in Matlab with direct application to biomedical control problems."
     },
     {
       "id": "biomechanics",
+      "code": "2303303",
       "name": "Biomechanics",
-      "emoji": "🏃",
+      "emoji": "🦴",
       "year": 3,
-      "difficulty": "advanced",
-      "language": "english",
-      "learningObjectives": [
-        "Master kinematics and kinetics of human movement",
-        "Understand tissue mechanics and viscoelasticity",
-        "Apply biomechanics to rehabilitation and prosthetics design"
+      "semester": "I",
+      "cfu": 9,
+      "professor": "Francesca Cordella, Federica Bressi",
+      "prerequisites": ["Physiology and Anatomy", "General Physics"],
+      "modules": [
+        "Module MED/34 (30 hours): Anatomy and Physiology of the Musculoskeletal System – Introduction to bones, tendons, ligaments, cartilage, joints; physiology and primary functions; symptoms and disorders; clinical evaluation techniques; common therapies",
+        "Module ING/IND34 (60 hours):",
+        "1. Foundations of Biomechanics (4 hours) – Introduction and applications",
+        "2. Biomechanics of the Upper Limb (20 hours) – Kinematics and dynamics analysis; data collection and processing (lectures + lab)",
+        "3. Muscular Activity (18 hours) – Muscle system physiology; generation and modeling of electromyographic signals; surface and high-density EMG; signal analysis",
+        "4. Evaluation of Physical and Cognitive Fatigue (18 hours) – Physiological parameters (heart rate, respiration, galvanic skin response); monitoring and analysis; cognitive and muscular fatigue"
       ],
-      "references": "Ozkaya/Knudson Biomechanics, Y.C. Fung",
-      "exampleQuestions": [
-        "Analyze the gait cycle using biomechanical principles and identify key joint angles.",
-        "Explain the viscoelastic properties of biological tissues and their measurement."
+      "teachingMethods": "Lectures (72 hours) + laboratory sessions (18 hours) using MATLAB, Smart Analyzer, Vicon Nexus. Group practical exercises for data analysis.",
+      "examFormat": {
+        "primary": "written (MED/34) + oral (ING/IND34)",
+        "details": "1. Multiple-choice questionnaire for MED/34 module (45 minutes). 2. Oral examination for ING/IND34 module. Final shared evaluation phase.",
+        "scoring": "Weighted sum: 35% MED/34 + 65% ING/IND34. Final grade in thirtieths. Minimum 18/30 to pass. Laude for maximum score."
+      },
+      "dublinDescriptors": {
+        "knowledgeAndUnderstanding": "Characteristics of the structures and functioning of the musculoskeletal, cardiovascular and respiratory systems. Methods for biomechanical analysis of human motion.",
+        "applyingKnowledge": "Analyze and interpret human motion. Obtain cognitive and muscular state through physiological data and critically analyze experimental results.",
+        "autonomyInJudgement": "Develop analytical and critical skills in understanding theoretical concepts and evaluating results from experimental activities.",
+        "communicationSkills": "Quality of communication and soft skills through pro-active involvement and group activities.",
+        "learningSkills": "Active involvement approach to apply learnt concepts to practical cases."
+      },
+      "textbooks": [
+        "Lecture notes distributed by the teacher",
+        "N. Ozkaya, M. Nordin, Fundamentals of Biomechanics, Second Edition, Springer"
       ],
-      "questionDifficulty": "advanced",
-      "priorKnowledge": "Anatomy, Physiology, Mechanics of Solids"
+      "typical_oral_style": "Discussion of musculoskeletal biomechanics, EMG signal analysis, fatigue evaluation, kinematic/dynamics modeling, and real biomedical applications (upper limb, prosthetics, patient monitoring)."
     },
     {
       "id": "fundamentals-of-bioengineering",
+      "code": "2303304",
       "name": "Fundamentals of Bioengineering",
-      "emoji": "🔧",
+      "emoji": "🧬",
       "year": 3,
-      "difficulty": "advanced",
-      "language": "english",
-      "learningObjectives": [
-        "Integrate all bioengineering disciplines (anatomy, physics, electronics, materials)",
-        "Understand biomedical device design and development process",
-        "Apply systems thinking to complex biomedical problems"
+      "semester": "II",
+      "cfu": 12,
+      "professor": "Fabrizio Taffoni",
+      "prerequisites": ["Mathematics", "Physics", "Geometry", "Mechanics of Solids", "Electronics", "Programming"],
+      "modules": [
+        "1. Multidisciplinary design, integration, and testing in bioengineering (0.5 ECTS - Lecture)",
+        "2. Applied mechanics for bioengineering (1.5 ECTS Lecture + 0.5 ECTS Laboratory) – Fundamentals of mechanical design, sizing and verification of machine components, design of machines and biomechanical systems through CAE",
+        "3. Applied electronics for bioengineering (1.5 ECTS Lecture + 0.5 ECTS Laboratory) – Technical specifications and selection criteria of electronic components, introduction to electronic architectures for bioengineering systems, introduction to communication standards for interoperability",
+        "4. Bioengineering hardware integration and prototyping (0.5 ECTS Lecture + 1 ECTS Laboratory)",
+        "5. Virtual environment for human-centered applications (1 ECTS Lecture + 1 ECTS Laboratory) – Introduction to simulation environments, designing/building user-centered virtual scenes",
+        "6. Human-system interface development and customization (1 ECTS Lecture + 1 ECTS Laboratory) – Introduction to multimodal human-machine interfaces for the control of biomedical devices, introduction to sensory feedback in human-machine interface, methods for designing/building user-centered control strategies for biomedical devices",
+        "7. Bioengineering software/hardware integration (0.5 ECTS Laboratory)",
+        "8. Experimental functional testing and validation (1.5 ECTS Laboratory) – Setting experiments and define validation metrics, bench testing and human-in-the-loop validation, data analysis and reporting"
       ],
-      "references": "Enderle & Bronzino, biomedical engineering principles",
-      "exampleQuestions": [
-        "Design a simple ECG monitoring system: describe the electrode, signal conditioning, and analysis stages.",
-        "Walk through the development process of a new medical device, from concept to market."
+      "teachingMethods": "Classroom lectures (6 ECTS) and laboratory activities (6 ECTS). Students work in small groups (4-5 students) on a specific bioengineering demonstrator application, guided by the instructor.",
+      "examFormat": {
+        "primary": "individual oral + group presentation",
+        "details": "Individual oral exam (50% of final grade) on theoretical fundamentals + group presentation on laboratory activities (20%) + Q&A / personal contribution evaluation (30%).",
+        "scoring": "Final grade is the weighted mean of the three components. Minimum passing grade 18/30. Laude awarded if final mark exceeds 30.5."
+      },
+      "dublinDescriptors": {
+        "knowledgeAndUnderstanding": "Knowledge of fundamentals of bioengineering and of concurrent design for the development of human-centered devices including mechanical, electronic and software components. Understanding problems in developing bioengineering integrated systems interfacing with humans. Knowledge of fundamentals for practically developing laboratory sub-module prototypes and integrating them into a demo complete device.",
+        "applyingKnowledge": "Capability to design hardware/software sub-models for a human-centered device. Capability to develop sub-module prototypes in the laboratory. Capability to integrate sub-modules into a demo complete device. Capability to perform experimental tests on the developed device. Capability to analyze collected data and critically discuss results.",
+        "autonomyInJudgement": "Develop analytical and critical skills in the understanding of theoretical concepts, in the identification of solutions for design, development and testing issues and in the evaluation of results of the experimental activities carried out during the entire course.",
+        "communicationSkills": "Prepare and deliver technical presentations on laboratory activities with clarity, effectiveness, and proper technical language (spoken language: clarity, effectiveness, property of language, formal correctness).",
+        "learningSkills": "Autonomously extend acquired fundamentals and apply and contextualize bioengineering methods to different problems not addressed within the course."
+      },
+      "textbooks": [
+        "Notes provided by the teacher",
+        "Kutz, M. (2009). Biomedical engineering and design handbook (Vol. 1). New York, NY, USA: McGraw-Hill.",
+        "Jerald, J. (2015). The VR book: Human-centered design for virtual reality. Morgan & Claypool.",
+        "Boy, G. A. (Ed.). (2017). The handbook of human-machine interaction: a human-centered design approach. CRC Press."
       ],
-      "questionDifficulty": "advanced",
-      "priorKnowledge": "All prerequisite courses"
+      "typical_oral_style": "Discussion of multidisciplinary bioengineering design, hardware/software integration, human-centered prototyping, experimental validation, and group project results in a technical multidisciplinary context."
     },
     {
-      "id": "measurements-and-instrumentation",
+      "id": "measurements-and-instrumentation-in-biomedical-engineering-and-standards-for-medical-devices",
+      "code": "2303305",
       "name": "Measurements and Instrumentation in Biomedical Engineering and Standards for Medical Devices",
-      "emoji": "🔬",
+      "emoji": "📏",
       "year": 3,
-      "difficulty": "advanced",
-      "language": "english",
-      "learningObjectives": [
-        "Master measurement principles and sensor technology",
-        "Understand biomedical device standards (ISO/IEC)",
-        "Apply regulatory requirements (FDA, CE Mark) in device development"
+      "semester": "I",
+      "cfu": 7,
+      "professor": "Emiliano Schena",
+      "prerequisites": ["None (admission to the degree program)"],
+      "modules": [
+        "Basic Concepts of Measurement Methods: Measurement of a physical quantity, Measurement system, Units of measurement (International System and others), Significant figures and uncertainty",
+        "Operations and significant figures, Significant differences between experimental data, Analysis of static and dynamic measurements, Representation of experimental data, Gaussian and Student's t-distributions, Law of uncertainty propagation",
+        "Response of Measurement Systems: Static metrological properties (measurement range, calibration curve, sensitivity, resolution, discrimination threshold, accuracy, precision, linearity, signal-to-noise ratio)",
+        "Dynamic metrological properties (response time, settling time, frequency response, amplitude ratio and phase shift), First- and second-order systems, error function, gamma and logarithmic decrement, Lissajous curves, Display instruments",
+        "Signal Conditioning Stage: Amplification stage, Signal processing circuits (focus on those used in medical devices e.g. electrocardiograph), Sampling and ADC, Design of a measurement chain",
+        "Length and Strain Measurements: Caliper, potentiometer, Strain gauge measurements, Mechanical and electrical strain gauges, strain gauge electronics and temperature compensation, Biomedical application of these parameters",
+        "Position, Displacement, Velocity, and Acceleration Measurements: Resistive, capacitive, and inductive sensors, LVDT, Optical encoder, Accelerometer, Biomedical application of these parameters",
+        "Load cells, Mass, Force, and Torque Measurements; Biomedical application of this parameter",
+        "Pressure Measurements: Basic concepts of pressure measurement, Barometer, Liquid manometer, Strain-gauge-based manometer, Differential pressure sensor, McLeod vacuum gauge, Biomedical application (e.g., blood pressure)",
+        "Flow Measurements: Pitot tube, Mass and volumetric flow, Venturi tube, Flow measurements based on pressure drops, orifice meter, Rotameter, Hot-wire and hot-film anemometers, Biomedical application (e.g., mechanical ventilation and respiratory monitoring)",
+        "Temperature Measurements: Standards and definition of temperature, Thermometers based on thermal expansion, Electrical resistance thermometers, Thermocouples, Biomedical application of this parameter (e.g., body temperature, thermal treatments for cancer removal)",
+        "Standards for Medical Devices: Key standards applicable to medical devices and specific examples, Main role of measurements in this context, Verification and Performance Testing of Medical Devices, Verification and electrical testing of a medical device (e.g., mechanical ventilator, defibrillator)"
       ],
-      "references": "Instrumentation texts, ISO/IEC medical device standards",
-      "exampleQuestions": [
-        "Explain measurement uncertainty and how it is propagated through a measurement chain.",
-        "What are the key requirements of IEC 60601 for electrical safety in medical devices?"
+      "teachingMethods": "Lectures covering the topics of the course and exercises to demonstrate their application in solving specific problems. Experimental evaluation of a medical device.",
+      "examFormat": {
+        "primary": "oral",
+        "details": "Oral examination in which students are required to discuss specific topics, with particular attention to the course content. Students will also be asked to present two topics from the course.",
+        "scoring": "Maximum grade 30/30. Honors (cum laude) awarded to students who demonstrate outstanding clarity of presentation, critical mastery of the subject matter, and the ability to make advanced connections."
+      },
+      "dublinDescriptors": {
+        "knowledgeAndUnderstanding": "Foundational knowledge of methodologies and techniques for estimating physical quantities and the associated uncertainty. Understanding of the operating principles and performance of key measurement systems, sensors, and transducers used in the biomedical field. Basic knowledge of the main regulatory standards for medical devices.",
+        "applyingKnowledge": "Analyze and select appropriate measurement systems according to specific requirements in healthcare and biomedical contexts. Interpret experimental data, evaluate uncertainty, and verify consistency with application requirements. Carry out experimental tests on medical devices, understanding their implications from both a technical and regulatory perspective.",
+        "autonomyInJudgement": "Develop the ability to identify the most appropriate measurement system to meet clearly defined specifications for performing a specific measurement in the healthcare context and, more broadly, in biomedical applications.",
+        "communicationSkills": "Communicate both concisely and accurately, using general language as well as technical terminology related to the course topics.",
+        "learningSkills": "Progressively strengthened through a continuously interactive teaching approach."
+      },
+      "textbooks": [
+        "T. G. Beckwith, R. D. Marangoni, J. H. Lienhard. Mechanical Measurements, Addison-Wesley Pub Company, Reading, MA, USA.",
+        "R. S. Figliola, D. E. Beasley. Theory and Design for Mechanical Measurements, Wiley.",
+        "Lecture notes and materials provided on the e-learning platform of Università Campus Bio-Medico di Roma."
       ],
-      "questionDifficulty": "advanced",
-      "priorKnowledge": "Electronics, Probability and Statistics"
+      "typical_oral_style": "Oral discussion of measurement principles, uncertainty analysis, sensor/transducer performance, biomedical applications, regulatory standards (IEC/FDA), and practical interpretation of experimental data."
     },
     {
       "id": "humanities-for-bioengineering",
+      "code": "2303306",
       "name": "Humanities for Bioengineering",
-      "emoji": "🎭",
+      "emoji": "🧠",
       "year": 3,
-      "difficulty": "intermediate",
-      "language": "english",
-      "learningObjectives": [
-        "Understand ethics in medical device design and use",
-        "Grasp the social, economic, and healthcare system context",
-        "Develop critical thinking on bioengineering's societal impact"
+      "semester": "II",
+      "cfu": 6,
+      "professor": "Giampaolo Ghilardi, Marta Bertolaso",
+      "prerequisites": ["None"],
+      "modules": [
+        "1. The difference between natural and artificial – New emerging paradigms in complex systems for modelling the human. An integrated approach to complex and multi-disciplinary problems. The cognitive process and modelling of natural realities: notions of mechanism and system",
+        "2. Science, Life science and Artificial Intelligence – Technological and social impact of frontier engineering solutions. Technoscience",
+        "3. Philosophical perspectives on artificial agents – Xenobot, Bionic Prosthesis, Robotics Plants",
+        "4. Philosophy of Technology, Technics and Technology – The rise of a new 'epoch': the born of philosophy of technology. The 'empirical turn'. Philosophy of engineering"
       ],
-      "references": "Ethics, professional responsibility, healthcare innovation",
-      "exampleQuestions": [
-        "Discuss the ethical considerations in developing an AI diagnostic tool that could replace human radiologists.",
-        "How should biomedical engineers balance innovation with patient safety and cost considerations?"
+      "teachingMethods": "Lectures, case studies, and clarification of concepts. Discussion provides essential opportunities for academic dialogue between students and professor.",
+      "examFormat": {
+        "primary": "oral",
+        "details": "Oral examination evaluating conceptual clarity, the adequacy of the discussion of the model chosen, and the ability to apply the proposed model to other engineering issues. Students must present two topics from the course.",
+        "scoring": "Final grade out of 30. To pass, the student must demonstrate sufficient knowledge of the main topics and understanding of case studies. Laude possible for outstanding clarity and critical connections."
+      },
+      "dublinDescriptors": {
+        "knowledgeAndUnderstanding": "Knowledge of fundamentals of bioengineering and of concurrent design for the development of human-centered devices. Understanding problems in developing bioengineering integrated systems interfacing with humans. The methodological approach to the natural world of inventors and scientists.",
+        "applyingKnowledge": "Ability to apply knowledge and understanding. Work capable of creating new theoretical frameworks or paradigms adequate to respond to emerging social or environmental needs and market demands.",
+        "autonomyInJudgement": "Develop analytical and critical skills in the understanding of theoretical concepts, in the identification of solutions for design, development and testing issues and in the evaluation of results of experimental activities. Ability to listen, be interested in the reasons of others, value the contribution of others in teamwork.",
+        "communicationSkills": "Prepare and deliver technical presentations with clarity, effectiveness, and proper technical language (spoken language: clarity, effectiveness, property of language, formal correctness).",
+        "learningSkills": "Autonomously extend acquired fundamentals and apply and contextualize bioengineering methods to different problems not addressed within the course. Growth in the skills necessary for interdisciplinary work."
+      },
+      "textbooks": [
+        "Notes provided by the teacher",
+        "Bertolaso M. (2011) Le Human Enhancement Technologies e l'irriducibilità della Complessità Biologica",
+        "Bertolaso M., Di Stefano N., Ghilardi G. (2015) Scientific Personal Agency",
+        "Bertolaso M. (2019) Artificialità e Umanità: Epistemologie a Confronto",
+        "Bertolaso M., MacLeod M. (Eds) (2016) In Silica Modeling: the Human Factor",
+        "Additional bibliography provided during the course (full list on e-learning platform)"
       ],
-      "questionDifficulty": "intermediate",
-      "priorKnowledge": "General knowledge of biomedical engineering"
+      "typical_oral_style": "Critical discussion of frontier cases between technology and life sciences (bio-inspired robotics, advanced biotechnology, AI, micro/nano-engineering, simulation, life and artificial intelligence, bioinformatics). Emphasis on philosophical, epistemological, and methodological problems, critical thinking, and the human dimension in bioengineering."
     }
   ]
 }
