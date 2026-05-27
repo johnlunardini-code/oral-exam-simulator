@@ -1,11 +1,6 @@
 #!/usr/bin/env node
 // server.js - UCBM Exam Simulator
 console.log('[STARTUP] Starting UCBM Exam Simulator');
-console.log('[STARTUP] Environment:', {
-  NODE_ENV: process.env.NODE_ENV,
-  PORT: process.env.PORT,
-  XAI_KEY_SET: !!process.env.XAI_API_KEY
-});
 
 import express from 'express';
 import cors from 'cors';
@@ -20,11 +15,11 @@ dotenv.config();
 
 // Global error handlers
 process.on('uncaughtException', (err) => {
-  console.error('[UNCAUGHT EXCEPTION]', err);
+  console.error('[FATAL] Uncaught exception:', err);
   process.exit(1);
 });
 process.on('unhandledRejection', (reason) => {
-  console.error('[UNHANDLED REJECTION]', reason);
+  console.error('[FATAL] Unhandled rejection:', reason);
   process.exit(1);
 });
 
@@ -37,33 +32,36 @@ let sessionCounter = 0;
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
+// Static files setup
+const publicPath = path.join(__dirname, 'public');
+if (!fs.existsSync(publicPath)) {
+  console.error('[FATAL] Public folder does not exist:', publicPath);
+  process.exit(1);
+}
+
 // ============================================================
 // ROUTES
 // ============================================================
 
-// Health check (Railway uses this)
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-// Static files (CSS, JS, index.html)
-const publicPath = path.join(__dirname, 'public');
-console.log('[STARTUP] Serving static files from:', publicPath);
 app.use(express.static(publicPath));
 
-// Course specs endpoint
 app.get('/course-specs.json', (req, res) => {
   const filePath = path.join(__dirname, 'course-specs.json');
-  res.sendFile(filePath);
+  res.sendFile(filePath, (err) => {
+    if (err) console.error('[COURSE SPECS ERROR]', err.message);
+  });
 });
 
-// API: List courses
 app.get('/api/courses', (req, res) => {
   try {
     const data = JSON.parse(fs.readFileSync(path.join(__dirname, 'course-specs.json'), 'utf8'));
     res.json({ success: true, courses: data.courses || [] });
   } catch (err) {
-    console.error('[API ERROR] /api/courses:', err.message);
+    console.error('[COURSES ERROR]', err.message);
     res.status(500).json({ error: 'Failed to load courses' });
   }
 });
@@ -77,13 +75,11 @@ const XAI_MODEL = process.env.XAI_MODEL || 'grok-4';
 const XAI_BASE_URL = process.env.XAI_BASE_URL || 'https://api.x.ai/v1';
 
 if (!XAI_API_KEY) {
-  console.warn('[STARTUP] WARNING: XAI_API_KEY not set - UI will load, exam features unavailable');
+  console.warn('[STARTUP] XAI_API_KEY not set - exam features unavailable');
 }
 
 async function callGrok(systemPrompt, conversation, options = {}) {
-  if (!XAI_API_KEY) {
-    throw new Error('XAI_API_KEY not configured');
-  }
+  if (!XAI_API_KEY) throw new Error('XAI_API_KEY not configured');
 
   const messages = [
     { role: 'system', content: systemPrompt },
@@ -112,7 +108,6 @@ async function callGrok(systemPrompt, conversation, options = {}) {
   const data = await response.json();
   const content = data.choices?.[0]?.message?.content?.trim();
   if (!content) throw new Error('Empty response from Grok');
-
   return content;
 }
 
@@ -200,8 +195,6 @@ app.post('/api/exam/start', async (req, res) => {
     if (!subject) return res.status(400).json({ error: 'subject is required' });
 
     const session = createSession(subject, studentName);
-    console.log(`[EXAM] New session: ${session.id} - ${session.courseName}`);
-
     res.json({
       sessionId: session.id,
       courseName: session.courseName,
@@ -240,7 +233,7 @@ app.post('/api/exam/question', async (req, res) => {
     try {
       professorResponse = await callGrok(systemPrompt, recent, { temperature: isFirst ? 0.65 : 0.72 });
     } catch (apiErr) {
-      console.error('[GROK API ERROR]', apiErr.message);
+      console.error('[GROK ERROR]', apiErr.message);
       return res.status(502).json({ error: 'LLM call failed', details: apiErr.message });
     }
 
@@ -366,10 +359,7 @@ app.post('/api/exam/upload/:sessionId', (req, res) => {
   });
 });
 
-// ============================================================
-// SPA Fallback (serve index.html for all unmatched routes)
-// ============================================================
-
+// SPA Fallback
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api')) {
     return res.status(404).json({ error: 'API endpoint not found' });
@@ -378,27 +368,24 @@ app.get('*', (req, res) => {
   const indexPath = path.join(publicPath, 'index.html');
   res.sendFile(indexPath, (err) => {
     if (err) {
-      console.error('[SPA FALLBACK ERROR]', err.message);
+      console.error('[SPA ERROR]', err.message);
       res.status(500).json({ error: 'Failed to load application' });
     }
   });
 });
 
 // ============================================================
-// ASYNC STARTUP FUNCTION
+// ASYNC STARTUP
 // ============================================================
 
 async function start() {
   try {
-    console.log('[STARTUP] Initializing knowledge base...');
     await initKnowledgeBase();
-    console.log('[STARTUP] ✅ Knowledge base initialized');
+    console.log('[STARTUP] Knowledge base initialized');
 
     const PORT = parseInt(process.env.PORT || '3000', 10);
-    console.log('[STARTUP] PORT resolved to:', PORT);
-
     const server = app.listen(PORT, '0.0.0.0', () => {
-      console.log(`[STARTUP] ✅ Server listening on port ${PORT}`);
+      console.log(`[STARTUP] Server listening on port ${PORT}`);
       console.log('[STARTUP] Ready to accept requests');
     });
 
@@ -408,22 +395,10 @@ async function start() {
     });
 
     process.on('SIGTERM', () => {
-      console.log('[SHUTDOWN] SIGTERM received');
-      server.close(() => {
-        console.log('[SHUTDOWN] Server closed');
-        process.exit(0);
-      });
-    });
-
-    process.on('SIGINT', () => {
-      console.log('[SHUTDOWN] SIGINT received');
-      server.close(() => {
-        console.log('[SHUTDOWN] Server closed');
-        process.exit(0);
-      });
+      server.close(() => process.exit(0));
     });
   } catch (err) {
-    console.error('[STARTUP FATAL ERROR]', err.message);
+    console.error('[STARTUP FATAL]', err.message);
     process.exit(1);
   }
 }
