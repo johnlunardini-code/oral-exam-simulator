@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// server.js - UCBM Exam Simulator
-console.log('[START]', new Date().toISOString());
+// server.js
+console.log('[STARTUP] Starting UCBM Exam Simulator');
 
 import express from 'express';
 import cors from 'cors';
@@ -13,54 +13,38 @@ import { SYSTEM_PROMPT } from './system-prompt.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
-process.on('uncaughtException', (err) => {
-  console.error('[FATAL]', err.message);
-  process.exit(1);
-});
-process.on('unhandledRejection', (reason) => {
-  console.error('[FATAL]', reason);
-  process.exit(1);
-});
-
 const app = express();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 const sessions = new Map();
 let sessionCounter = 0;
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
-// Log all requests
-app.use((req, res, next) => {
-  console.log('[REQ]', req.method, req.path, req.query);
-  res.on('finish', () => {
-    console.log('[RES]', req.method, req.path, res.statusCode);
-  });
-  next();
-});
+// Serve the UI
+app.use(express.static(path.join(__dirname, 'public')));
 
-const publicPath = path.join(__dirname, 'public');
-
-// ============================================================
-// ROUTES
-// ============================================================
-
-app.get('/health', (req, res) => {
-  res.json({ ok: true });
-});
-
-app.use(express.static(publicPath));
-
+// Make course-specs.json available to the frontend
 app.get('/course-specs.json', (req, res) => {
   res.sendFile(path.join(__dirname, 'course-specs.json'));
 });
 
+// Explicit root route
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Health check
+app.get('/health', (req, res) => res.json({ status: 'ok' }));
+
+// Basic courses list
 app.get('/api/courses', (req, res) => {
   try {
     const data = JSON.parse(fs.readFileSync(path.join(__dirname, 'course-specs.json'), 'utf8'));
     res.json({ success: true, courses: data.courses || [] });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'Failed to load courses' });
   }
 });
 
@@ -72,8 +56,14 @@ const XAI_API_KEY = process.env.XAI_API_KEY;
 const XAI_MODEL = process.env.XAI_MODEL || 'grok-4';
 const XAI_BASE_URL = process.env.XAI_BASE_URL || 'https://api.x.ai/v1';
 
+if (!XAI_API_KEY) {
+  console.warn('[STARTUP] WARNING: XAI_API_KEY is not set. The UI will load but exam features will fail until the key is added in Railway.');
+}
+
 async function callGrok(systemPrompt, conversation, options = {}) {
-  if (!XAI_API_KEY) throw new Error('XAI_API_KEY not set');
+  if (!XAI_API_KEY) {
+    throw new Error('XAI_API_KEY is not configured on the server');
+  }
 
   const messages = [
     { role: 'system', content: systemPrompt },
@@ -94,14 +84,20 @@ async function callGrok(systemPrompt, conversation, options = {}) {
     })
   });
 
-  if (!response.ok) throw new Error(`xAI error ${response.status}`);
+  if (!response.ok) {
+    const text = await response.text().catch(() => '');
+    throw new Error(`xAI API error ${response.status}: ${text.slice(0, 300)}`);
+  }
 
   const data = await response.json();
-  return data.choices?.[0]?.message?.content?.trim() || '';
+  const content = data.choices?.[0]?.message?.content?.trim();
+  if (!content) throw new Error('Empty response from Grok');
+
+  return content;
 }
 
 // ============================================================
-// Session Management
+// Session Helpers
 // ============================================================
 
 function createSession(courseId, studentName) {
@@ -111,7 +107,7 @@ function createSession(courseId, studentName) {
                           (course && (course.name || '').toLowerCase().includes('italian'));
 
   const sessionId = `sess_${Date.now()}_${++sessionCounter}`;
-  return {
+  const session = {
     id: sessionId,
     courseId,
     courseName,
@@ -126,6 +122,9 @@ function createSession(courseId, studentName) {
     questionCount: 0,
     lastQuestion: null
   };
+
+  sessions.set(sessionId, session);
+  return session;
 }
 
 function getSession(sessionId) {
@@ -137,38 +136,51 @@ function buildSystemPromptForSession(session, isFirstQuestion = false) {
   let prompt = SYSTEM_PROMPT;
 
   if (course) {
-    prompt += `\n\nCURRENT COURSE: ${course.name}`;
+    prompt += `\n\nCURRENT COURSE: ${course.name} (ID: ${session.courseId}, Year ${course.year || '?'}, Semester ${course.semester || '?'})`;
+    prompt += `\nProfessor style: ${course.typical_oral_style || 'rigorous oral exam'}`;
     if (course.examFormat) {
       prompt += `\nExam format: ${JSON.stringify(course.examFormat)}`;
     }
   }
 
   if (session.isItalianCourse) {
-    prompt += `\n\nLANGUAGE: Italian`;
+    prompt += `\n\n**LANGUAGE MODE**: This is an Italian-language course. Conduct the exam primarily in Italian. Accept answers in Italian or English.`;
   }
 
   if (session.askedQuestions.length > 0) {
-    prompt += `\n\nPREVIOUS: ${session.askedQuestions.slice(-3).join(' | ')}`;
+    prompt += `\n\n**PREVIOUSLY ASKED IN THIS SESSION (DO NOT REPEAT)**:\n`;
+    prompt += session.askedQuestions.slice(-8).map((q, i) => `  ${i + 1}. ${q}`).join('\n');
+  }
+
+  if (session.uploads.length > 0) {
+    prompt += `\n\n**STUDENT-UPLOADED MATERIALS**:\n`;
+    for (const u of session.uploads.slice(-5)) {
+      const excerpt = (u.content || '').slice(0, 4000);
+      prompt += `\n--- ${u.filename} ---\n${excerpt}\n`;
+    }
   }
 
   if (isFirstQuestion) {
-    prompt += `\n\nGreet the student and ask the first question.`;
+    prompt += `\n\n**FIRST QUESTION**: Greet ${session.studentName}, introduce the course briefly, then ask the first realistic question immediately.`;
+  } else {
+    prompt += `\n\n**CONTINUE THE EXAM**: Give short feedback on the last answer, then ask the next non-repetitive question.`;
   }
 
+  prompt += `\n\nCurrent question number: ${session.questionCount + 1}`;
   return prompt;
 }
 
 // ============================================================
-// API: Exam Endpoints
+// Exam API Endpoints
 // ============================================================
 
 app.post('/api/exam/start', async (req, res) => {
   try {
     const { subject, studentName } = req.body || {};
-    if (!subject) return res.status(400).json({ error: 'subject required' });
+    if (!subject) return res.status(400).json({ error: 'subject is required' });
 
     const session = createSession(subject, studentName);
-    sessions.set(session.id, session);
+    console.log(`[EXAM] New session for ${session.courseName}`);
 
     res.json({
       sessionId: session.id,
@@ -186,40 +198,61 @@ app.post('/api/exam/question', async (req, res) => {
     const session = getSession(sessionId);
     if (!session) return res.status(404).json({ error: 'Session not found' });
 
-    if ((studentAnswer || '').trim()) {
-      session.messages.push({ role: 'user', content: studentAnswer });
-      session.scoreTracker.total += 1;
-      if ((studentAnswer || '').length > 20) session.scoreTracker.correct += 1;
+    const isFirst = session.questionCount === 0;
+    const trimmedAnswer = (studentAnswer || '').trim();
+
+    if (trimmedAnswer) {
+      session.messages.push({ role: 'user', content: trimmedAnswer });
+      const wordCount = trimmedAnswer.split(/\s+/).length;
+      const looksSubstantive = wordCount >= 8 || trimmedAnswer.length > 60;
+      if (looksSubstantive) {
+        session.scoreTracker.total += 1;
+        const technical = /[a-z]{6,}|equation|function|process|mechanism|structure|cell|force|energy|wave|signal|model/i.test(trimmedAnswer);
+        if (technical || wordCount > 18) session.scoreTracker.correct += 1;
+      }
     }
 
-    const systemPrompt = buildSystemPromptForSession(session, session.questionCount === 0);
+    const systemPrompt = buildSystemPromptForSession(session, isFirst);
     const recent = session.messages.slice(-12);
 
-    const professorResponse = await callGrok(systemPrompt, recent);
+    let professorResponse;
+    try {
+      professorResponse = await callGrok(systemPrompt, recent, { temperature: isFirst ? 0.65 : 0.72 });
+    } catch (apiErr) {
+      return res.status(502).json({ error: 'LLM call failed', details: apiErr.message });
+    }
 
     session.messages.push({ role: 'assistant', content: professorResponse });
     session.lastQuestion = professorResponse;
     session.questionCount += 1;
+    session.askedQuestions.push(professorResponse.slice(0, 220));
+
+    let hypotheticalScore = null;
+    if (session.questionCount % 5 === 0 && session.scoreTracker.total > 0) {
+      const pct = Math.round((session.scoreTracker.correct / session.scoreTracker.total) * 100);
+      hypotheticalScore = Math.round(pct * 30 / 100);
+    }
 
     res.json({
       response: professorResponse,
       questionNumber: session.questionCount,
+      hypotheticalScore,
       scoreTracker: session.scoreTracker
     });
   } catch (err) {
-    res.status(502).json({ error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
 app.get('/api/exam/session/:id', (req, res) => {
   const session = getSession(req.params.id);
-  if (!session) return res.status(404).json({ error: 'Not found' });
+  if (!session) return res.status(404).json({ error: 'Session not found' });
   res.json({ scoreTracker: session.scoreTracker });
 });
 
 app.delete('/api/exam/session/:id', (req, res) => {
   const session = getSession(req.params.id);
-  if (!session) return res.status(404).json({ error: 'Not found' });
+  if (!session) return res.status(404).json({ error: 'Session not found' });
 
   const { correct, total } = session.scoreTracker;
   sessions.delete(req.params.id);
@@ -231,9 +264,19 @@ app.post('/api/exam/hint', async (req, res) => {
   try {
     const { sessionId } = req.body || {};
     const session = getSession(sessionId);
-    if (!session) return res.status(404).json({ error: 'Not found' });
+    if (!session) return res.status(404).json({ error: 'Session not found' });
 
-    const hint = await callGrok('Give a brief study hint.', []);
+    const context = session.lastQuestion || (session.messages.at(-1)?.content) || 'current topic';
+    const langNote = session.isItalianCourse ? ' Respond in Italian.' : '';
+
+    const hintPrompt = `You are a helpful UCBM biomedical engineering professor. Give ONE concise, high-value study hint (2-4 sentences). Be specific. Avoid giving the full answer.${langNote}\n\nContext:\n${context}`;
+
+    const hint = await callGrok(hintPrompt, [], { temperature: 0.6, max_tokens: 350 });
+
+    const qNum = session.questionCount || 1;
+    if (!session.hintHistory[qNum]) session.hintHistory[qNum] = [];
+    session.hintHistory[qNum].push({ hint, at: new Date().toISOString() });
+
     res.json({ textHint: hint });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -242,17 +285,23 @@ app.post('/api/exam/hint', async (req, res) => {
 
 app.get('/api/exam/hint-history/:id', (req, res) => {
   const session = getSession(req.params.id);
-  if (!session) return res.status(404).json({ error: 'Not found' });
+  if (!session) return res.status(404).json({ error: 'Session not found' });
   res.json({ hintHistory: session.hintHistory });
 });
 
 app.post('/api/exam/feedback', async (req, res) => {
   try {
-    const { sessionId } = req.body || {};
+    const { sessionId, questionIndex } = req.body || {};
     const session = getSession(sessionId);
-    if (!session) return res.status(404).json({ error: 'Not found' });
+    if (!session) return res.status(404).json({ error: 'Session not found' });
 
-    const feedback = await callGrok('Provide feedback.', []);
+    const studentTurns = session.messages.filter(m => m.role === 'user');
+    const idx = Math.max(0, Math.min(questionIndex ?? studentTurns.length - 1, studentTurns.length - 1));
+    const studentAnswer = studentTurns[idx]?.content || 'No answer recorded';
+
+    const fbPrompt = `Provide structured feedback on this student answer (max 180 words). Cover: (1) What was good, (2) What was missing, (3) One improvement. Use bullets.\n\n${studentAnswer}`;
+
+    const feedback = await callGrok(fbPrompt, [], { temperature: 0.5, max_tokens: 400 });
     res.json({ feedback });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -261,56 +310,68 @@ app.post('/api/exam/feedback', async (req, res) => {
 
 app.post('/api/exam/upload/:sessionId', (req, res) => {
   const session = getSession(req.params.sessionId);
-  if (!session) return res.status(404).json({ error: 'Not found' });
+  if (!session) return res.status(404).json({ error: 'Session not found' });
 
   const chunks = [];
   req.on('data', chunk => chunks.push(chunk));
   req.on('end', () => {
     try {
       const buffer = Buffer.concat(chunks);
-      const filename = `material-${Date.now()}`;
-      session.uploads.push({ filename, size: buffer.length });
-      res.json({ success: true, filename, size: buffer.length });
+      const bufStr = buffer.toString('latin1');
+      const filenameMatch = bufStr.match(/filename="([^"]+)"/i);
+      const filename = (filenameMatch ? filenameMatch[1] : `material-${Date.now()}`).replace(/[^a-zA-Z0-9._-]/g, '_');
+
+      const headerEnd = bufStr.indexOf('\r\n\r\n');
+      let content = '[no content extracted]';
+      let size = buffer.length;
+
+      if (headerEnd !== -1) {
+        const fileBuffer = buffer.slice(headerEnd + 4);
+        size = fileBuffer.length;
+        const looksLikeText = /\.(txt|md|csv|json|html?|js|ts|css)$/i.test(filename) || size < 65000;
+        content = looksLikeText ? fileBuffer.toString('utf8').slice(0, 140000) : `[binary - ${size} bytes]`;
+      }
+
+      session.uploads.push({ filename, content, size, uploadedAt: new Date().toISOString() });
+      res.json({ success: true, filename, size });
     } catch (e) {
       res.status(400).json({ error: e.message });
     }
   });
 });
 
-// SPA Fallback
+// SPA fallback - serve index.html for all non-API routes
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api')) {
-    return res.status(404).json({ error: 'Not found' });
+    return res.status(404).json({ error: 'API endpoint not found' });
   }
-  res.sendFile(path.join(publicPath, 'index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // ============================================================
-// STARTUP
+// Startup
 // ============================================================
 
 async function start() {
   try {
-    console.log('[INIT] Loading knowledge base...');
     await initKnowledgeBase();
-    console.log('[INIT] Done');
+    console.log('[STARTUP] Knowledge base initialized');
 
-    const PORT = parseInt(process.env.PORT || '3000', 10);
+    const PORT = process.env.PORT || 3000;
     const server = app.listen(PORT, '0.0.0.0', () => {
-      console.log(`[LISTEN] Port ${PORT}`);
+      console.log(`[STARTUP] Server listening on port ${PORT}`);
     });
 
     server.on('error', (err) => {
-      console.error('[ERROR]', err.message);
+      console.error('[ERROR]', err);
       process.exit(1);
     });
 
     process.on('SIGTERM', () => {
-      console.log('[TERM]');
       server.close(() => process.exit(0));
     });
   } catch (err) {
-    console.error('[FAIL]', err.message);
+    console.error('[STARTUP ERROR]', err.message);
     process.exit(1);
   }
 }
