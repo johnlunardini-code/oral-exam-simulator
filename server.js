@@ -21,9 +21,11 @@ dotenv.config();
 // Global error handlers
 process.on('uncaughtException', (err) => {
   console.error('[UNCAUGHT EXCEPTION]', err);
+  process.exit(1);
 });
 process.on('unhandledRejection', (reason) => {
   console.error('[UNHANDLED REJECTION]', reason);
+  process.exit(1);
 });
 
 const app = express();
@@ -41,8 +43,7 @@ app.use(express.json({ limit: '50mb' }));
 
 // Health check (Railway uses this)
 app.get('/health', (req, res) => {
-  console.log('[HEALTH CHECK]');
-  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.status(200).json({ status: 'ok' });
 });
 
 // Static files (CSS, JS, index.html)
@@ -53,7 +54,6 @@ app.use(express.static(publicPath));
 // Course specs endpoint
 app.get('/course-specs.json', (req, res) => {
   const filePath = path.join(__dirname, 'course-specs.json');
-  console.log('[API] GET /course-specs.json from:', filePath);
   res.sendFile(filePath);
 });
 
@@ -61,7 +61,6 @@ app.get('/course-specs.json', (req, res) => {
 app.get('/api/courses', (req, res) => {
   try {
     const data = JSON.parse(fs.readFileSync(path.join(__dirname, 'course-specs.json'), 'utf8'));
-    console.log('[API] GET /api/courses - returning', data.courses?.length || 0, 'courses');
     res.json({ success: true, courses: data.courses || [] });
   } catch (err) {
     console.error('[API ERROR] /api/courses:', err.message);
@@ -199,8 +198,6 @@ app.post('/api/exam/start', async (req, res) => {
   try {
     const { subject, studentName } = req.body || {};
     if (!subject) return res.status(400).json({ error: 'subject is required' });
-
-    await initKnowledgeBase();
 
     const session = createSession(subject, studentName);
     console.log(`[EXAM] New session: ${session.id} - ${session.courseName}`);
@@ -375,13 +372,10 @@ app.post('/api/exam/upload/:sessionId', (req, res) => {
 
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api')) {
-    console.log('[API 404]', req.path);
     return res.status(404).json({ error: 'API endpoint not found' });
   }
   
-  // Serve index.html for SPA routing
   const indexPath = path.join(publicPath, 'index.html');
-  console.log('[SPA FALLBACK] Serving index.html from:', indexPath);
   res.sendFile(indexPath, (err) => {
     if (err) {
       console.error('[SPA FALLBACK ERROR]', err.message);
@@ -391,37 +385,47 @@ app.get('*', (req, res) => {
 });
 
 // ============================================================
-// STARTUP
+// ASYNC STARTUP FUNCTION
 // ============================================================
 
-const PORT = parseInt(process.env.PORT || '3000', 10);
-console.log('[STARTUP] PORT resolved to:', PORT);
+async function start() {
+  try {
+    console.log('[STARTUP] Initializing knowledge base...');
+    await initKnowledgeBase();
+    console.log('[STARTUP] ✅ Knowledge base initialized');
 
-const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`[STARTUP] ✅ Server listening on port ${PORT}`);
-  console.log(`[STARTUP] URL: http://0.0.0.0:${PORT}`);
-  console.log(`[STARTUP] Health check: http://localhost:${PORT}/health`);
-  console.log(`[STARTUP] XAI Model: ${XAI_MODEL}`);
-  console.log('[STARTUP] Ready to accept requests');
-});
+    const PORT = parseInt(process.env.PORT || '3000', 10);
+    console.log('[STARTUP] PORT resolved to:', PORT);
 
-server.on('error', (err) => {
-  console.error('[SERVER ERROR]', err);
-  process.exit(1);
-});
+    const server = app.listen(PORT, '0.0.0.0', () => {
+      console.log(`[STARTUP] ✅ Server listening on port ${PORT}`);
+      console.log('[STARTUP] Ready to accept requests');
+    });
 
-process.on('SIGTERM', () => {
-  console.log('[SHUTDOWN] SIGTERM received');
-  server.close(() => {
-    console.log('[SHUTDOWN] Server closed');
-    process.exit(0);
-  });
-});
+    server.on('error', (err) => {
+      console.error('[SERVER ERROR]', err);
+      process.exit(1);
+    });
 
-process.on('SIGINT', () => {
-  console.log('[SHUTDOWN] SIGINT received');
-  server.close(() => {
-    console.log('[SHUTDOWN] Server closed');
-    process.exit(0);
-  });
-});
+    process.on('SIGTERM', () => {
+      console.log('[SHUTDOWN] SIGTERM received');
+      server.close(() => {
+        console.log('[SHUTDOWN] Server closed');
+        process.exit(0);
+      });
+    });
+
+    process.on('SIGINT', () => {
+      console.log('[SHUTDOWN] SIGINT received');
+      server.close(() => {
+        console.log('[SHUTDOWN] Server closed');
+        process.exit(0);
+      });
+    });
+  } catch (err) {
+    console.error('[STARTUP FATAL ERROR]', err.message);
+    process.exit(1);
+  }
+}
+
+start();
