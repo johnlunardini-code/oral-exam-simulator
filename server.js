@@ -9,6 +9,7 @@ console.log('[STARTUP] XAI_API_KEY present:', !!process.env.XAI_API_KEY);
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { initKnowledgeBase, getCourseContext, addStudentMaterial, retrieveRelevantContext } from './knowledge-base.js';
 import { SYSTEM_PROMPT } from './system-prompt.js';
@@ -27,6 +28,32 @@ console.log('[STARTUP] Express configured');
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// === COURSES ENDPOINT ===
+app.get('/api/courses', (req, res) => {
+  try {
+    const coursesData = JSON.parse(fs.readFileSync(path.join(__dirname, 'course-specs.json'), 'utf8'));
+    const courses = coursesData.courses || [];
+    
+    // Group by year
+    const grouped = {};
+    courses.forEach(c => {
+      const year = c.year || 1;
+      if (!grouped[year]) grouped[year] = [];
+      grouped[year].push({
+        id: c.id,
+        name: c.name,
+        code: c.code,
+        cfu: c.cfu,
+        semester: c.semester
+      });
+    });
+    
+    res.json({ success: true, courses, grouped, total: courses.length });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to load courses', message: err.message });
+  }
 });
 
 // === UPLOAD ENDPOINT ===
