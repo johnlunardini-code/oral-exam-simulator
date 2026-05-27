@@ -97,6 +97,27 @@ async function callGrok(systemPrompt, conversation, options = {}) {
 }
 
 // ============================================================
+// MC Answer Extraction Helper
+// ============================================================
+
+function extractAndHideCorrectAnswer(responseText, questionType) {
+  const result = {
+    displayText: responseText,
+    correctAnswer: null
+  };
+
+  if (questionType === 'multiple-choice') {
+    const answerMatch = responseText.match(/\[CORRECT_ANSWER:\s*([A-D])\]/i);
+    if (answerMatch) {
+      result.correctAnswer = answerMatch[1].toUpperCase();
+      result.displayText = responseText.replace(/\s*\[CORRECT_ANSWER:\s*[A-D]\]\s*/i, '').trim();
+    }
+  }
+
+  return result;
+}
+
+// ============================================================
 // Question Type Helpers
 // ============================================================
 
@@ -159,7 +180,8 @@ function createSession(courseId, studentName) {
     uploads: [],
     questionCount: 0,
     lastQuestion: null,
-    lastQuestionType: 'oral'
+    lastQuestionType: 'oral',
+    mcAnswerBank: {}
   };
 
   sessions.set(sessionId, session);
@@ -275,12 +297,21 @@ app.post('/api/exam/question', async (req, res) => {
       return res.status(502).json({ error: 'LLM call failed', details: apiErr.message });
     }
 
+    // Extract and hide correct answer for MC questions
+    const { displayText, correctAnswer } = extractAndHideCorrectAnswer(professorResponse, session.lastQuestionType);
+    
+    // Store correct answer if this is an MC question
+    if (session.lastQuestionType === 'multiple-choice' && correctAnswer) {
+      const qNum = session.questionCount + 1;
+      session.mcAnswerBank[qNum] = correctAnswer;
+    }
+
     session.messages.push({ role: 'assistant', content: professorResponse });
-    session.lastQuestion = professorResponse;
+    session.lastQuestion = displayText;
     session.questionCount += 1;
     
     const qObj = {
-      text: professorResponse.slice(0, 220),
+      text: displayText.slice(0, 220),
       type: session.lastQuestionType,
       number: session.questionCount
     };
@@ -293,7 +324,7 @@ app.post('/api/exam/question', async (req, res) => {
     }
 
     res.json({
-      response: professorResponse,
+      response: displayText,
       questionNumber: session.questionCount,
       questionType: session.lastQuestionType,
       hypotheticalScore,

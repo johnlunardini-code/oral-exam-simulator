@@ -124,7 +124,7 @@
     <div class="container">
         <header>
             <h1>🎓 UCBM Exam Tutor</h1>
-            <p class="subtitle">Biomedical Engineering - Piano degli Studi 2026-2027</p>
+            <p class="subtitle">Biomedical Engineering - Piano degli Studi 2025-2026</p>
         </header>
 
         <!-- Start Screen -->
@@ -230,7 +230,6 @@
             <div class="bottom-controls">
                 <button class="btn-primary" onclick="getScore()" style="flex: 1;">📊 Get Score</button>
                 <button class="btn-secondary" onclick="generateHint()" style="flex: 1;">💡 Hint</button>
-                <button class="btn-secondary" onclick="searchGoogle()" style="flex: 1;">🔍 Google</button>
                 <button class="btn-success" onclick="openHintHistory()" style="flex: 1;">📋 History</button>
                 <button class="btn-success" onclick="openFeedbackHistory()" style="flex: 1;">💬 Feedback</button>
                 <button class="btn-danger" onclick="endExam()" style="flex: 1;">End Exam</button>
@@ -348,7 +347,11 @@
                 alert('No question text available.');
                 return;
             }
-            const query = encodeURIComponent(currentQuestionText);
+            // Extract only the question portion - remove any headers or intro text
+            let questionOnly = currentQuestionText;
+            // Remove common header patterns like "Question X:", professor names, etc.
+            questionOnly = questionOnly.replace(/^(Question\s+\d+:|Professor:|Hi\s+\w+,?|Hello\s+\w+,?)/i, '').trim();
+            const query = encodeURIComponent(questionOnly);
             window.open(`https://www.google.com/search?q=${query}`, '_blank');
         }
 
@@ -936,6 +939,7 @@
             document.getElementById('sidebar').classList.add('active');
             document.getElementById('sidebarTitle').textContent = 'Study Hint';
             const hintResult = document.getElementById('hintResult');
+            const googleBtn = document.getElementById('googleSearchBtn');
             hintResult.innerHTML = '<p style="text-align: center; color: #667eea;">Generating hint...</p>';
             
             try {
@@ -946,8 +950,11 @@
                 });
                 const data = await response.json();
                 hintResult.innerHTML = `<div style="background: #f0f4ff; padding: 10px; border-radius: 6px;"><p style="color: #333; font-size: 12px; margin: 0;">${data.textHint}</p></div>`;
+                googleBtn.style.display = 'inline-block';
+                googleBtn.onclick = searchGoogle;
             } catch (error) {
                 hintResult.innerHTML = '<p style="color: #e74c3c;">Error</p>';
+                googleBtn.style.display = 'none';
             }
         }
 
