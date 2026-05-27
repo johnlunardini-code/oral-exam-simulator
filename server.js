@@ -3,18 +3,27 @@
 
 console.log('[STARTUP] Starting UCBM Exam Simulator');
 console.log('[STARTUP] NODE_ENV:', process.env.NODE_ENV);
-console.log('[STARTUP] PORT:', process.env.PORT);
+console.log('[STARTUP] PORT:', process.env.PORT || 3000);
+console.log('[STARTUP] XAI_API_KEY present:', !!process.env.XAI_API_KEY);
 
 import express from 'express';
 import cors from 'cors';
+
+console.log('[STARTUP] Express and CORS imported');
+
 import { initKnowledgeBase, getCourseContext, addStudentMaterial, retrieveRelevantContext } from './knowledge-base.js';
+
+console.log('[STARTUP] Knowledge base module imported');
+
 import { SYSTEM_PROMPT } from './system-prompt.js';
 
-console.log('[STARTUP] Imports successful');
+console.log('[STARTUP] System prompt imported');
 
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
+
+console.log('[STARTUP] Express configured');
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -40,6 +49,7 @@ app.post('/api/upload', async (req, res) => {
     await addStudentMaterial(studentId, courseId, fileType, content, metadata);
     res.json({ success: true, message: 'Material added to knowledge base' });
   } catch (err) {
+    console.error('[UPLOAD] Error:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -56,7 +66,7 @@ app.post('/api/exam/simulate', async (req, res) => {
     
     // If no API key, return mock response for testing
     if (!apiKey) {
-      console.log('[API] XAI_API_KEY not configured, returning demo response');
+      console.log('[EXAM] XAI_API_KEY not configured, returning demo response');
       return res.json({
         success: true,
         courseName: course.name,
@@ -68,6 +78,8 @@ app.post('/api/exam/simulate', async (req, res) => {
         feedback: null
       });
     }
+
+    console.log('[EXAM] Calling xAI API for course:', courseId);
 
     // Build the full prompt for xAI
     const userMessage = `${SYSTEM_PROMPT}
@@ -108,7 +120,7 @@ Generate the next exam question or interaction.`;
 
     if (!response.ok) {
       const error = await response.text();
-      console.error('[API] xAI error:', error);
+      console.error('[EXAM] xAI API error:', response.status, error);
       return res.status(response.status).json({ error: `xAI API error: ${error}` });
     }
 
@@ -127,7 +139,7 @@ Generate the next exam question or interaction.`;
     });
 
   } catch (err) {
-    console.error('[API] Exam simulation error:', err);
+    console.error('[EXAM] Error:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -144,8 +156,16 @@ app.use((req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
+
+console.log('[STARTUP] Attempting to listen on port', PORT);
+
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`[STARTUP] 🚀 UCBM Exam Simulator running on port ${PORT}`);
+});
+
+server.on('error', (err) => {
+  console.error('[STARTUP] Server error:', err);
+  process.exit(1);
 });
 
 process.on('SIGTERM', () => {
@@ -162,4 +182,14 @@ process.on('SIGINT', () => {
     console.log('[SHUTDOWN] Server closed');
     process.exit(0);
   });
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('[CRASH] Uncaught exception:', err);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[CRASH] Unhandled rejection at:', promise, 'reason:', reason);
+  process.exit(1);
 });
