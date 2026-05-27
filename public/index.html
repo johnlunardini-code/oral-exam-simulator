@@ -118,6 +118,8 @@
         .feedback-item:hover { background: #f0f4ff; border-color: #667eea; }
         
         .speech-feedback { font-size: 12px; color: #27ae60; padding: 8px; background: #e8f8f5; border-radius: 4px; margin-top: 4px; text-align: center; font-weight: 600; }
+        .professor-speaking-indicator { font-size: 12px; color: #667eea; padding: 8px; background: #e3f2fd; border-radius: 4px; margin-top: 4px; text-align: center; font-weight: 600; animation: blink 1s infinite; }
+        @keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0.5; } }
     </style>
 </head>
 <body>
@@ -294,7 +296,7 @@
                     <h4 style="color: #667eea; margin-top: 10px; margin-bottom: 6px; font-size: 12px;">📝 During Exam</h4>
                     <p style="margin: 3px 0;"><strong>✓ Send:</strong> Submit your typed or spoken answer.</p>
                     <p style="margin: 3px 0;"><strong>🎤 Speak:</strong> Click to start recording, click again to stop.</p>
-                    <p style="margin: 3px 0;"><strong>🔊 Mute:</strong> Toggle audio on/off.</p>
+                    <p style="margin: 3px 0;"><strong>🔊 Mute:</strong> Toggle audio on/off. Changes to "Stop" during professor response to let you stop playback anytime.</p>
                     <p style="margin: 3px 0;"><strong>📎 Attach:</strong> Upload supporting files for the tutor to review.</p>
                     <p style="margin: 3px 0;"><strong>📊 Get Score:</strong> View your current score and Italian 30-point scale.</p>
                     <p style="margin: 3px 0;"><strong>💡 Hint:</strong> Get a study tip and search terms.</p>
@@ -316,6 +318,7 @@
         let recognitionSilenceTimer = null;
         let recognitionTranscript = '';
         let currentSessionIsItalian = false;
+        let isProfessorSpeaking = false;
         const recognition = window.webkitSpeechRecognition || window.SpeechRecognition;
 
         let yearStructure = {};
@@ -342,15 +345,39 @@
             }
         }
 
+        function extractQuestionOnly(text) {
+            if (!text) return '';
+            
+            // Remove introductory text patterns (professor greetings, format explanations, instructions)
+            let cleaned = text.replace(/^.*?(?:Hello|Hi|Good|Dear|Welcome),\s+[^.!?]*[.!?]\s+/i, '').trim();
+            cleaned = cleaned.replace(/^.*?(?:This exam|The exam|In this exam|Here is|We will)[^?]*\.\s+/i, '').trim();
+            cleaned = cleaned.replace(/^.*?(?:For this question|Please answer|Respond to)[^?]*\s+/i, '').trim();
+            
+            // For multiple-choice: extract question stem only (not options)
+            const mcMatch = cleaned.match(/^([^A-D\n]*?\?)\s*(?:A\)|B\)|$)/i);
+            if (mcMatch) {
+                return mcMatch[1].trim();
+            }
+            
+            // Find the last paragraph containing a question mark or ending question
+            const paragraphs = cleaned.split(/\n\n+/).map(p => p.trim()).filter(p => p.length > 0);
+            for (let i = paragraphs.length - 1; i >= 0; i--) {
+                if (paragraphs[i].includes('?') || /[!.?]$/.test(paragraphs[i])) {
+                    return paragraphs[i];
+                }
+            }
+            
+            // Fallback: return first 250 chars as last resort
+            return cleaned.substring(0, 250);
+        }
+
         function searchGoogle() {
             if (!currentQuestionText.trim()) {
                 alert('No question text available.');
                 return;
             }
-            // Extract only the question portion - remove any headers or intro text
-            let questionOnly = currentQuestionText;
-            // Remove common header patterns like "Question X:", professor names, etc.
-            questionOnly = questionOnly.replace(/^(Question\s+\d+:|Professor:|Hi\s+\w+,?|Hello\s+\w+,?)/i, '').trim();
+            // Extract only the actual question that expects an answer
+            const questionOnly = extractQuestionOnly(currentQuestionText);
             const query = encodeURIComponent(questionOnly);
             window.open(`https://www.google.com/search?q=${query}`, '_blank');
         }
@@ -518,28 +545,53 @@
             };
         }
 
+        function startRecording() {
+            document.getElementById('answerInput').value = '';
+            recognitionTranscript = '';
+            speechRecognizer.lang = currentSessionIsItalian ? 'it-IT' : 'en-US';
+            speechRecognizer.start();
+        }
+
+        function stopRecording() {
+            speechRecognizer.stop();
+            const answer = document.getElementById('answerInput').value.trim();
+            if (answer) {
+                setTimeout(() => submitAnswer(), 500);
+            }
+        }
+
+        function stopProfessorSpeech() {
+            if (isProfessorSpeaking) {
+                speechSynthesis.cancel();
+                isProfessorSpeaking = false;
+                const btn = document.getElementById('muteButton');
+                if (btn) {
+                    btn.textContent = '🔊 Mute';
+                    btn.style.background = '#764ba2';
+                }
+                document.getElementById('speechFeedback').innerHTML = '';
+            }
+        }
+
         function toggleSpeech() {
             if (!speechRecognizer) { alert('Speech not supported'); return; }
             if (isListening) {
-                speechRecognizer.stop();
-                const answer = document.getElementById('answerInput').value.trim();
-                if (answer) {
-                    setTimeout(() => submitAnswer(), 500);
-                }
+                stopRecording();
             } else {
-                document.getElementById('answerInput').value = '';
-                recognitionTranscript = '';
-                speechRecognizer.lang = currentSessionIsItalian ? 'it-IT' : 'en-US';
-                speechRecognizer.start();
+                startRecording();
             }
         }
 
         function toggleMute() {
-            speechSynthesisEnabled = !speechSynthesisEnabled;
-            if (!speechSynthesisEnabled) speechSynthesis.cancel();
-            const btn = document.getElementById('muteButton');
-            btn.textContent = speechSynthesisEnabled ? '🔊 Mute' : '🔇 Mute';
-            btn.style.background = speechSynthesisEnabled ? '#764ba2' : '#e74c3c';
+            if (isProfessorSpeaking) {
+                stopProfessorSpeech();
+            } else {
+                speechSynthesisEnabled = !speechSynthesisEnabled;
+                if (!speechSynthesisEnabled) speechSynthesis.cancel();
+                const btn = document.getElementById('muteButton');
+                btn.textContent = speechSynthesisEnabled ? '🔊 Mute' : '🔇 Mute';
+                btn.style.background = speechSynthesisEnabled ? '#764ba2' : '#e74c3c';
+            }
         }
 
         function insertBold() { wrapSelection('<b>', '</b>'); }
@@ -607,6 +659,7 @@
                 currentSessionIsItalian = data.isItalianCourse || false;
                 messageHistory = [];
                 currentHintCache = null;
+                isProfessorSpeaking = false;
                 
                 document.querySelector('.start-screen').classList.remove('active');
                 document.querySelector('.exam-screen').classList.add('active');
@@ -891,6 +944,12 @@
             if (!speechSynthesisEnabled) return;
             if (speechRecognizer && isListening) speechRecognizer.stop();
             
+            isProfessorSpeaking = true;
+            const btn = document.getElementById('muteButton');
+            btn.textContent = '⏹️ Stop';
+            btn.style.background = '#e74c3c';
+            document.getElementById('speechFeedback').innerHTML = '<div class="professor-speaking-indicator">🔊 Professor speaking...</div>';
+            
             speechSynthesis.cancel();
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.rate = 0.9;
@@ -901,6 +960,13 @@
             
             if (voice) utterance.voice = voice;
             utterance.lang = currentSessionIsItalian ? 'it-IT' : 'en-US';
+            
+            utterance.onend = () => {
+                isProfessorSpeaking = false;
+                btn.textContent = '🔊 Mute';
+                btn.style.background = '#764ba2';
+                document.getElementById('speechFeedback').innerHTML = '';
+            };
             
             speechSynthesis.speak(utterance);
         }
