@@ -8,14 +8,19 @@ console.log('[STARTUP] XAI_API_KEY present:', !!process.env.XAI_API_KEY);
 
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { initKnowledgeBase, getCourseContext, addStudentMaterial, retrieveRelevantContext } from './knowledge-base.js';
 import { SYSTEM_PROMPT } from './system-prompt.js';
 
 console.log('[STARTUP] All imports successful');
 
 const app = express();
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
+app.use(express.static(path.join(__dirname, 'public')));
 
 console.log('[STARTUP] Express configured');
 
@@ -132,9 +137,13 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error', message: err.message });
 });
 
-// 404 handler
+// 404 handler - serve index.html for SPA routes
 app.use((req, res) => {
-  res.status(404).json({ error: 'Not found' });
+  if (req.accepts('html')) {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  } else {
+    res.status(404).json({ error: 'Not found' });
+  }
 });
 
 const PORT = 3000;
