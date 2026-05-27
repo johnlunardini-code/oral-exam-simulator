@@ -49,7 +49,7 @@
         .year-courses.collapsed { display: none; }
         @media (max-width: 480px) { .year-courses { grid-template-columns: 1fr; } }
         
-        .subject-btn { padding: 12px 10px; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; color: white; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+        .subject-btn { padding: 12px 10px; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; color: white; white-space: normal; text-overflow: ellipsis; overflow: hidden; display: flex; align-items: center; justify-content: center; gap: 6px; }
         .subject-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); }
         
         .exam-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 16px; border-radius: 6px; margin: 12px 0 8px 0; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
@@ -98,7 +98,6 @@
         .btn-success { background: #27ae60; color: white; }
         .btn-danger { background: #e74c3c; color: white; }
         
-        /* BUG FIX #2: Visual recording indicator for mobile speech */
         .recording-active { border: 3px solid #e74c3c !important; animation: pulse 0.5s infinite; }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.5); } 70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); } 100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); } }
         
@@ -132,7 +131,7 @@
             <div class="feature-list">
                 <h3>🌟 Features</h3>
                 <ul>
-                    <li>27 UCBM courses</li>
+                    <li>27+ UCBM courses</li>
                     <li>Auto Q-generation</li>
                     <li>Live feedback</li>
                     <li>Speech support</li>
@@ -166,12 +165,6 @@
                     <label style="display: block; color: #333; font-weight: 600; margin-bottom: 4px; font-size: 12px;">Course Assignment (optional):</label>
                     <select id="homeUploadCourse" style="width: 100%; padding: 6px; border: 1px solid #667eea; border-radius: 4px; font-size: 11px; background: white;">
                         <option value="">General Materials</option>
-                        <option value="anatomy">Anatomy</option>
-                        <option value="physiology">Physiology</option>
-                        <option value="chemistry">Chemistry</option>
-                        <option value="mathematics">Mathematics</option>
-                        <option value="general-physics">General Physics</option>
-                        <option value="italian">Italian</option>
                     </select>
                 </div>
                 <input type="file" id="homeUploadInput" accept=".pdf,.docx,.pptx,.txt,.jpg,.png,.gif,.webp" multiple onchange="preloadMaterials()">
@@ -292,37 +285,14 @@
                     <p style="margin: 3px 0;"><strong>Language Support:</strong> Italian courses accept responses in Italian or English.</p>
                     <p style="margin: 3px 0;"><strong>🇮🇹 Risponda in Italiano Button:</strong> Appears for Italian courses. Click to hear the professor remind you that you can respond in Italian.</p>
                     <p style="margin: 3px 0;"><strong>Auto Language Switch:</strong> Speech recognition automatically switches to Italian (it-IT) when using the Speak button in Italian exams.</p>
-                    <p style="margin: 3px 0;"><strong>Example:</strong> In the Italian course, you can respond using Italian or English, and speech input will be recognized in Italian.</p>
                     
                     <h4 style="color: #667eea; margin-top: 10px; margin-bottom: 6px; font-size: 12px;">📝 During Exam</h4>
-                    <p style="margin: 3px 0;"><strong>Buttons Available:</strong></p>
                     <p style="margin: 3px 0;"><strong>✓ Send:</strong> Submit your typed or spoken answer.</p>
-                    <p style="margin: 3px 0;"><strong>🎤 Speak:</strong> Click to start recording, click again to stop. Recognized text appears in the text area.</p><p style="margin: 3px 0;"><strong>Mobile Speech:</strong> On mobile, you may need to click Speak again if your answer is long. Keep clicking until you are finished speaking, then click Speak once more to submit.</p>
-                    <p style="margin: 3px 0;"><strong>🔊 Mute:</strong> Toggle audio on/off. When off, the professor's responses won't be spoken aloud.</p>
-                    <p style="margin: 3px 0;"><strong>📎 Attach:</strong> Upload supporting files (PDFs, images, documents) for the tutor to review with your answer.</p>
-                    <p style="margin: 3px 0;"><strong>📊 Get Score:</strong> View your current score: number correct, percentage, and Italian 30-point scale.</p>
-                    <p style="margin: 3px 0;"><strong>💡 Hint:</strong> Get a study tip and search terms for the current question.</p>
-                    <p style="margin: 3px 0;"><strong>📋 History:</strong> View all hints generated during this exam session.</p>
-                    <p style="margin: 3px 0;"><strong>💬 Feedback:</strong> Get detailed feedback on your answers by selecting a specific question.</p>
-                    <p style="margin: 3px 0;"><strong>⚙️ Settings:</strong> Change voice, test voice output.</p>
-                    <p style="margin: 3px 0;"><strong>End Exam:</strong> Finish the exam and save your score.</p>
-                    
-                    <h4 style="color: #667eea; margin-top: 10px; margin-bottom: 6px; font-size: 12px;">🎤 Audio Buttons</h4>
-                    <p style="margin: 3px 0;"><strong>🎤 Speak:</strong> Click to start recording your answer. The text field borders will pulse red. Click again to stop and submit.</p><p style="margin: 3px 0;"><strong>Mobile Speech:</strong> On mobile, you may need to click Speak again if your answer is long. Keep clicking until you are finished speaking, then click Speak once more to submit.</p>
-                    <p style="margin: 3px 0;"><strong>🔊 Mute:</strong> Toggle text-to-speech on/off. Button changes color when muted.</p>
-                    <p style="margin: 3px 0;"><strong>📎 Attach:</strong> Upload supporting files with your answer (PDFs, documents, images, audio, video).</p>
-                    <p style="margin: 3px 0;"><strong>⚙️ Settings:</strong> Change voice output and test it before your exam.</p>
-                    <p style="margin: 3px 0; font-size: 10px; color: #999;"><em>Note: Voice availability varies by device/browser. Google voices work on most phones. Microsoft voices depend on OS and browser support.</em></p>
-                    
-                    <h4 style="color: #667eea; margin-top: 10px; margin-bottom: 6px; font-size: 12px;">💡 Tips for Success</h4>
-                    <p style="margin: 3px 0;">• Upload course materials on the home page for better AI feedback</p>
-                    <p style="margin: 3px 0;">• Use hints early to identify weak areas</p>
-                    <p style="margin: 3px 0;">• Each exam generates fresh questions, so take multiple attempts</p>
-                    <p style="margin: 3px 0;">• Attach supporting documents to show your reasoning</p>
-                    <p style="margin: 3px 0;">• Use formatting (bold, italic, lists) to structure complex answers</p>
-                    <p style="margin: 3px 0;">• For Italian exams, click the Italian button to confirm you can respond in Italian</p>
-                    <p style="margin: 3px 0;">• Check past scores to track your improvement over multiple attempts</p>
-                    <p style="margin: 3px 0;">• Works on desktop and mobile devices (iOS, Android)</p>
+                    <p style="margin: 3px 0;"><strong>🎤 Speak:</strong> Click to start recording, click again to stop.</p>
+                    <p style="margin: 3px 0;"><strong>🔊 Mute:</strong> Toggle audio on/off.</p>
+                    <p style="margin: 3px 0;"><strong>📎 Attach:</strong> Upload supporting files for the tutor to review.</p>
+                    <p style="margin: 3px 0;"><strong>📊 Get Score:</strong> View your current score and Italian 30-point scale.</p>
+                    <p style="margin: 3px 0;"><strong>💡 Hint:</strong> Get a study tip and search terms.</p>
                 </div>
             </div>
         </div>
@@ -340,45 +310,67 @@
         let messageHistory = [];
         let recognitionSilenceTimer = null;
         let recognitionTranscript = '';
-        let isItalianCourse = false;
-        let currentSessionLang = 'en-US';
         let currentSessionIsItalian = false;
         const recognition = window.webkitSpeechRecognition || window.SpeechRecognition;
-        const SILENCE_THRESHOLD = 300000; // IMPROVEMENT #1: 5 minutes, no auto-stop
 
-        const yearStructure = {
-            'Year 1': [
-                { id: 'chemistry', name: 'Chemistry', color: '#e74c3c' },
-                { id: 'general-physics', name: 'General Physics', color: '#f39c12' },
-                { id: 'economics-and-management', name: 'Economics & Mgmt', color: '#16a085' },
-                { id: 'general-english', name: 'English', color: '#2980b9' },
-                { id: 'italian', name: 'Italian', color: '#8b4513' },
-                { id: 'physiology', name: 'Physiology', color: '#c0392b' },
-                { id: 'anatomy', name: 'Anatomy', color: '#9b59b6' },
-                { id: 'mathematics', name: 'Mathematics', color: '#764ba2' },
-                { id: 'fundamentals-of-computer-science', name: 'Computer Science', color: '#667eea' },
-            ],
-            'Year 2': [
-                { id: 'advanced-physics', name: 'Advanced Physics', color: '#8e44ad' },
-                { id: 'mathematics-ii', name: 'Mathematics II', color: '#27ae60' },
-                { id: 'probability-and-statistics', name: 'Probability & Stats', color: '#d35400' },
-                { id: 'healthcare-information-systems-and-telemedicine', name: 'HIS & Telemedicine', color: '#1abc9c' },
-                { id: 'electronics-and-electrotechnics', name: 'Electronics', color: '#34495e' },
-                { id: 'mechanics-of-solids', name: 'Mechanics', color: '#e67e22' },
-                { id: 'transport-phenomena-and-thermodynamics', name: 'Transport & Thermo', color: '#16a085' },
-                { id: 'technical-english', name: 'Tech English', color: '#3498db' },
-            ],
-            'Year 3': [
-                { id: 'biomedical-signal-processing', name: 'Signal Processing', color: '#9b59b6' },
-                { id: 'fundamentals-of-automatic-control', name: 'Auto Control', color: '#e74c3c' },
-                { id: 'biomechanics', name: 'Biomechanics', color: '#1e8449' },
-                { id: 'fundamentals-of-bioengineering', name: 'Bioengineering', color: '#154360' },
-                { id: 'measurements-and-instrumentation-in-biomedical-engineering', name: 'Measurements', color: '#784212' },
-                { id: 'humanities-for-bioengineering', name: 'Humanities', color: '#641e16' },
-                { id: 'biomechatronics-and-biomaterials', name: 'Biomechatronics', color: '#8b4513' },
-                { id: 'healthcare-robotics', name: 'Healthcare Robotics', color: '#1e90ff' },
-            ]
-        };
+        let yearStructure = {};
+        let courseDataMap = {};
+
+        const colorPalette = [
+            '#667eea', '#764ba2', '#e74c3c', '#f39c12', '#16a085',
+            '#2980b9', '#8b4513', '#c0392b', '#9b59b6', '#8e44ad',
+            '#27ae60', '#d35400', '#1abc9c', '#34495e', '#e67e22',
+            '#9b59b6', '#1e8449', '#154360', '#784212', '#641e16',
+            '#8b4513', '#1e90ff', '#3498db', '#2ecc71', '#e67e22',
+            '#16a085', '#d35400', '#8e44ad'
+        ];
+        let colorIndex = 0;
+
+        async function loadCoursesFromJSON() {
+            try {
+                const response = await fetch('/course-specs.json');
+                const courseSpecs = await response.json();
+                yearStructure = {};
+                courseDataMap = {};
+
+                courseSpecs.courses.forEach((course) => {
+                    const year = `Year ${course.year}`;
+                    if (!yearStructure[year]) {
+                        yearStructure[year] = [];
+                    }
+
+                    const color = colorPalette[colorIndex % colorPalette.length];
+                    colorIndex++;
+
+                    const courseInfo = {
+                        id: course.id,
+                        name: course.name,
+                        emoji: course.emoji,
+                        semester: course.semester,
+                        color: color
+                    };
+
+                    yearStructure[year].push(courseInfo);
+                    courseDataMap[course.id] = courseInfo;
+                });
+
+                console.log('✅ Loaded', courseSpecs.courses.length, 'courses from course-specs.json');
+                initializeCourses();
+                populateUploadDropdown();
+            } catch (error) {
+                console.error('Error loading courses:', error);
+            }
+        }
+
+        function populateUploadDropdown() {
+            const dropdown = document.getElementById('homeUploadCourse');
+            Object.values(courseDataMap).forEach(course => {
+                const option = document.createElement('option');
+                option.value = course.id;
+                option.textContent = course.emoji + ' ' + course.name;
+                dropdown.appendChild(option);
+            });
+        }
 
         function initializeCourses() {
             const container = document.getElementById('coursesContainer');
@@ -401,7 +393,8 @@
                     const btn = document.createElement('button');
                     btn.className = 'subject-btn';
                     btn.style.background = course.color;
-                    btn.textContent = course.name;
+                    btn.title = `${course.name} (Sem ${course.semester})`;
+                    btn.innerHTML = `<span style="font-size: 14px;">${course.emoji}</span><span>${course.name}</span>`;
                     btn.onclick = () => startExam(course.id);
                     coursesDiv.appendChild(btn);
                 });
@@ -426,32 +419,36 @@
         }
 
         if (speechSynthesis.onvoiceschanged !== undefined) {
-            speechSynthesis.onvoiceschanged = () => {
-                loadVoices();
-            };
+            speechSynthesis.onvoiceschanged = () => loadVoices();
         }
-        loadVoices();
-        document.getElementById('voiceLanguage').value = voiceLanguage;
-        initializeCourses();
+
+        function changeVoiceLanguage() {
+            voiceLanguage = document.getElementById('voiceLanguage').value;
+            localStorage.setItem('userVoicePreference', voiceLanguage);
+        }
+
+        function updateVoiceFromSettings() {
+            voiceLanguage = document.getElementById('examVoiceSelect').value;
+            localStorage.setItem('userVoicePreference', voiceLanguage);
+        }
 
         if (recognition) {
             speechRecognizer = new recognition();
-            speechRecognizer.continuous = true; speechRecognizer.maxAlternatives = 1;  // IMPROVEMENT #1: Reduce overhead
+            speechRecognizer.continuous = true;
             speechRecognizer.interimResults = true;
             speechRecognizer.lang = 'en-US';
             
-            speechRecognizer.onstart = () => { 
+            speechRecognizer.onstart = () => {
                 isListening = true;
                 recognitionTranscript = '';
                 document.getElementById('answerInput').value = '';
-                document.getElementById('answerInput').dataset.voiceRecording = 'true';
                 document.getElementById('answerInput').classList.add('recording-active');
                 document.getElementById('speechButton').classList.add('active');
                 document.getElementById('speechButton').textContent = '⏹️ Stop';
                 document.getElementById('speechFeedback').innerHTML = '<div class="speech-feedback">🎤 RECORDING...</div>';
             };
             
-            speechRecognizer.onend = () => { 
+            speechRecognizer.onend = () => {
                 isListening = false;
                 document.getElementById('answerInput').classList.remove('recording-active');
                 document.getElementById('speechButton').classList.remove('active');
@@ -459,26 +456,21 @@
                 const wordCount = recognitionTranscript.trim().split(/\s+/).length;
                 if (wordCount > 0) {
                     document.getElementById('speechFeedback').innerHTML = `<div class="speech-feedback">✓ ${wordCount} word${wordCount !== 1 ? 's' : ''} captured</div>`;
-                    setTimeout(() => {
-                        document.getElementById('speechFeedback').innerHTML = '';
-                    }, 3000);
+                    setTimeout(() => { document.getElementById('speechFeedback').innerHTML = ''; }, 3000);
                 }
             };
             
             speechRecognizer.onresult = (event) => {
                 let finalTranscript = '';
                 for (let i = event.resultIndex; i < event.results.length; i++) {
-                    const transcript = event.results[i][0].transcript;
                     if (event.results[i].isFinal) {
-                        finalTranscript += transcript + ' ';
+                        finalTranscript += event.results[i][0].transcript + ' ';
                     }
                 }
                 if (finalTranscript.trim()) {
                     recognitionTranscript = finalTranscript.trim();
                 }
                 document.getElementById('answerInput').value = recognitionTranscript.trim();
-                if (recognitionSilenceTimer) clearTimeout(recognitionSilenceTimer);
-                // IMPROVEMENT #1: REMOVED recognitionSilenceTimer logic - no auto-stop on silence
             };
 
             speechRecognizer.onerror = (event) => {
@@ -486,35 +478,10 @@
             };
         }
 
-        function changeVoiceLanguage() {
-            voiceLanguage = document.getElementById('voiceLanguage').value;
-            localStorage.setItem('userVoicePreference', voiceLanguage);
-            const examSelect = document.getElementById('examVoiceSelect');
-            if (examSelect) examSelect.value = voiceLanguage;
-        }
-
-        function updateVoiceFromSettings() {
-            voiceLanguage = document.getElementById('examVoiceSelect').value;
-            localStorage.setItem('userVoicePreference', voiceLanguage);
-            const homeSelect = document.getElementById('voiceLanguage');
-            if (homeSelect) homeSelect.value = voiceLanguage;
-        }
-        
-        function initializeVoiceForExam() {
-            setTimeout(() => {
-                const examSelect = document.getElementById('examVoiceSelect');
-                if (examSelect) {
-                    examSelect.value = voiceLanguage;
-                    console.log('Voice initialized for exam:', voiceLanguage);
-                }
-            }, 300);
-        }
-
         function toggleSpeech() {
             if (!speechRecognizer) { alert('Speech not supported'); return; }
             if (isListening) {
                 speechRecognizer.stop();
-                document.getElementById('answerInput').dataset.voiceRecording = 'false';
                 const answer = document.getElementById('answerInput').value.trim();
                 if (answer) {
                     setTimeout(() => submitAnswer(), 500);
@@ -522,20 +489,14 @@
             } else {
                 document.getElementById('answerInput').value = '';
                 recognitionTranscript = '';
-                if (currentSessionIsItalian) {
-                    speechRecognizer.lang = 'it-IT';
-                } else {
-                    speechRecognizer.lang = 'en-US';
-                }
+                speechRecognizer.lang = currentSessionIsItalian ? 'it-IT' : 'en-US';
                 speechRecognizer.start();
             }
         }
 
         function toggleMute() {
             speechSynthesisEnabled = !speechSynthesisEnabled;
-            if (!speechSynthesisEnabled) {
-                speechSynthesis.cancel();
-            }
+            if (!speechSynthesisEnabled) speechSynthesis.cancel();
             const btn = document.getElementById('muteButton');
             btn.textContent = speechSynthesisEnabled ? '🔊 Mute' : '🔇 Mute';
             btn.style.background = speechSynthesisEnabled ? '#764ba2' : '#e74c3c';
@@ -570,7 +531,7 @@
             const courseAssignment = document.getElementById('homeUploadCourse').value;
             if (!files.length) { status.style.display = 'none'; return; }
             
-            status.textContent = `Loading ${files.length} file(s) for ${courseAssignment || 'general materials'}...`;
+            status.textContent = `Loading ${files.length} file(s)...`;
             status.style.display = 'block';
             preloadedMaterials = [];
             let loaded = 0;
@@ -585,7 +546,7 @@
                     });
                     loaded++;
                     if (loaded === files.length) {
-                        status.textContent = `✓ ${loaded} file(s) loaded for ${courseAssignment || 'general materials'}`;
+                        status.textContent = `✓ ${loaded} file(s) loaded`;
                         status.style.color = '#27ae60';
                     }
                 };
@@ -596,7 +557,6 @@
         async function startExam(subject) {
             try {
                 const studentName = document.getElementById('studentName').value || 'Student';
-                
                 const response = await fetch(`${API_BASE}/api/exam/start`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -623,7 +583,6 @@
                 }
                 
                 speechSynthesis.cancel();
-                initializeVoiceForExam();
                 
                 for (let material of preloadedMaterials) {
                     await uploadPreloadedMaterial(material);
@@ -683,7 +642,7 @@
                     const errContent = document.createElement('div');
                     errContent.className = 'message question';
                     errContent.style.cssText = 'background: #ffe3e3; border-left: 4px solid #e74c3c; color: #c0392b;';
-                    errContent.innerHTML = `<div class="message-label">Error</div><div class="message-text">Failed to get response. Please try again. (Status: ${response.status})</div>`;
+                    errContent.innerHTML = `<div class="message-label">Error</div><div class="message-text">Failed to get response. Please try again.</div>`;
                     errorMsg.appendChild(errContent);
                     chatArea.appendChild(errorMsg);
                     chatArea.scrollTop = chatArea.scrollHeight;
@@ -698,7 +657,7 @@
                     const errContent = document.createElement('div');
                     errContent.className = 'message question';
                     errContent.style.cssText = 'background: #ffe3e3; border-left: 4px solid #e74c3c; color: #c0392b;';
-                    errContent.innerHTML = `<div class="message-label">Error</div><div class="message-text">Invalid response from server. Please try again.</div>`;
+                    errContent.innerHTML = `<div class="message-label">Error</div><div class="message-text">Invalid response from server.</div>`;
                     errorMsg.appendChild(errContent);
                     chatArea.appendChild(errorMsg);
                     chatArea.scrollTop = chatArea.scrollHeight;
@@ -748,14 +707,6 @@
                 chatArea.scrollTop = chatArea.scrollHeight;
             } catch (error) {
                 console.error('Question error:', error);
-                const errorMsg = document.createElement('div');
-                errorMsg.className = 'message-group';
-                const errContent = document.createElement('div');
-                errContent.className = 'message question';
-                errContent.style.cssText = 'background: #ffe3e3; border-left: 4px solid #e74c3c; color: #c0392b;';
-                errContent.innerHTML = `<div class="message-label">Error</div><div class="message-text">Network error: ${error.message}. Please try again.</div>`;
-                errorMsg.appendChild(errContent);
-                document.getElementById('chatArea').appendChild(errorMsg);
             }
         }
 
@@ -767,7 +718,6 @@
             }
             if (speechRecognizer && isListening) {
                 speechRecognizer.stop();
-                document.getElementById('answerInput').dataset.voiceRecording = 'false';
             }
             await getQuestion(answer);
         }
@@ -812,7 +762,7 @@
                 const hintHistory = data.hintHistory || {};
                 
                 if (Object.keys(hintHistory).length === 0) {
-                    hintResult.innerHTML = '<p style="color: #999; font-size: 12px; text-align: center;">No hints yet. Click Hint button to generate.</p>';
+                    hintResult.innerHTML = '<p style="color: #999; font-size: 12px; text-align: center;">No hints yet.</p>';
                     return;
                 }
                 
@@ -821,10 +771,9 @@
                     html += `<div style="background: #f0f4ff; padding: 10px; border-radius: 6px; margin-bottom: 10px; border-left: 4px solid #667eea;">`;
                     html += `<div style="font-weight: 600; font-size: 12px; color: #333; margin-bottom: 8px;">Question ${qNum}</div>`;
                     if (Array.isArray(hints)) {
-                        hints.forEach((hint, idx) => {
+                        hints.forEach((hint) => {
                             html += `<div style="background: white; padding: 8px; border-radius: 4px; margin-bottom: 6px; border-left: 3px solid #764ba2;">`;
                             html += `<p style="margin: 0 0 6px 0; color: #333; font-size: 11px; line-height: 1.4;">${hint.hint}</p>`;
-                            html += `<button class="action-btn" onclick="searchHint('${encodeURIComponent(hint.searchTerms)}');" style="width: 100%; padding: 6px; font-size: 10px;">🔍 Search: ${hint.searchTerms}</button>`;
                             html += `</div>`;
                         });
                     }
@@ -846,7 +795,7 @@
             const answers = messageHistory.filter(m => m.role === 'user');
             answers.forEach((answer, i) => {
                 const q = messageHistory.find(m => m.role === 'professor' && m.index === i);
-                if (q) html += `<div class="feedback-item" onclick="getFeedbackForAnswer(${i})" style="cursor:pointer;"><div style="font-weight:600;font-size:11px;color:#333;margin-bottom:4px;">Q${i + 1}</div><div style="font-size:10px;color:#666;">${q.text.substring(0, 50)}...</div></div>`;
+                if (q) html += `<div class="feedback-item" onclick="getFeedbackForAnswer(${i})"><div style="font-weight:600;font-size:11px;color:#333;">Q${i + 1}</div></div>`;
             });
             html += '</div>';
             hintResult.innerHTML = html;
@@ -860,7 +809,7 @@
                     body: JSON.stringify({ sessionId: currentSessionId, questionIndex: index }),
                 });
                 const data = await response.json();
-                document.getElementById('hintResult').innerHTML = `<div style="background: #f0f4ff; padding: 10px; border-radius: 6px; margin-bottom: 10px;"><p style="color: #333; font-size: 12px; line-height: 1.5; margin: 0;"><strong>Feedback:</strong> ${data.feedback}</p></div><button class="action-btn" onclick="openFeedbackHistory()" style="width:100%;padding:8px;">← Back</button>`;
+                document.getElementById('hintResult').innerHTML = `<div style="background: #f0f4ff; padding: 10px; border-radius: 6px;"><p style="color: #333; font-size: 12px; margin: 0;">${data.feedback}</p></div>`;
             } catch (error) {
                 alert('Error: ' + error.message);
             }
@@ -880,14 +829,10 @@
                         });
                         if (response.ok) {
                             const result = await response.json();
-                            const confirmMsg = `✓ ${result.filename} loaded (${result.totalFilesLoaded} file(s) in session)`;
-                            getQuestion(confirmMsg);
-                        } else {
-                            alert('Failed to upload file');
+                            getQuestion(`✓ ${result.filename} loaded`);
                         }
                     } catch (err) {
                         console.error('Upload error:', err);
-                        alert('Error uploading file');
                     }
                 };
                 reader.readAsArrayBuffer(file);
@@ -904,57 +849,17 @@
             utterance.rate = 0.9;
             
             const voices = speechSynthesis.getVoices();
-            console.log('Available voices:', voices.map(v => `"${v.name}"`).join(', '));
-            console.log('Requested voice:', voiceLanguage);
-            
             let voice = voices.find(v => v.name === voiceLanguage);
-            console.log('Exact match found:', !!voice);
+            if (!voice && voices.length > 0) voice = voices[0];
             
-            if (!voice && voiceLanguage.includes(' - ')) {
-                const prefix = voiceLanguage.split(' - ')[0];
-                voice = voices.find(v => v.name && v.name.includes(prefix));
-                console.log('Prefix match (' + prefix + ') found:', !!voice);
-            }
-            
-            if (!voice && voiceLanguage.includes('Google')) {
-                voice = voices.find(v => v.name && v.name.includes('Google'));
-                console.log('Google match found:', !!voice);
-            }
-            
-            if (!voice && voices.length > 0) {
-                voice = voices[0];
-                console.log('Using fallback voice:', voice.name);
-            }
-            
-            let lang = 'en-US';
-            const courseName = document.getElementById('courseName')?.textContent || '';
-            if (courseName.includes('Italian') || currentSessionIsItalian) {
-                lang = 'it-IT';
-                utterance.lang = 'it-IT';
-            } else if (voiceLanguage.includes('Spanish')) {
-                lang = 'es-ES';
-            } else if (voiceLanguage.includes('French')) {
-                lang = 'fr-FR';
-            } else if (voiceLanguage.includes('German')) {
-                lang = 'de-DE';
-            } else if (voiceLanguage.includes('UK') || voiceLanguage.includes('United Kingdom')) {
-                lang = 'en-GB';
-            } else if (voiceLanguage.includes('United States')) {
-                lang = 'en-US';
-            }
-            
-            utterance.lang = lang;
-            
-            if (voice) {
-                utterance.voice = voice;
-                console.log('Speaking with:', voice.name, 'lang:', lang);
-            }
+            if (voice) utterance.voice = voice;
+            utterance.lang = currentSessionIsItalian ? 'it-IT' : 'en-US';
             
             speechSynthesis.speak(utterance);
         }
 
         function testVoice() {
-            speakText('Testing ' + voiceLanguage + ' voice. This is a test message.');
+            speakText('Testing ' + voiceLanguage + ' voice.');
         }
 
         function closeSidebar() {
@@ -986,12 +891,6 @@
             if (!currentSessionId) { alert('Start exam first'); return; }
             document.getElementById('sidebar').classList.add('active');
             document.getElementById('sidebarTitle').textContent = 'Study Hint';
-            
-            if (currentHintCache) {
-                displayHint(currentHintCache);
-                return;
-            }
-
             const hintResult = document.getElementById('hintResult');
             hintResult.innerHTML = '<p style="text-align: center; color: #667eea;">Generating hint...</p>';
             
@@ -1002,39 +901,16 @@
                     body: JSON.stringify({ sessionId: currentSessionId }),
                 });
                 const data = await response.json();
-                if (!data.textHint) throw new Error('Failed');
-                currentHintCache = data;
-                displayHint(data);
+                hintResult.innerHTML = `<div style="background: #f0f4ff; padding: 10px; border-radius: 6px;"><p style="color: #333; font-size: 12px; margin: 0;">${data.textHint}</p></div>`;
             } catch (error) {
-                hintResult.innerHTML = '<p style="color: #e74c3c; font-size: 12px;">Error</p>';
-            }
-        }
-
-        function displayHint(data) {
-            const hintResult = document.getElementById('hintResult');
-            hintResult.innerHTML = `<div style="background: #f0f4ff; padding: 10px; border-radius: 6px; margin-bottom: 10px;"><p style="color: #333; font-size: 12px; line-height: 1.5; margin: 0;">${data.textHint}</p></div><button class="action-btn" onclick="searchHint('${encodeURIComponent(data.searchTerms)}');" style="width:100%;margin-bottom:6px;padding:8px;">🔍 Search</button><button class="action-btn" onclick="closeSidebar();" style="width:100%;padding:8px;background:#764ba2;">Close</button>`;
-        }
-
-        function searchHint(terms) {
-            const query = decodeURIComponent(terms);
-            if (query && query.trim()) {
-                window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
+                hintResult.innerHTML = '<p style="color: #e74c3c;">Error</p>';
             }
         }
 
         async function endExam() {
             if (confirm('End exam?')) {
                 speechSynthesis.cancel();
-                if (speechRecognizer) {
-                    speechRecognizer.stop();
-                    isListening = false;
-                }
-                if (recognitionSilenceTimer) clearTimeout(recognitionSilenceTimer);
-                document.getElementById('answerInput').dataset.voiceRecording = 'false';
-                
-                document.getElementById('sidebar').classList.remove('active');
-                document.getElementById('settingsSidebar').style.right = '-100vw';
-                document.getElementById('helpSidebar').classList.remove('active');
+                if (speechRecognizer) speechRecognizer.stop();
                 
                 try {
                     const response = await fetch(`${API_BASE}/api/exam/session/${currentSessionId}`, { 
@@ -1042,25 +918,22 @@
                         headers: { 'Content-Type': 'application/json' }
                     });
                     
-                    if (!response.ok) {
-                        console.error('Error ending exam - status:', response.status);
-                    } else {
+                    if (response.ok) {
                         const data = await response.json();
-                        if (data && data.scoreData) {
-                            saveScore(data.scoreData);
-                        } else if (data && typeof data === 'object') {
-                            if (data.correct !== undefined && data.total !== undefined) {
-                                const percentage = data.total > 0 ? Math.round(data.correct / data.total * 100) : 0;
-                                const italianScore = Math.round(percentage * 30 / 100);
-                                saveScore({
-                                    courseName: document.getElementById('courseName').textContent,
-                                    correct: data.correct,
-                                    total: data.total,
-                                    percentage: percentage,
-                                    italianScore: italianScore,
-                                    date: new Date().toLocaleDateString()
-                                });
-                            }
+                        if (data && data.correct !== undefined) {
+                            const percentage = data.total > 0 ? Math.round(data.correct / data.total * 100) : 0;
+                            const italianScore = Math.round(percentage * 30 / 100);
+                            const courseName = document.getElementById('courseName').textContent;
+                            let scores = JSON.parse(localStorage.getItem('examScores') || '{}');
+                            if (!scores[courseName]) scores[courseName] = [];
+                            scores[courseName].push({
+                                correct: data.correct,
+                                total: data.total,
+                                percentage: percentage,
+                                italianScore: italianScore,
+                                date: new Date().toLocaleDateString()
+                            });
+                            localStorage.setItem('examScores', JSON.stringify(scores));
                         }
                     }
                 } catch (e) {
@@ -1070,85 +943,35 @@
                 document.querySelector('.exam-screen').classList.remove('active');
                 document.querySelector('.start-screen').classList.add('active');
                 currentSessionId = null;
-                currentSessionIsItalian = false;
                 messageHistory = [];
-                currentHintCache = null;
-                recognitionTranscript = '';
-            }
-        }
-
-        function saveScore(scoreData) {
-            try {
-                let scores = JSON.parse(localStorage.getItem('examScores') || '{}');
-                const courseName = scoreData.courseName || 'Unknown Course';
-                if (!scores[courseName]) scores[courseName] = [];
-                scores[courseName].push({
-                    correct: scoreData.correct,
-                    total: scoreData.total,
-                    percentage: scoreData.percentage,
-                    italianScore: scoreData.italianScore,
-                    date: scoreData.date || new Date().toLocaleDateString()
-                });
-                localStorage.setItem('examScores', JSON.stringify(scores));
-                console.log('Score saved:', scoreData);
-            } catch (e) {
-                console.error('Error saving score:', e);
             }
         }
 
         function viewPastScores() {
-            try {
-                const scoresStr = localStorage.getItem('examScores') || '{}';
-                const scores = JSON.parse(scoresStr);
-                
-                let validScores = {};
-                Object.entries(scores).forEach(([course, attempts]) => {
-                    if (Array.isArray(attempts)) {
-                        const validAttempts = attempts.filter(a => 
-                            a && typeof a === 'object' && 
-                            a.percentage !== undefined && 
-                            typeof a.percentage === 'number'
-                        );
-                        if (validAttempts.length > 0) {
-                            validScores[course] = validAttempts;
-                        }
-                    }
-                });
-                
-                if (!Object.keys(validScores).length) { 
-                    alert('No scores yet.'); 
-                    return; 
-                }
-                
-                let html = '<div style="max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); z-index: 2001;">';
-                html += '<h2 style="color: #333; text-align: center; margin-bottom: 20px;">📊 Past Scores</h2>';
-                html += '<div style="max-height: 600px; overflow-y: auto;">';
-                
-                Object.entries(validScores).forEach(([course, attempts]) => {
-                    const avg = Math.round(attempts.reduce((sum, a) => sum + (a.percentage || 0), 0) / attempts.length);
-                    const avgItalian = Math.round(avg * 30 / 100);
-                    html += `<div style="background: #f9f9f9; padding: 12px; border-radius: 6px; margin-bottom: 10px; border-left: 4px solid #667eea;">`;
-                    html += `<h4 style="margin: 0 0 8px 0; color: #333;">${course}</h4>`;
-                    html += `<p style="margin: 0 0 8px 0; color: #666; font-size: 12px;"><strong>Average:</strong> ${avg}% (${avgItalian}/30)</p>`;
-                    html += `<div style="font-size: 11px; color: #999;">`;
-                    attempts.forEach((a, i) => {
-                        const italianScore = Math.round((a.percentage || 0) * 30 / 100);
-                        html += `<div style="margin: 4px 0; padding: 4px; background: white; border-radius: 3px;">Attempt ${i + 1}: ${a.percentage}% (${italianScore}/30) - ${a.date}</div>`;
-                    });
-                    html += `</div></div>`;
-                });
-                
-                html += '</div><button onclick="closePastScoresModal()" style="width:100%;margin-top:12px;background:#667eea;color:white;border:none;padding:10px;border-radius:6px;font-weight:600;cursor:pointer;">Close</button></div>';
-                
-                const modal = document.createElement('div');
-                modal.id = 'pastScoresModal';
-                modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 2000;';
-                modal.innerHTML = html;
-                document.body.appendChild(modal);
-            } catch (e) {
-                console.error('Score parsing error:', e);
-                alert('Error loading past scores. Data may be corrupted.');
+            const scores = JSON.parse(localStorage.getItem('examScores') || '{}');
+            if (!Object.keys(scores).length) { 
+                alert('No scores yet.'); 
+                return; 
             }
+            
+            let html = '<div style="max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); z-index: 2001;">';
+            html += '<h2 style="color: #333; text-align: center; margin-bottom: 20px;">📊 Past Scores</h2>';
+            html += '<div style="max-height: 600px; overflow-y: auto;">';
+            
+            Object.entries(scores).forEach(([course, attempts]) => {
+                const avg = Math.round(attempts.reduce((sum, a) => sum + (a.percentage || 0), 0) / attempts.length);
+                html += `<div style="background: #f9f9f9; padding: 12px; border-radius: 6px; margin-bottom: 10px; border-left: 4px solid #667eea;">`;
+                html += `<h4 style="margin: 0 0 8px 0; color: #333;">${course}</h4>`;
+                html += `<p style="margin: 0 0 8px 0; color: #666; font-size: 12px;"><strong>Average:</strong> ${avg}% (${Math.round(avg * 30 / 100)}/30)</p>`;
+            });
+            
+            html += '</div><button onclick="closePastScoresModal()" style="width:100%;margin-top:12px;background:#667eea;color:white;border:none;padding:10px;border-radius:6px;font-weight:600;cursor:pointer;">Close</button></div>';
+            
+            const modal = document.createElement('div');
+            modal.id = 'pastScoresModal';
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 2000;';
+            modal.innerHTML = html;
+            document.body.appendChild(modal);
         }
 
         function closePastScoresModal() {
@@ -1162,47 +985,9 @@
                 alert('Cleared.');
             }
         }
-    </script>
 
-    <script src="/js/exam-client.js"></script>
-
-    <script>
-      // Simple connection to your existing UI
-      document.addEventListener('DOMContentLoaded', () => {
-        console.log('✅ UCBM Exam Tutor UI connected to backend');
-
-        // Example: Connect the Upload button
-        const uploadBtn = document.querySelector('button[onclick*="upload"], #upload-button, button:contains("Choose Files")');
-        if (uploadBtn) {
-          uploadBtn.addEventListener('click', async () => {
-            const fileInput = document.querySelector('input[type="file"]');
-            if (!fileInput || !fileInput.files[0]) return alert('Please select a file first');
-            
-            const courseSelect = document.querySelector('#course-assignment, select');
-            const courseId = courseSelect ? courseSelect.value.toLowerCase().replace(/\s+/g, '-') : 'general-materials';
-            
-            // For demo - in real use you'd read the actual file content
-            alert('Upload functionality connected! (Full file handling will be added next)');
-          });
-        }
-
-        // Example: Make course cards clickable to start an exam
-        document.querySelectorAll('.course-card, div[style*="background"], button, div').forEach(card => {
-          if (card.textContent.includes('Economics') || card.textContent.includes('Physiology') || card.textContent.includes('Mathematics')) {
-            card.style.cursor = 'pointer';
-            card.addEventListener('click', () => {
-              const courseName = card.textContent.trim();
-              const courseId = courseName.toLowerCase().replace(/\s+/g, '-').replace('&', 'and');
-              simulateExam('student123', courseId, 'oral')
-                .then(result => console.log('Exam started:', result));
-            });
-          }
-        });
-      });
+        loadVoices();
+        loadCoursesFromJSON();
     </script>
 </body>
 </html>
-
-
-
-
