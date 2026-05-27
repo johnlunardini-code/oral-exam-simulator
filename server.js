@@ -8,16 +8,10 @@ console.log('[STARTUP] XAI_API_KEY present:', !!process.env.XAI_API_KEY);
 
 import express from 'express';
 import cors from 'cors';
-
-console.log('[STARTUP] Express and CORS imported');
-
 import { initKnowledgeBase, getCourseContext, addStudentMaterial, retrieveRelevantContext } from './knowledge-base.js';
-
-console.log('[STARTUP] Knowledge base module imported');
-
 import { SYSTEM_PROMPT } from './system-prompt.js';
 
-console.log('[STARTUP] System prompt imported');
+console.log('[STARTUP] All imports successful');
 
 const app = express();
 app.use(cors());
@@ -29,18 +23,6 @@ console.log('[STARTUP] Express configured');
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
-
-// Initialize knowledge base on startup
-let kbReady = false;
-initKnowledgeBase()
-  .then(() => { 
-    kbReady = true;
-    console.log('[STARTUP] ✅ Knowledge base ready');
-  })
-  .catch(err => { 
-    console.error('[STARTUP] ❌ Knowledge base init failed:', err); 
-    process.exit(1); 
-  });
 
 // === UPLOAD ENDPOINT ===
 app.post('/api/upload', async (req, res) => {
@@ -157,10 +139,20 @@ app.use((req, res) => {
 
 const PORT = process.env.PORT || 3000;
 
-console.log('[STARTUP] Attempting to listen on port', PORT);
+console.log('[STARTUP] About to listen on port', PORT);
 
 const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`[STARTUP] 🚀 UCBM Exam Simulator running on port ${PORT}`);
+  console.log(`[STARTUP] 🚀 Server listening on port ${PORT}`);
+  
+  // Initialize knowledge base AFTER server is listening
+  initKnowledgeBase()
+    .then(() => {
+      console.log('[STARTUP] ✅ Knowledge base initialized');
+    })
+    .catch(err => {
+      console.error('[STARTUP] ❌ Knowledge base init failed:', err);
+      console.error('[STARTUP] Server will continue but KB features may not work');
+    });
 });
 
 server.on('error', (err) => {
