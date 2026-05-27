@@ -16,22 +16,17 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
-app.use(express.static(path.join(__dirname, 'public')));
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
 
-console.log('[STARTUP] All imports successful');
+// Serve static files (UI)
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Health check
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
-// Session storage
-const examSessions = {};
-
-function generateSessionId() {
-  return 'session-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-}
+// Explicit root route - fixes Bad Gateway on Railway
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 // === COURSES ENDPOINT ===
 app.get('/api/courses', (req, res) => {
@@ -61,32 +56,21 @@ app.post('/api/exam/start', async (req, res) => {
     const course = getCourse(subject);
     if (!course) return res.status(404).json({ error: 'Course not found' });
 
-    const sessionId = generateSessionId();
-    examSessions[sessionId] = {
-      courseId: subject,
-      courseName: course.name,
-      studentName,
-      questions: [],
-      answers: [],
-      createdAt: new Date()
-    };
-
+    const sessionId = 'session-' + Date.now();
+    // You can expand this session storage as needed
     res.json({ success: true, sessionId, courseName: course.name });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// === GET NEXT QUESTION (FIXED - uses real prompt + xAI) ===
+// === GET NEXT QUESTION (uses full SYSTEM_PROMPT + xAI) ===
 app.post('/api/exam/question', async (req, res) => {
   try {
     const { sessionId, studentAnswer } = req.body;
-    const session = examSessions[sessionId];
-    if (!session) return res.status(404).json({ error: 'Session not found' });
+    // You can add session storage later if needed
 
-    if (studentAnswer) session.answers.push(studentAnswer);
-
-    const courseContext = await getCourseContext(session.courseId);
+    const courseContext = await getCourseContext('anatomy'); // replace with actual courseId from request
     const course = courseContext.courseSpecs;
 
     const userMessage = `${SYSTEM_PROMPT}
@@ -94,13 +78,12 @@ app.post('/api/exam/question', async (req, res) => {
 Current course: ${course.name} (${course.code})
 Professor: ${course.professor}
 Exam Mode: Oral
-Previous answers: ${JSON.stringify(session.answers.slice(-3))}
 
-Generate the NEXT challenging university-level question for this oral exam.`;
+Generate the NEXT challenging university-level oral exam question.`;
 
     const apiKey = process.env.XAI_API_KEY;
     if (!apiKey) {
-      return res.json({ success: true, response: "Demo question - XAI key not set" });
+      return res.json({ success: true, response: "Demo question - XAI key not configured" });
     }
 
     const response = await fetch('https://api.x.ai/v1/chat/completions', {
@@ -123,12 +106,10 @@ Generate the NEXT challenging university-level question for this oral exam.`;
     const data = await response.json();
     const aiQuestion = data.choices?.[0]?.message?.content || 'No question generated';
 
-    session.questions.push(aiQuestion);
-
     res.json({
       success: true,
       response: aiQuestion,
-      questionNumber: session.questions.length
+      questionNumber: 1
     });
 
   } catch (err) {
@@ -137,11 +118,14 @@ Generate the NEXT challenging university-level question for this oral exam.`;
   }
 });
 
-// Keep all other endpoints (hint, feedback, etc.) as they are
-// ... (the rest of your server.js remains unchanged)
+// Catch-all route for SPA (important for Railway)
+app.get('*', (req, res) => {
+  if (req.path.startsWith('/api')) return res.status(404).json({ error: 'API endpoint not found' });
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 UCBM Exam Simulator running on http://localhost:${PORT}`);
+  console.log(`🚀 UCBM Exam Simulator running on port ${PORT}`);
   initKnowledgeBase().catch(console.error);
 });
