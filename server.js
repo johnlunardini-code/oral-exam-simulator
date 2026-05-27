@@ -8,8 +8,22 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 // Initialize knowledge base on startup
-initKnowledgeBase().catch(console.error);
+let kbReady = false;
+initKnowledgeBase()
+  .then(() => { 
+    kbReady = true;
+    console.log('✅ Knowledge base ready');
+  })
+  .catch(err => { 
+    console.error('❌ Knowledge base init failed:', err); 
+    process.exit(1); 
+  });
 
 // === UPLOAD ENDPOINT ===
 app.post('/api/upload', async (req, res) => {
@@ -98,7 +112,34 @@ Generate the next exam question or interaction.`;
   }
 });
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({ error: 'Internal server error', message: err.message });
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ error: 'Not found' });
+});
+
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 UCBM Exam Simulator running on http://localhost:${PORT}`);
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 UCBM Exam Simulator running on port ${PORT}`);
+});
+
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down gracefully');
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT received, shutting down gracefully');
+  server.close(() => {
+    console.log('Server closed');
+    process.exit(0);
+  });
 });
