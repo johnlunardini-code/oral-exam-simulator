@@ -8,7 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.0/katex.min.js"></script>
     <style>
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 8px; margin: 0; overflow-x: hidden; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 8px; margin: 0; overflow-x: hidden; box-sizing: border-box; overflow: hidden; }
         * { box-sizing: border-box; }
         
         /* Responsive Layout */
@@ -352,7 +352,7 @@
         </div>
 
         <!-- Hint/Feedback Sidebar (Desktop fixed, Mobile drawer) -->
-        <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
+        <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar(); closeSettings(); closeHelp();"></div>
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <h3 id="sidebarTitle">Study Hint</h3>
@@ -1166,12 +1166,22 @@
 
         function closeSidebar() {
             document.getElementById('sidebar').classList.remove('active');
+            const settingsSidebar = document.getElementById('settingsSidebar');
+            const helpSidebar = document.getElementById('helpSidebar');
+            if (settingsSidebar.classList.contains('active') || helpSidebar.classList.contains('active')) {
+                return; // Keep backdrop if another sidebar is open
+            }
             document.getElementById('sidebarBackdrop').classList.remove('active');
         }
 
         function openSettings() {
-            document.getElementById('settingsSidebar').classList.add('active');
-            document.getElementById('sidebarBackdrop').classList.add('active');
+            const settingsSidebar = document.getElementById('settingsSidebar');
+            settingsSidebar.classList.toggle('active');
+            if (settingsSidebar.classList.contains('active')) {
+                document.getElementById('sidebarBackdrop').classList.add('active');
+            } else {
+                document.getElementById('sidebarBackdrop').classList.remove('active');
+            }
         }
 
         function closeSettings() {
@@ -1180,8 +1190,13 @@
         }
 
         function openHelp() {
-            document.getElementById('helpSidebar').classList.add('active');
-            document.getElementById('sidebarBackdrop').classList.add('active');
+            const helpSidebar = document.getElementById('helpSidebar');
+            helpSidebar.classList.toggle('active');
+            if (helpSidebar.classList.contains('active')) {
+                document.getElementById('sidebarBackdrop').classList.add('active');
+            } else {
+                document.getElementById('sidebarBackdrop').classList.remove('active');
+            }
         }
 
         function closeHelp() {
