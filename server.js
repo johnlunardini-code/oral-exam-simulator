@@ -353,13 +353,17 @@ app.post('/api/exam/question', async (req, res) => {
     }
 
     if (trimmedAnswer && !metaQuestionType) {
-      session.messages.push({ role: 'user', content: trimmedAnswer });
-      const wordCount = trimmedAnswer.split(/\s+/).length;
-      const looksSubstantive = wordCount >= 8 || trimmedAnswer.length > 60;
-      if (looksSubstantive) {
-        session.scoreTracker.total += 1;
-        const technical = /[a-z]{6,}|equation|function|process|mechanism|structure|cell|force|energy|wave|signal|model/i.test(trimmedAnswer);
-        if (technical || wordCount > 18) session.scoreTracker.correct += 1;
+      // Prevent duplicate user messages in same question
+      const lastUserMsg = session.messages.slice().reverse().find(m => m.role === 'user');
+      if (!lastUserMsg || lastUserMsg.content !== trimmedAnswer) {
+        session.messages.push({ role: 'user', content: trimmedAnswer });
+        const wordCount = trimmedAnswer.split(/\s+/).length;
+        const looksSubstantive = wordCount >= 8 || trimmedAnswer.length > 60;
+        if (looksSubstantive) {
+          session.scoreTracker.total += 1;
+          const technical = /[a-z]{6,}|equation|function|process|mechanism|structure|cell|force|energy|wave|signal|model/i.test(trimmedAnswer);
+          if (technical || wordCount > 18) session.scoreTracker.correct += 1;
+        }
       }
     }
 
@@ -384,7 +388,12 @@ app.post('/api/exam/question', async (req, res) => {
 
     session.messages.push({ role: 'assistant', content: professorResponse });
     session.lastQuestion = displayText;
-    session.questionCount += 1;
+    // Only increment question count if this is a NEW question (not a meta-response)
+    if (!isFirst && trimmedAnswer) {
+      session.questionCount += 1;
+    } else if (isFirst) {
+      session.questionCount = 1;
+    }
     
     const qObj = {
       text: displayText.slice(0, 220),
@@ -401,7 +410,7 @@ app.post('/api/exam/question', async (req, res) => {
 
     res.json({
       response: displayText,
-      questionNumber: session.questionCount,
+      questionNumber: Math.max(1, session.questionCount),
       questionType: session.lastQuestionType,
       hypotheticalScore,
       scoreTracker: session.scoreTracker

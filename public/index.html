@@ -122,8 +122,9 @@
         .bottom-controls { display: flex; gap: 8px; flex-shrink: 0; }
         .bottom-controls button { flex: 1; padding: 10px; font-size: 12px; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; }
         
-        .sidebar { position: fixed; right: -90vw; top: 0; width: 90vw; max-width: 350px; height: 100vh; background: white; box-shadow: -5px 0 20px rgba(0, 0, 0, 0.2); transition: right 0.3s ease; overflow-y: auto; z-index: 1000; }
+        .sidebar { position: fixed; right: -100vw; top: 0; width: min(90vw, 380px); height: 100vh; background: white; box-shadow: -5px 0 20px rgba(0, 0, 0, 0.2); transition: right 0.3s ease; overflow-y: auto; z-index: 1000; }
         .sidebar.active { right: 0; }
+        @media (max-width: 600px) { .sidebar { width: 100vw; max-width: 100%; } }
         .sidebar-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px; display: flex; justify-content: space-between; align-items: center; }
         .sidebar-header h3 { margin: 0; font-size: 14px; }
         .sidebar-close { background: none; border: none; color: white; font-size: 20px; cursor: pointer; }
@@ -772,14 +773,19 @@
                 const chatArea = document.getElementById('chatArea');
                 
                 if (studentAnswer.trim()) {
-                    const group = document.createElement('div');
-                    group.className = 'message-group';
-                    const msg = document.createElement('div');
-                    msg.className = 'message answer';
-                    msg.innerHTML = `<div class="message-label">You</div><div class="message-text">${studentAnswer}</div>`;
-                    group.appendChild(msg);
-                    chatArea.appendChild(group);
-                    messageHistory.push({ role: 'user', text: studentAnswer });
+                    // Check if this answer was already added to prevent duplicates
+                    const lastMessage = chatArea.querySelector('.message-group:last-child .message.answer');
+                    const lastMessageText = lastMessage ? lastMessage.textContent : '';
+                    if (!lastMessageText.includes(studentAnswer)) {
+                        const group = document.createElement('div');
+                        group.className = 'message-group';
+                        const msg = document.createElement('div');
+                        msg.className = 'message answer';
+                        msg.innerHTML = `<div class="message-label">You</div><div class="message-text">${studentAnswer}</div>`;
+                        group.appendChild(msg);
+                        chatArea.appendChild(group);
+                        messageHistory.push({ role: 'user', text: studentAnswer });
+                    }
                 }
 
                 const professorSpeakingIndicator = document.createElement('div');
@@ -854,6 +860,7 @@
                 
                 currentQuestionText = data.response;
                 currentHintCache = null;
+                // Always show Google search button - user can decide when to use it
                 const googleBtn = document.getElementById('googleSearchBtn');
                 if (googleBtn) {
                     googleBtn.style.display = 'inline-block';
@@ -886,7 +893,9 @@
             }
         }
 
+        let isSubmittingAnswer = false;
         async function submitAnswer() {
+            if (isSubmittingAnswer) return; // Prevent duplicate submission
             const answer = document.getElementById('answerInput').value.trim();
             if (!answer) {
                 alert('Please enter or speak an answer before sending.');
@@ -895,7 +904,11 @@
             if (speechRecognizer && isListening) {
                 speechRecognizer.stop();
             }
+            isSubmittingAnswer = true;
+            document.getElementById('answerInput').disabled = true;
             await getQuestion(answer);
+            isSubmittingAnswer = false;
+            document.getElementById('answerInput').disabled = false;
         }
 
         function speakItalianPrompt() {
