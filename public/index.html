@@ -102,11 +102,11 @@
         .italian-btn:hover { background: #a0522d; }
         
         .chat-area { border: 1px solid #e0e0e0; border-radius: 6px; padding: 10px; flex: 1; overflow-y: auto; background: #f9f9f9; font-size: 12px; margin-bottom: 8px; }
-        .message-group { margin-bottom: 12px; display: flex; flex-direction: column; gap: 4px; }
-        .message { padding: 10px 12px; border-radius: 8px; line-height: 1.5; }
-        .message.question { background: #e3f2fd; border-left: 4px solid #667eea; align-self: flex-start; max-width: 85%; }
+        .message-group { margin-bottom: 12px; display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+        .message { padding: 10px 12px; border-radius: 8px; line-height: 1.5; max-width: 90%; word-wrap: break-word; }
+        .message.question { background: #e3f2fd; border-left: 4px solid #667eea; align-self: flex-start; }
         .message.question-header { background: #f3e5f5; border-left: 4px solid #764ba2; align-self: center; max-width: 95%; text-align: center; font-weight: 600; color: #764ba2; padding: 6px 12px; margin: 8px 0; }
-        .message.answer { background: #f0e8fe; border-left: 4px solid #764ba2; align-self: flex-end; max-width: 85%; }
+        .message.answer { background: #f0e8fe; border-left: 4px solid #764ba2; align-self: flex-end; }
         .message-label { font-weight: 600; font-size: 11px; color: #666; margin-bottom: 3px; text-transform: uppercase; }
         .message-text { color: #333; font-size: 12px; white-space: pre-wrap; word-wrap: break-word; }
         .message-actions { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
@@ -250,96 +250,83 @@
         .sidebar { display: none !important; }
         .sidebar.active { display: flex !important; }
         
-        /* Floating TTS Player */
-        .floating-player {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: white;
-            border: 2px solid #667eea;
-            border-radius: 12px;
-            padding: 12px 16px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-            z-index: 1100;
-            max-width: 320px;
+        /* Floating TTS Player - REPLACED WITH INLINE CONTROLS BELOW CHAT */
+        .tts-controls-bar {
             display: none;
-            flex-direction: column;
+            background: white;
+            border-top: 2px solid #667eea;
+            padding: 10px 12px;
+            flex-shrink: 0;
             gap: 10px;
-            font-size: 12px;
-        }
-        .floating-player.active { display: flex; }
-        .floating-player-header {
-            font-weight: 600;
-            color: #333;
-            font-size: 12px;
-            margin-bottom: 4px;
-        }
-        .floating-player-controls {
-            display: flex;
-            gap: 6px;
             flex-wrap: wrap;
             justify-content: center;
+            align-items: center;
+            font-size: 12px;
         }
-        .floating-player-btn {
+        .tts-controls-bar.active {
+            display: flex;
+        }
+        .tts-controls-bar-progress {
+            width: 100%;
+            height: 3px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .tts-controls-bar-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+        .tts-btn {
             background: #667eea;
             color: white;
             border: none;
             padding: 6px 10px;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 11px;
-            font-weight: 600;
-            flex: 0 1 auto;
-            transition: all 0.2s;
-        }
-        .floating-player-btn:hover { background: #764ba2; }
-        .floating-player-btn.secondary {
-            background: #f0f0f0;
-            color: #333;
-            border: 1px solid #ddd;
-        }
-        .floating-player-btn.secondary:hover { background: #e8e8e8; }
-        .floating-player-progress {
-            width: 100%;
-            height: 4px;
-            background: #e0e0e0;
-            border-radius: 2px;
-            overflow: hidden;
-        }
-        .floating-player-progress-bar {
-            height: 100%;
-            background: #667eea;
-            width: 0%;
-            transition: width 0.1s linear;
-        }
-        .floating-player-text {
-            font-size: 11px;
-            color: #666;
-            text-align: center;
-        }
-        .floating-player-speed {
-            display: flex;
-            gap: 4px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        .floating-player-speed-btn {
-            background: #f0f0f0;
-            color: #333;
-            border: 1px solid #ddd;
-            padding: 4px 8px;
-            border-radius: 3px;
-            cursor: pointer;
             font-size: 10px;
             font-weight: 600;
+            flex: 0 1 auto;
+            white-space: nowrap;
+            transition: all 0.2s;
         }
-        .floating-player-speed-btn.active {
+        .tts-btn:hover { background: #764ba2; }
+        .tts-btn.secondary {
+            background: #f0f0f0;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        .tts-btn.secondary:hover { background: #e8e8e8; }
+        .tts-speed-group {
+            display: flex;
+            gap: 3px;
+            flex-wrap: wrap;
+        }
+        .tts-speed-btn {
+            background: #f0f0f0;
+            color: #333;
+            border: 1px solid #ddd;
+            padding: 4px 6px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 9px;
+            font-weight: 600;
+        }
+        .tts-speed-btn.active {
             background: #667eea;
             color: white;
             border-color: #667eea;
         }
-        .floating-player-speed-btn:hover { background: #e8e8e8; }
-        .floating-player-speed-btn.active:hover { background: #764ba2; }
+        .tts-speed-btn:hover { background: #e8e8e8; }
+        .tts-speed-btn.active:hover { background: #764ba2; }
+        .tts-status {
+            font-size: 11px;
+            color: #666;
+            min-width: 80px;
+            text-align: center;
+        }
         
         /* Sentence highlighting */
         .sentence-highlighted {
@@ -435,6 +422,24 @@
                 </div>
 
                 <div class="chat-area" id="chatArea"></div>
+
+                <!-- TTS Controls Bar (replaces floating player) -->
+                <div class="tts-controls-bar" id="ttsControlsBar">
+                    <div style="width: 100%;">Progress: <div class="tts-controls-bar-progress"><div class="tts-controls-bar-progress-fill" id="ttsProgressFill"></div></div></div>
+                    <button class="tts-btn" id="playerPlayPauseBtn" onclick="togglePlayerPlayPause()">⏸ Pause</button>
+                    <button class="tts-btn" onclick="stopPlayerPlayback()">⏹ Stop</button>
+                    <button class="tts-btn secondary" onclick="playerRewind()">⏮ -10s</button>
+                    <button class="tts-btn secondary" onclick="playerForward()">⏭ +10s</button>
+                    <div class="tts-speed-group" id="ttsSpeedControls">
+                        <button class="tts-speed-btn" onclick="setPlayerSpeed(0.5)">0.5x</button>
+                        <button class="tts-speed-btn" onclick="setPlayerSpeed(0.75)">0.75x</button>
+                        <button class="tts-speed-btn active" onclick="setPlayerSpeed(1.0)">1.0x</button>
+                        <button class="tts-speed-btn" onclick="setPlayerSpeed(1.25)">1.25x</button>
+                        <button class="tts-speed-btn" onclick="setPlayerSpeed(1.5)">1.5x</button>
+                        <button class="tts-speed-btn" onclick="setPlayerSpeed(2.0)">2.0x</button>
+                    </div>
+                    <div class="tts-status" id="ttsStatus">Playing...</div>
+                </div>
 
                 <div class="input-container">
                     <div class="text-editor">
@@ -1288,10 +1293,10 @@
             if (!currentUtterance) return;
             
             const elapsed = (Date.now() - ttsStartTime) / 1000;
-            const duration = currentUtterance.duration || 30; // Fallback: Web Speech API doesn't expose duration perfectly
+            const duration = currentUtterance.duration || 30;
             const progress = Math.min(elapsed / Math.max(duration, 1), 1);
             
-            const progressBar = document.getElementById('playerProgressBar');
+            const progressBar = document.getElementById('ttsProgressFill');
             if (progressBar) {
                 progressBar.style.width = (progress * 100) + '%';
             }
@@ -1362,10 +1367,10 @@
             currentPlayerSpeed = speed;
             
             // Update button states
-            document.querySelectorAll('.floating-player-speed-btn').forEach(btn => {
+            document.querySelectorAll('.tts-speed-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
-            document.querySelector(`.floating-player-speed-btn[onclick*="${speed}"]`).classList.add('active');
+            document.querySelector(`.tts-speed-btn[onclick*="${speed}"]`).classList.add('active');
             
             // Re-speak with new speed if currently playing
             if (currentUtterance && !isTTSPaused) {
@@ -1376,13 +1381,13 @@
         }
         
         function showTTSPlayer() {
-            const player = document.getElementById('floatingPlayer');
-            if (player) player.classList.add('active');
+            const bar = document.getElementById('ttsControlsBar');
+            if (bar) bar.classList.add('active');
         }
         
         function hideTTSPlayer() {
-            const player = document.getElementById('floatingPlayer');
-            if (player) player.classList.remove('active');
+            const bar = document.getElementById('ttsControlsBar');
+            if (bar) bar.classList.remove('active');
         }
         
         function removeHighlighting() {
