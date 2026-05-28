@@ -15,16 +15,15 @@
         .app-wrapper { display: flex; width: 100%; height: 100%; position: relative; }
         .container { background: white; border-radius: 12px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); width: 100%; height: 98vh; overflow: hidden; display: flex; flex-direction: column; position: relative; z-index: 1; transition: margin-right 0.3s ease; }
         
-        /* DESKTOP (≥1024px): Container centers with equal padding, shifts left when sidebar opens */
+        /* DESKTOP (≥1024px): Container centers with equal padding, shrinks when sidebar opens */
         @media (min-width: 1024px) { 
             .app-wrapper { justify-content: center; }
             .container { 
-                max-width: 1200px;
-                margin: 0 auto;
-                transition: margin-left 0.3s ease;
+                max-width: 900px;
+                transition: max-width 0.3s ease;
             }
-            .container.sidebar-open {
-                margin-left: -190px;
+            .container.sidebar-open { 
+                max-width: calc(900px - 380px);
             }
         }
         
