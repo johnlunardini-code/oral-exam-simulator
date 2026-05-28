@@ -122,14 +122,15 @@
         .bottom-controls { display: flex; gap: 8px; flex-shrink: 0; }
         .bottom-controls button { flex: 1; padding: 10px; font-size: 12px; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; }
         
-        .sidebar { position: fixed; right: -100%; top: 0; width: 100%; max-width: 400px; height: 100vh; background: white; box-shadow: -5px 0 20px rgba(0, 0, 0, 0.2); transition: right 0.3s ease; overflow-y: auto; z-index: 1000; }
+        .sidebar { position: fixed; right: -100%; top: 0; width: 100%; max-width: 320px; height: 100vh; background: white; box-shadow: -5px 0 20px rgba(0, 0, 0, 0.2); transition: right 0.3s ease; overflow-y: auto; z-index: 1000; }
         .sidebar.active { right: 0; }
-        @media (max-width: 768px) { .sidebar { max-width: 85vw; } }
-        @media (max-width: 480px) { .sidebar { max-width: 100%; } }
-        .sidebar-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px; display: flex; justify-content: space-between; align-items: center; }
-        .sidebar-header h3 { margin: 0; font-size: 14px; }
-        .sidebar-close { background: none; border: none; color: white; font-size: 20px; cursor: pointer; }
-        .sidebar-content { padding: 12px; }
+        @media (max-width: 900px) { .sidebar { max-width: 280px; } }
+        @media (max-width: 768px) { .sidebar { max-width: 70vw; } }
+        @media (max-width: 480px) { .sidebar { max-width: 80vw; } }
+        .sidebar-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .sidebar-header h3 { margin: 0; font-size: 13px; }
+        .sidebar-close { background: none; border: none; color: white; font-size: 18px; cursor: pointer; }
+        .sidebar-content { padding: 10px; font-size: 11px; }
         
         .loading { text-align: center; color: #667eea; font-weight: 600; padding: 10px; font-size: 12px; }
         .feedback-history { max-height: 400px; overflow-y: auto; }
