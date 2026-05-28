@@ -437,11 +437,21 @@
 
                     const color = colorPalette[colorIndex % colorPalette.length];
                     colorIndex++;
+                    
+                    let emoji = course.emoji || '📖';
+                    // Replace British flag with USA flag for English courses
+                    if (emoji === '🇦🇮' || course.name.includes('English')) {
+                        emoji = '🇺🇸';
+                    }
+                    // Use Italian flag for Italian courses
+                    if (course.name.includes('Italian')) {
+                        emoji = '🇮🇹';
+                    }
 
                     const courseInfo = {
                         id: course.id,
                         name: course.name,
-                        emoji: course.emoji,
+                        emoji: emoji,
                         semester: course.semester,
                         color: color
                     };
@@ -599,14 +609,6 @@
             }
         }
 
-        function toggleSpeech() {
-            if (!speechRecognizer) { alert('Speech not supported'); return; }
-            if (isListening) {
-                stopRecording();
-            } else {
-                startRecording();
-            }
-        
         function updateRecordingUI(recording) {
             const btn = document.getElementById('speechButton');
             const textarea = document.getElementById('answerInput');
@@ -624,18 +626,25 @@
                 btn.style.fontSize = '11px';
             }
         }
+
+        function toggleSpeech() {
+            if (!speechRecognizer) { alert('Speech not supported'); return; }
+            if (isListening) {
+                stopRecording();
+            } else {
+                startRecording();
+            }
+        }
         }
 
         function toggleMute() {
-            if (isProfessorSpeaking) {
-                stopProfessorSpeech();
-            } else {
-                speechSynthesisEnabled = !speechSynthesisEnabled;
-                if (!speechSynthesisEnabled) speechSynthesis.cancel();
-                const btn = document.getElementById('muteButton');
-                btn.textContent = speechSynthesisEnabled ? '🔊 Mute' : '🔇 Mute';
-                btn.style.background = speechSynthesisEnabled ? '#764ba2' : '#e74c3c';
+            speechSynthesisEnabled = !speechSynthesisEnabled;
+            if (!speechSynthesisEnabled) {
+                speechSynthesis.cancel();
             }
+            const btn = document.getElementById('muteButton');
+            btn.textContent = speechSynthesisEnabled ? '🔊 Mute' : '🔇 Mute (OFF)';
+            btn.style.background = speechSynthesisEnabled ? '#764ba2' : '#95a5a6';
         }
 
         function insertBold() { wrapSelection('<b>', '</b>'); }
@@ -820,9 +829,11 @@
                 group.className = 'message-group';
                 const msg = document.createElement('div');
                 msg.className = 'message question';
+                const escapedResponse = data.response.replace(/\\/g, '\\\\').replace(/'/g, "\\\'")
+                    .replace(/\n/g, '\\n');
                 msg.innerHTML = `<div class="message-label">Professor</div><div class="message-text">${data.response}</div>
                     <div class="message-actions">
-                        <button class="action-btn" onclick="speakText('${data.response.replace(/'/g, "\\'")}')">🔊 Speak</button>
+                        <button class="action-btn" onclick="speakText('${escapedResponse}')">🔊 Speak</button>
                     </div>`;
                 group.appendChild(msg);
                 chatArea.appendChild(group);
@@ -939,29 +950,37 @@
         async function openFeedbackHistory() {
             if (!messageHistory.length) { alert('No answers yet.'); return; }
             document.getElementById('sidebar').classList.add('active');
-            document.getElementById('sidebarTitle').textContent = 'Select Question for Feedback';
+            document.getElementById('sidebarTitle').textContent = '💬 Question Feedback';
             const hintResult = document.getElementById('hintResult');
             let html = '<div class="feedback-history">';
             const answers = messageHistory.filter(m => m.role === 'user');
-            answers.forEach((answer, i) => {
-                const q = messageHistory.find(m => m.role === 'professor' && m.index === i);
-                if (q) html += `<div class="feedback-item" onclick="getFeedbackForAnswer(${i})"><div style="font-weight:600;font-size:11px;color:#333;">Q${i + 1}</div></div>`;
-            });
+            if (answers.length === 0) {
+                html += '<p style="color: #999; font-size: 12px;">No answers to review yet.</p>';
+            } else {
+                answers.forEach((answer, i) => {
+                    const q = messageHistory.find(m => m.role === 'professor' && m.index === i);
+                    if (q) html += `<div class="feedback-item" onclick="getFeedbackForAnswer(${i})" style="padding: 12px; background: white; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s;"><div style="font-weight:600;font-size:11px;color:#333;">Question ${i + 1}</div><div style="font-size: 10px; color: #666; margin-top: 4px;">Click for feedback</div></div>`;
+                });
+            }
             html += '</div>';
             hintResult.innerHTML = html;
         }
 
         async function getFeedbackForAnswer(index) {
             try {
+                const hintResult = document.getElementById('hintResult');
+                hintResult.innerHTML = '<p style="text-align: center; color: #667eea;">Loading feedback...</p>';
                 const response = await fetch(`${API_BASE}/api/exam/feedback`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ sessionId: currentSessionId, questionIndex: index }),
                 });
+                if (!response.ok) throw new Error('Feedback request failed');
                 const data = await response.json();
-                document.getElementById('hintResult').innerHTML = `<div style="background: #f0f4ff; padding: 10px; border-radius: 6px;"><p style="color: #333; font-size: 12px; margin: 0;">${data.feedback}</p></div>`;
+                hintResult.innerHTML = `<div style="background: #f0f4ff; padding: 10px; border-radius: 6px; border-left: 4px solid #667eea;"><p style="color: #333; font-size: 12px; margin: 0; line-height: 1.5;">${data.feedback}</p></div>`;
             } catch (error) {
-                alert('Error: ' + error.message);
+                console.error('Feedback error:', error);
+                document.getElementById('hintResult').innerHTML = '<p style="color: #e74c3c; font-size: 12px;">Error loading feedback. Please try again.</p>';
             }
         }
 
@@ -995,9 +1014,6 @@
             if (speechRecognizer && isListening) speechRecognizer.stop();
             
             isProfessorSpeaking = true;
-            const btn = document.getElementById('muteButton');
-            btn.textContent = '⏹️ Stop';
-            btn.style.background = '#e74c3c';
             document.getElementById('speechFeedback').innerHTML = '<div class="professor-speaking-indicator">🔊 Professor speaking...</div>';
             
             speechSynthesis.cancel();
@@ -1013,8 +1029,6 @@
             
             utterance.onend = () => {
                 isProfessorSpeaking = false;
-                btn.textContent = '🔊 Mute';
-                btn.style.background = '#764ba2';
                 document.getElementById('speechFeedback').innerHTML = '';
             };
             
@@ -1053,7 +1067,7 @@
         async function generateHint() {
             if (!currentSessionId) { alert('Start exam first'); return; }
             document.getElementById('sidebar').classList.add('active');
-            document.getElementById('sidebarTitle').textContent = 'Study Hint';
+            document.getElementById('sidebarTitle').textContent = '💡 Study Hint';
             const hintResult = document.getElementById('hintResult');
             const googleBtn = document.getElementById('googleSearchBtn');
             hintResult.innerHTML = '<p style="text-align: center; color: #667eea;">Generating hint...</p>';
@@ -1064,12 +1078,14 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ sessionId: currentSessionId }),
                 });
+                if (!response.ok) throw new Error('Hint generation failed');
                 const data = await response.json();
                 hintResult.innerHTML = `<div style="background: #f0f4ff; padding: 10px; border-radius: 6px;"><p style="color: #333; font-size: 12px; margin: 0;">${data.textHint}</p></div>`;
                 googleBtn.style.display = 'inline-block';
                 googleBtn.onclick = searchGoogle;
             } catch (error) {
-                hintResult.innerHTML = '<p style="color: #e74c3c;">Error</p>';
+                console.error('Hint error:', error);
+                hintResult.innerHTML = '<p style="color: #e74c3c; font-size: 12px;">Error generating hint. Please try again.</p>';
                 googleBtn.style.display = 'none';
             }
         }
