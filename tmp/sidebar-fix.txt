@@ -1,0 +1,10 @@
+Fix needed:
+1. Reduce sidebar from 380px to 300px (both desktop and mobile)
+2. Container dynamic sizing: max-width: calc(100vw - 300px - 40px) when sidebar open
+3. Container shift: translateX(-150px) when sidebar open (half sidebar width)
+4. Apply to @media (min-width: 1024px) for desktop
+5. Apply to @media (max-width: 1023px) for mobile/tablet sidebars too
+
+Key changes in @media sections:
+- DESKTOP: .sidebar { width: 300px; } and .container.sidebar-open { transform: translateX(-150px); max-width: calc(100vw - 300px - 40px); }
+- MOBILE: .sidebar { width: 90vw; max-width: 300px; } (was 350px)
