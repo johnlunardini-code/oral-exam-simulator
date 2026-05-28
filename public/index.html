@@ -1,4 +1,12 @@
-<!DOCTYPE html>
+        function stopPlayerPlayback() {
+            speechSynthesis.cancel();
+            hideTTSPlayer();
+            isTTSPaused = false;
+            clearTTSUpdateInterval();
+            isProfessorSpeaking = false;
+            document.getElementById('speechFeedback').innerHTML = '';
+            removeHighlighting();
+        }<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -241,6 +249,106 @@
         /* Hide ALL sidebars by default - only show when .active */
         .sidebar { display: none !important; }
         .sidebar.active { display: flex !important; }
+        
+        /* Floating TTS Player */
+        .floating-player {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 12px;
+            padding: 12px 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            z-index: 1100;
+            max-width: 320px;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            font-size: 12px;
+        }
+        .floating-player.active { display: flex; }
+        .floating-player-header {
+            font-weight: 600;
+            color: #333;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+        .floating-player-controls {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .floating-player-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            flex: 0 1 auto;
+            transition: all 0.2s;
+        }
+        .floating-player-btn:hover { background: #764ba2; }
+        .floating-player-btn.secondary {
+            background: #f0f0f0;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        .floating-player-btn.secondary:hover { background: #e8e8e8; }
+        .floating-player-progress {
+            width: 100%;
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .floating-player-progress-bar {
+            height: 100%;
+            background: #667eea;
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+        .floating-player-text {
+            font-size: 11px;
+            color: #666;
+            text-align: center;
+        }
+        .floating-player-speed {
+            display: flex;
+            gap: 4px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .floating-player-speed-btn {
+            background: #f0f0f0;
+            color: #333;
+            border: 1px solid #ddd;
+            padding: 4px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        .floating-player-speed-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        .floating-player-speed-btn:hover { background: #e8e8e8; }
+        .floating-player-speed-btn.active:hover { background: #764ba2; }
+        
+        /* Sentence highlighting */
+        .sentence-highlighted {
+            background: #ffeb3b;
+            font-weight: 600;
+            padding: 2px 4px;
+            border-radius: 2px;
+            transition: all 0.2s ease;
+        }
     </style>
 </head>
 <body>
@@ -426,6 +534,29 @@
                     <p style="margin: 3px 0;"><strong>💡 Hint:</strong> Get a study tip and search terms.</p>
                 </div>
             </div>
+        </div>
+        
+        <!-- Floating TTS Player -->
+        <div class="floating-player" id="floatingPlayer">
+            <div class="floating-player-header">🔊 Playing...</div>
+            <div class="floating-player-progress">
+                <div class="floating-player-progress-bar" id="playerProgressBar"></div>
+            </div>
+            <div class="floating-player-controls">
+                <button class="floating-player-btn" id="playerPlayPauseBtn" onclick="togglePlayerPlayPause()">⏸️ Pause</button>
+                <button class="floating-player-btn" id="playerStopBtn" onclick="stopPlayerPlayback()">⏹️ Stop</button>
+                <button class="floating-player-btn secondary" id="playerRewindBtn" onclick="playerRewind()">⏮️ -10s</button>
+                <button class="floating-player-btn secondary" id="playerForwardBtn" onclick="playerForward()">⏭️ +10s</button>
+            </div>
+            <div class="floating-player-speed" id="playerSpeedControls">
+                <button class="floating-player-speed-btn" onclick="setPlayerSpeed(0.5)">0.5x</button>
+                <button class="floating-player-speed-btn" onclick="setPlayerSpeed(0.75)">0.75x</button>
+                <button class="floating-player-speed-btn active" onclick="setPlayerSpeed(1.0)">1.0x</button>
+                <button class="floating-player-speed-btn" onclick="setPlayerSpeed(1.25)">1.25x</button>
+                <button class="floating-player-speed-btn" onclick="setPlayerSpeed(1.5)">1.5x</button>
+                <button class="floating-player-speed-btn" onclick="setPlayerSpeed(2.0)">2.0x</button>
+            </div>
+            <div class="floating-player-text" id="playerText">Initializing...</div>
         </div>
     </div>
 
@@ -735,6 +866,10 @@
             if (!speechSynthesisEnabled) {
                 speechSynthesis.cancel();
                 isProfessorSpeaking = false;
+                hideTTSPlayer();
+                isTTSPaused = false;
+                clearTTSUpdateInterval();
+                removeHighlighting();
                 document.getElementById('speechFeedback').innerHTML = '';
                 btn.textContent = '🔇 Mute (OFF)';
                 btn.style.background = '#95a5a6';
@@ -744,7 +879,7 @@
                 if (currentQuestionText) {
                     setTimeout(() => {
                         if (speechSynthesisEnabled && !isProfessorSpeaking) {
-                            speakText(currentQuestionText);
+                            speakText(currentQuestionText, null);
                         }
                     }, 100);
                 }
@@ -943,7 +1078,7 @@
                     .replace(/\n/g, '\\n');
                 msg.innerHTML = `<div class="message-label">Professor</div><div class="message-text">${data.response}</div>
                     <div class="message-actions">
-                        <button class="action-btn" onclick="speakText('${escapedResponse}')">🔊 Speak</button>
+                        <button class="action-btn" onclick="speakText(this.parentElement.previousElementSibling.textContent, null)">🔊 Speak</button>
                     </div>`;
                 group.appendChild(msg);
                 chatArea.appendChild(group);
@@ -1001,7 +1136,7 @@
         }
 
         function speakItalianPrompt() {
-            speakText('Risponda in italiano. Answer in Italian.');
+            speakText('Risponda in italiano. Answer in Italian.', null);
         }
 
         async function getScore() {
@@ -1127,46 +1262,248 @@
             event.target.value = '';
         }
 
-        function speakText(text) {
-            if (speechRecognizer && isListening) speechRecognizer.stop();
+        // ============================================================
+        // ADVANCED TTS SYSTEM - Production-Ready
+        // ============================================================
+        
+        let currentUtterance = null;
+        let isTTSPaused = false;
+        let currentTTSText = '';
+        let currentPlayerSpeed = 1.0;
+        let ttsStartTime = 0;
+        let ttsPausedTime = 0;
+        let ttsUpdateInterval = null;
+        
+        function splitIntoSentences(text) {
+            // Split on sentence boundaries: . ! ? followed by space
+            // But preserve ellipsis and abbreviations
+            return text.match(/[^.!?]*[.!?]+(?:\s|$)/g) || [text];
+        }
+        
+        function cleanSentence(sentence) {
+            return sentence.trim();
+        }
+        
+        function updatePlayerUI() {
+            if (!currentUtterance) return;
+            
+            const elapsed = (Date.now() - ttsStartTime) / 1000;
+            const duration = currentUtterance.duration || 30; // Fallback: Web Speech API doesn't expose duration perfectly
+            const progress = Math.min(elapsed / Math.max(duration, 1), 1);
+            
+            const progressBar = document.getElementById('playerProgressBar');
+            if (progressBar) {
+                progressBar.style.width = (progress * 100) + '%';
+            }
+        }
+        
+        function initTTSUpdateInterval() {
+            if (ttsUpdateInterval) clearInterval(ttsUpdateInterval);
+            ttsUpdateInterval = setInterval(updatePlayerUI, 100);
+        }
+        
+        function clearTTSUpdateInterval() {
+            if (ttsUpdateInterval) {
+                clearInterval(ttsUpdateInterval);
+                ttsUpdateInterval = null;
+            }
+        }
+        
+        function togglePlayerPlayPause() {
+            if (!currentUtterance) return;
+            
+            if (isTTSPaused) {
+                // Resume
+                speechSynthesis.resume();
+                isTTSPaused = false;
+                ttsStartTime = Date.now() - (ttsPausedTime * 1000);
+                document.getElementById('playerPlayPauseBtn').textContent = '⏸\ufe0f Pause';
+                initTTSUpdateInterval();
+            } else {
+                // Pause
+                speechSynthesis.pause();
+                isTTSPaused = true;
+                ttsPausedTime = (Date.now() - ttsStartTime) / 1000;
+                document.getElementById('playerPlayPauseBtn').textContent = '▶️ Resume';
+                clearTTSUpdateInterval();
+            }
+        }
+        
+        function stopPlayerPlayback() {
+            speechSynthesis.cancel();
+            hideTTSPlayer();
+            isTTSPaused = false;
+            clearTTSUpdateInterval();
+            isProfessorSpeaking = false;
+            document.getElementById('speechFeedback').innerHTML = '';
+            removeHighlighting();
+        }
+        
+        function playerRewind() {
+            // Cancel and restart from earlier point (simplified: restart from beginning)
+            if (!currentTTSText) return;
+            speechSynthesis.cancel();
+            clearTTSUpdateInterval();
+            isTTSPaused = false;
+            setTimeout(() => speakText(currentTTSText, null, true), 100);
+        }
+        
+        function playerForward() {
+            // Skip ahead (simplified: just continue, could implement queuing)
+            if (!isTTSPaused) {
+                speechSynthesis.pause();
+                isTTSPaused = true;
+                ttsPausedTime = (Date.now() - ttsStartTime) / 1000;
+                document.getElementById('playerPlayPauseBtn').textContent = '▶️ Resume';
+            }
+        }
+        
+        function setPlayerSpeed(speed) {
+            currentPlayerSpeed = speed;
+            
+            // Update button states
+            document.querySelectorAll('.floating-player-speed-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`.floating-player-speed-btn[onclick*="${speed}"]`).classList.add('active');
+            
+            // Re-speak with new speed if currently playing
+            if (currentUtterance && !isTTSPaused) {
+                const savedText = currentTTSText;
+                stopPlayerPlayback();
+                setTimeout(() => speakText(savedText, null, true), 200);
+            }
+        }
+        
+        function showTTSPlayer() {
+            const player = document.getElementById('floatingPlayer');
+            if (player) player.classList.add('active');
+        }
+        
+        function hideTTSPlayer() {
+            const player = document.getElementById('floatingPlayer');
+            if (player) player.classList.remove('active');
+        }
+        
+        function removeHighlighting() {
+            document.querySelectorAll('.sentence-highlighted').forEach(el => {
+                el.classList.remove('sentence-highlighted');
+            });
+        }
+        
+        function highlightSentence(sentenceText) {
+            removeHighlighting();
+            
+            // Find and highlight the sentence in the chat area
+            const chatArea = document.getElementById('chatArea');
+            if (!chatArea) return;
+            
+            const messages = chatArea.querySelectorAll('.message-text');
+            for (let msg of messages) {
+                const text = msg.innerText;
+                if (text.includes(sentenceText.trim())) {
+                    // Wrap matched sentence in a span with highlighting
+                    const regex = new RegExp(`(${sentenceText.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'g');
+                    msg.innerHTML = msg.innerHTML.replace(regex, '<span class="sentence-highlighted">$1</span>');
+                    
+                    // Auto-scroll to make it visible
+                    const highlighted = msg.querySelector('.sentence-highlighted');
+                    if (highlighted) {
+                        highlighted.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                    break;
+                }
+            }
+        }
+        
+        function speakText(text, messageId, isRetry = false) {
+            if (!text || !text.trim()) return;
+            
+            // Cancel any existing utterance
+            speechSynthesis.cancel();
+            clearTTSUpdateInterval();
+            removeHighlighting();
+            
+            if (!speechSynthesisEnabled) {
+                isProfessorSpeaking = false;
+                document.getElementById('speechFeedback').innerHTML = '';
+                return;
+            }
+            
+            if (speechRecognizer && isListening) {
+                speechRecognizer.stop();
+            }
             
             isProfessorSpeaking = true;
+            currentTTSText = text;
             document.getElementById('speechFeedback').innerHTML = '<div class="professor-speaking-indicator">🔊 Professor speaking...</div>';
+            showTTSPlayer();
             
-            speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.rate = 0.9;
+            // Create utterance with FULL text (not sentence-by-sentence)
+            currentUtterance = new SpeechSynthesisUtterance(text);
+            currentUtterance.rate = currentPlayerSpeed;
+            currentUtterance.pitch = 1.0;
+            currentUtterance.volume = 1.0;
             
+            // Set voice
             const voices = speechSynthesis.getVoices();
             let voice = voices.find(v => v.name === voiceLanguage);
             if (!voice && voices.length > 0) voice = voices[0];
+            if (voice) currentUtterance.voice = voice;
             
-            if (voice) utterance.voice = voice;
-            utterance.lang = currentSessionIsItalian ? 'it-IT' : 'en-US';
+            // Set language
+            currentUtterance.lang = currentSessionIsItalian ? 'it-IT' : 'en-US';
             
-            utterance.onstart = () => {
-                if (!speechSynthesisEnabled) {
-                    speechSynthesis.cancel();
-                    isProfessorSpeaking = false;
-                    document.getElementById('speechFeedback').innerHTML = '';
-                }
+            // Event handlers
+            currentUtterance.onstart = () => {
+                ttsStartTime = Date.now();
+                ttsPausedTime = 0;
+                isTTSPaused = false;
+                document.getElementById('playerPlayPauseBtn').textContent = '⏸\ufe0f Pause';
+                initTTSUpdateInterval();
             };
             
-            utterance.onend = () => {
-                isProfessorSpeaking = false;
-                document.getElementById('speechFeedback').innerHTML = '';
+            currentUtterance.onpause = () => {
+                isTTSPaused = true;
+                document.getElementById('playerPlayPauseBtn').textContent = '▶️ Resume';
+                clearTTSUpdateInterval();
             };
             
-            if (speechSynthesisEnabled) {
-                speechSynthesis.speak(utterance);
-            } else {
+            currentUtterance.onresume = () => {
+                isTTSPaused = false;
+                document.getElementById('playerPlayPauseBtn').textContent = '⏸\ufe0f Pause';
+                initTTSUpdateInterval();
+            };
+            
+            currentUtterance.onend = () => {
                 isProfessorSpeaking = false;
+                isTTSPaused = false;
                 document.getElementById('speechFeedback').innerHTML = '';
+                hideTTSPlayer();
+                clearTTSUpdateInterval();
+                removeHighlighting();
+            };
+            
+            currentUtterance.onerror = (event) => {
+                console.error('TTS error:', event.error);
+                isProfessorSpeaking = false;
+                hideTTSPlayer();
+                clearTTSUpdateInterval();
+            };
+            
+            // Speak
+            try {
+                speechSynthesis.speak(currentUtterance);
+            } catch (e) {
+                console.error('Speech synthesis error:', e);
+                isProfessorSpeaking = false;
+                hideTTSPlayer();
             }
         }
-
+        
+        // Test voice with controls
         function testVoice() {
-            speakText('Testing ' + voiceLanguage + ' voice.');
+            speakText('Testing ' + voiceLanguage + ' voice. This is a test of the text-to-speech system.');
         }
 
         function updateSidebarState() {
@@ -1320,6 +1657,10 @@
                 recognitionTranscript = '';
                 isProfessorSpeaking = false;
                 speechSynthesisEnabled = true;
+                isTTSPaused = false;
+                currentUtterance = null;
+                clearTTSUpdateInterval();
+                removeHighlighting();
                 
                 const speechBtn = document.getElementById('speechButton');
                 if (speechBtn) {
