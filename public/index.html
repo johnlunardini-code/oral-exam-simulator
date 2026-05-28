@@ -950,6 +950,8 @@
 
         async function openFeedbackHistory() {
             if (!messageHistory.length) { alert('No answers yet.'); return; }
+            if (!currentSessionId) { alert('Session ended. Cannot get feedback.'); return; }
+            
             document.getElementById('sidebar').classList.add('active');
             document.getElementById('sidebarTitle').textContent = '💬 Question Feedback';
             const hintResult = document.getElementById('hintResult');
@@ -959,8 +961,7 @@
                 html += '<p style="color: #999; font-size: 12px;">No answers to review yet.</p>';
             } else {
                 answers.forEach((answer, i) => {
-                    const q = messageHistory.find(m => m.role === 'professor' && m.index === i);
-                    if (q) html += `<div class="feedback-item" onclick="getFeedbackForAnswer(${i})" style="padding: 12px; background: white; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s;"><div style="font-weight:600;font-size:11px;color:#333;">Question ${i + 1}</div><div style="font-size: 10px; color: #666; margin-top: 4px;">Click for feedback</div></div>`;
+                    html += `<div class="feedback-item" onclick="getFeedbackForAnswer(${i})" style="padding: 12px; background: white; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s;"><div style="font-weight:600;font-size:11px;color:#333;">Question ${i + 1}</div><div style="font-size: 10px; color: #666; margin-top: 4px;">Click for feedback</div></div>`;
                 });
             }
             html += '</div>';
@@ -1138,6 +1139,9 @@
                 document.querySelector('.start-screen').classList.add('active');
                 currentSessionId = null;
                 messageHistory = [];
+                currentQuestionText = '';
+                currentHintCache = null;
+                currentSessionIsItalian = false;
             }
         }
 
