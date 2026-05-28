@@ -15,9 +15,17 @@
         .app-wrapper { display: flex; width: 100%; height: 100%; position: relative; }
         .container { background: white; border-radius: 12px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); width: 100%; height: 98vh; overflow: hidden; display: flex; flex-direction: column; position: relative; z-index: 1; transition: margin-right 0.3s ease; }
         
-        /* DESKTOP (≥1024px): Main area shrinks with sidebar */
+        /* DESKTOP (≥1024px): Container centers with equal padding, shifts left when sidebar opens */
         @media (min-width: 1024px) { 
-            .container { max-width: calc(100% - 380px); }
+            .app-wrapper { justify-content: center; }
+            .container { 
+                max-width: 1200px;
+                margin: 0 auto;
+                transition: margin-left 0.3s ease;
+            }
+            .container.sidebar-open {
+                margin-left: -190px;
+            }
         }
         
         @media (max-width: 1023px) { 
@@ -32,7 +40,7 @@
             .container { height: 100vh; border-radius: 6px; }
         }
         
-        /* Sidebar Backdrop (for mobile/tablet) */
+        /* Sidebar Backdrop (for all screens) */
         .sidebar-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 999; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
         .sidebar-backdrop.active { opacity: 1; pointer-events: auto; }
         
@@ -209,7 +217,7 @@
         .sidebar-close:hover { background: rgba(0, 0, 0, 0.1); border-radius: 4px; }
         
         @media (min-width: 1024px) { 
-            .sidebar-close { display: none; }
+            .sidebar-close { display: flex; }
         }
         
         .sidebar-content { 
@@ -352,7 +360,7 @@
         </div>
 
         <!-- Hint/Feedback Sidebar (Desktop fixed, Mobile drawer) -->
-        <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar(); closeSettings(); closeHelp();"></div>
+        <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeAllSidebars();"></div>
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <h3 id="sidebarTitle">Study Hint</h3>
@@ -1159,54 +1167,77 @@
             speakText('Testing ' + voiceLanguage + ' voice.');
         }
 
+        function updateSidebarState() {
+            const sidebar = document.getElementById('sidebar');
+            const settingsSidebar = document.getElementById('settingsSidebar');
+            const helpSidebar = document.getElementById('helpSidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            const container = document.querySelector('.container');
+            
+            const anySidebarOpen = sidebar.classList.contains('active') || 
+                                    settingsSidebar.classList.contains('active') || 
+                                    helpSidebar.classList.contains('active');
+            
+            if (anySidebarOpen) {
+                backdrop.classList.add('active');
+                container.classList.add('sidebar-open');
+            } else {
+                backdrop.classList.remove('active');
+                container.classList.remove('sidebar-open');
+            }
+        }
+
+        function toggleSidebar(sidebarId) {
+            const sidebar = document.getElementById(sidebarId);
+            const isCurrentlyOpen = sidebar.classList.contains('active');
+            
+            closeSidebar();
+            closeSettings();
+            closeHelp();
+            
+            if (!isCurrentlyOpen) {
+                sidebar.classList.add('active');
+            }
+            
+            updateSidebarState();
+        }
+
         function openSidebar() {
-            document.getElementById('sidebar').classList.add('active');
-            document.getElementById('sidebarBackdrop').classList.add('active');
+            toggleSidebar('sidebar');
         }
 
         function closeSidebar() {
             document.getElementById('sidebar').classList.remove('active');
-            const settingsSidebar = document.getElementById('settingsSidebar');
-            const helpSidebar = document.getElementById('helpSidebar');
-            if (settingsSidebar.classList.contains('active') || helpSidebar.classList.contains('active')) {
-                return; // Keep backdrop if another sidebar is open
-            }
-            document.getElementById('sidebarBackdrop').classList.remove('active');
+            updateSidebarState();
         }
 
         function openSettings() {
-            const settingsSidebar = document.getElementById('settingsSidebar');
-            settingsSidebar.classList.toggle('active');
-            if (settingsSidebar.classList.contains('active')) {
-                document.getElementById('sidebarBackdrop').classList.add('active');
-            } else {
-                document.getElementById('sidebarBackdrop').classList.remove('active');
-            }
+            toggleSidebar('settingsSidebar');
         }
 
         function closeSettings() {
             document.getElementById('settingsSidebar').classList.remove('active');
-            document.getElementById('sidebarBackdrop').classList.remove('active');
+            updateSidebarState();
         }
 
         function openHelp() {
-            const helpSidebar = document.getElementById('helpSidebar');
-            helpSidebar.classList.toggle('active');
-            if (helpSidebar.classList.contains('active')) {
-                document.getElementById('sidebarBackdrop').classList.add('active');
-            } else {
-                document.getElementById('sidebarBackdrop').classList.remove('active');
-            }
+            toggleSidebar('helpSidebar');
         }
 
         function closeHelp() {
             document.getElementById('helpSidebar').classList.remove('active');
-            document.getElementById('sidebarBackdrop').classList.remove('active');
+            updateSidebarState();
         }
 
         function openHelpInSettings() {
-            closeSettings();
             openHelp();
+        }
+
+        function closeAllSidebars() {
+            document.getElementById('sidebar').classList.remove('active');
+            document.getElementById('settingsSidebar').classList.remove('active');
+            document.getElementById('helpSidebar').classList.remove('active');
+            updateSidebarState();
         }
 
         async function generateHint() {
