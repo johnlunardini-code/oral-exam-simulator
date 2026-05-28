@@ -97,6 +97,36 @@ async function callGrok(systemPrompt, conversation, options = {}) {
 }
 
 // ============================================================
+// Question Detection Helper
+// ============================================================
+
+function isActualQuestion(text) {
+  if (!text) return false;
+  const trimmed = text.trim();
+  
+  // Must contain a question mark
+  if (!trimmed.includes('?')) return false;
+  
+  // Exclude short confirmations or meta-responses
+  if (trimmed.length < 20) return false;
+  
+  // Check if it has actual question structure
+  const questionMarks = (trimmed.match(/\?/g) || []).length;
+  if (questionMarks === 0) return false;
+  
+  // If it's all confirmations without substance, it's not a real question
+  const confirmationPatterns = /^\s*(yes|no|okay|ok|sure|alright|got it|i hear you|you're right|that's correct|good|thanks|thank you)[,\s.!]*$/i;
+  if (confirmationPatterns.test(trimmed)) return false;
+  
+  // If it contains "please proceed" or similar meta-text without a question, it's not a question
+  if (trimmed.match(/proceed|when ready|go ahead|continue/i) && !trimmed.match(/what|how|why|explain|describe|discuss|analyze/i)) {
+    return false;
+  }
+  
+  return true;
+}
+
+// ============================================================
 // MC Answer Extraction Helper
 // ============================================================
 
@@ -414,6 +444,15 @@ app.post('/api/exam/hint', async (req, res) => {
     if (!session) return res.status(404).json({ error: 'Session not found' });
 
     const context = session.lastQuestion || (session.messages.at(-1)?.content) || 'current topic';
+    
+    // Check if the last response is actually a question
+    if (!isActualQuestion(context)) {
+      return res.json({ 
+        textHint: 'This is not a question yet. Wait for the professor to ask you a question before requesting a hint.',
+        isNotQuestion: true
+      });
+    }
+    
     const langNote = session.isItalianCourse ? ' Respond in Italian.' : '';
 
     const hintPrompt = `You are a helpful UCBM biomedical engineering professor. Give ONE concise, high-value study hint (2-4 sentences). Be specific. Avoid giving the full answer.${langNote}\n\nContext:\n${context}`;
