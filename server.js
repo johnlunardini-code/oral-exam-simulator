@@ -225,7 +225,8 @@ function createSession(courseId, studentName) {
     questionCount: 0,
     lastQuestion: null,
     lastQuestionType: 'oral',
-    mcAnswerBank: {}
+    mcAnswerBank: {},
+    googleSearchUsed: false
   };
 
   sessions.set(sessionId, session);
@@ -242,6 +243,7 @@ function buildSystemPromptForSession(session, isFirstQuestion = false) {
 
   if (course) {
     prompt += `\n\nCURRENT COURSE: ${course.name} (ID: ${session.courseId}, Year ${course.year || '?'}, Semester ${course.semester || '?'})`;
+    prompt += `\nProfessor name: ${course.professor || 'Professor'}`;
     prompt += `\nProfessor style: ${course.typical_oral_style || 'rigorous oral exam'}`;
     if (course.examFormat) {
       prompt += `\nExam format: ${JSON.stringify(course.examFormat)}`;
@@ -280,7 +282,7 @@ function buildSystemPromptForSession(session, isFirstQuestion = false) {
   }
 
   if (isFirstQuestion) {
-    prompt += `\n\n**FIRST QUESTION**: Greet ${session.studentName}, introduce the course briefly, then ask the first realistic question immediately.`;
+    prompt += `\n\n**FIRST QUESTION**: Greet ${session.studentName}, introduce yourself as ${course?.professor || 'the professor'}, introduce the course format briefly, then ask the first realistic question immediately. DO NOT describe exam scoring criteria - only mention how the exam will be given/conducted.`;
   } else {
     prompt += `\n\n**CONTINUE THE EXAM**: Give short feedback on the last answer, then ask the next non-repetitive question.`;
   }
