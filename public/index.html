@@ -648,6 +648,15 @@
             } else {
                 btn.textContent = '🔊 Mute';
                 btn.style.background = '#764ba2';
+                // If professor was speaking when muted, restore the speaking indicator and replay
+                if (currentQuestionText) {
+                    // Small delay to ensure state is stable
+                    setTimeout(() => {
+                        if (speechSynthesisEnabled && !isProfessorSpeaking) {
+                            speakText(currentQuestionText);
+                        }
+                    }, 100);
+                }
             }
         }
 
@@ -1117,12 +1126,10 @@
             if (confirm('End exam?')) {
                 speechSynthesis.cancel();
                 if (speechRecognizer) speechRecognizer.stop();
-                // Close all sidebars
+                // Close all sidebars (do NOT set display:none as it prevents reopening)
                 document.getElementById('sidebar').classList.remove('active');
-                document.getElementById('sidebar').style.display = 'none';
                 document.getElementById('settingsSidebar').style.right = '-100vw';
                 document.getElementById('helpSidebar').classList.remove('active');
-                document.getElementById('helpSidebar').style.display = 'none';
                 
                 try {
                     const response = await fetch(`${API_BASE}/api/exam/session/${currentSessionId}`, { 
@@ -1165,14 +1172,6 @@
                 recognitionTranscript = '';
                 isProfessorSpeaking = false;
                 speechSynthesisEnabled = true;
-                
-                // Close all sidebars
-                const sidebar = document.getElementById('sidebar');
-                if (sidebar) sidebar.classList.remove('active');
-                const settingsSidebar = document.getElementById('settingsSidebar');
-                if (settingsSidebar) settingsSidebar.style.right = '-100vw';
-                const helpSidebar = document.getElementById('helpSidebar');
-                if (helpSidebar) helpSidebar.classList.remove('active');
                 
                 // Reset buttons
                 const speechBtn = document.getElementById('speechButton');
