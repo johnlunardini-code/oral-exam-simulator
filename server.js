@@ -104,14 +104,21 @@ function isActualQuestion(text) {
   if (!text) return false;
   const trimmed = text.trim();
   
-  // Must contain a question mark
-  if (!trimmed.includes('?')) return false;
-  
-  // Exclude ONLY pure confirmations like "Yes." or "Ok!"
-  const pureConfirmation = /^\s*(yes|no|okay|ok|sure|alright)[.!]*\s*$/i;
+  // Exclude ONLY pure confirmations or status updates
+  const pureConfirmation = /^\s*(yes|no|okay|ok|sure|alright|correct|right|wrong|good|thank|thanks|hello|hi|good morning|good afternoon)[.!]*\s*$/i;
   if (pureConfirmation.test(trimmed)) return false;
   
-  return true;
+  // If it looks like actual academic content (long text, technical terms), treat it as a question
+  if (trimmed.length > 80) return true;
+  if (/\b(?:explain|describe|discuss|consider|derive|calculate|analyze|evaluate|compare|contrast|discuss|define|identify|list|outline|summarize|state|prove)\b/i.test(trimmed)) return true;
+  
+  // If it contains question mark, it's definitely a question
+  if (trimmed.includes('?')) return true;
+  
+  // If it contains imperative verbs that expect answers, it's likely a question
+  if (/^(?:please|try|begin|start|proceed|answer|respond|tell|show|write|calculate|derive|solve|find|prove|explain|describe|discuss|compare|analyze|evaluate)/i.test(trimmed)) return true;
+  
+  return false;
 }
 
 // ============================================================
