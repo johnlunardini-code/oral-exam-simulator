@@ -99,8 +99,25 @@
         .btn-success { background: #27ae60; color: white; }
         .btn-danger { background: #e74c3c; color: white; }
         
-        .recording-active { border: 3px solid #e74c3c !important; animation: pulse 0.5s infinite; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.5); } 70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); } 100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); } }
+        .recording-active { 
+            border: 3px solid #e74c3c !important; 
+            animation: pulse 0.5s infinite; 
+            background: rgba(231, 76, 60, 0.1) !important;
+        }
+        @keyframes pulse { 
+            0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.5); } 
+            70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); } 
+            100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); } 
+        }
+        .icon-btn.active { 
+            border: 2px solid #e74c3c;
+            animation: pulse-btn 0.5s infinite;
+        }
+        @keyframes pulse-btn {
+            0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+        }
         
         .bottom-controls { display: flex; gap: 8px; flex-shrink: 0; }
         .bottom-controls button { flex: 1; padding: 10px; font-size: 12px; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; }
@@ -348,10 +365,23 @@
         function extractQuestionOnly(text) {
             if (!text) return '';
             
-            // Remove introductory text patterns (professor greetings, format explanations, instructions)
-            let cleaned = text.replace(/^.*?(?:Hello|Hi|Good|Dear|Welcome),\s+[^.!?]*[.!?]\s+/i, '').trim();
-            cleaned = cleaned.replace(/^.*?(?:This exam|The exam|In this exam|Here is|We will)[^?]*\.\s+/i, '').trim();
-            cleaned = cleaned.replace(/^.*?(?:For this question|Please answer|Respond to)[^?]*\s+/i, '').trim();
+            // AGGRESSIVE: Strip all professor context and instructions
+            let cleaned = text;
+            
+            // Remove professor greetings and introductions
+            cleaned = cleaned.replace(/^.*?(?:Hello|Hi|Good|Dear|Welcome|Hey),\s+[^.!?]*[.!?]\s+/i, '');
+            cleaned = cleaned.replace(/^.*?(?:This exam|The exam|In this exam|Here is|We will|Let me|I'm|I am)[^?]*\.\s+/i, '');
+            
+            // CRITICAL: Remove the "Go ahead and answer" context patterns
+            cleaned = cleaned.replace(/^.*?(?:Go ahead|Please go ahead|You can|Next|Now)[^?]*\b(?:and answer|to answer|the question|about)\s+/i, '');
+            cleaned = cleaned.replace(/^\s*"?(?:Please )?(?:answer|respond to)[^:]*:\s*/i, '');
+            cleaned = cleaned.replace(/^.*?(?:For this question|This question asks|Your task|The question|Please answer)[^?]*\s+/i, '');
+            cleaned = cleaned.replace(/^.*?(?:Respond to|Consider|Address|Explain|Describe|Discuss)\s+(?:the following|this)[^:]*:\s*/i, '');
+            
+            // Remove leading phrases that introduce context
+            cleaned = cleaned.replace(/^\s*(?:Based on|Regarding|About|Concerning)\s+[^?]*\s*[,:]\s*/i, '');
+            
+            cleaned = cleaned.trim();
             
             // For multiple-choice: extract question stem only (not options)
             const mcMatch = cleaned.match(/^([^A-D\n]*?\?)\s*(?:A\)|B\)|$)/i);
@@ -509,17 +539,13 @@
                 isListening = true;
                 recognitionTranscript = '';
                 document.getElementById('answerInput').value = '';
-                document.getElementById('answerInput').classList.add('recording-active');
-                document.getElementById('speechButton').classList.add('active');
-                document.getElementById('speechButton').textContent = '⏹️ Stop';
+                updateRecordingUI(true);
                 document.getElementById('speechFeedback').innerHTML = '<div class="speech-feedback">🎤 RECORDING...</div>';
             };
             
             speechRecognizer.onend = () => {
                 isListening = false;
-                document.getElementById('answerInput').classList.remove('recording-active');
-                document.getElementById('speechButton').classList.remove('active');
-                document.getElementById('speechButton').textContent = '🎤 Speak';
+                updateRecordingUI(false);
                 const wordCount = recognitionTranscript.trim().split(/\s+/).length;
                 if (wordCount > 0) {
                     document.getElementById('speechFeedback').innerHTML = `<div class="speech-feedback">✓ ${wordCount} word${wordCount !== 1 ? 's' : ''} captured</div>`;
@@ -580,6 +606,24 @@
             } else {
                 startRecording();
             }
+        
+        function updateRecordingUI(recording) {
+            const btn = document.getElementById('speechButton');
+            const textarea = document.getElementById('answerInput');
+            if (recording) {
+                textarea.classList.add('recording-active');
+                btn.classList.add('active');
+                btn.innerHTML = '⏹️';
+                btn.style.background = '#e74c3c';
+                btn.style.fontSize = '20px';
+            } else {
+                textarea.classList.remove('recording-active');
+                btn.classList.remove('active');
+                btn.innerHTML = '🎤 Speak';
+                btn.style.background = '#764ba2';
+                btn.style.fontSize = '11px';
+            }
+        }
         }
 
         function toggleMute() {
@@ -715,9 +759,14 @@
                     messageHistory.push({ role: 'user', text: studentAnswer });
                 }
 
+                const professorSpeakingIndicator = document.createElement('div');
+                professorSpeakingIndicator.className = 'professor-speaking-indicator';
+                professorSpeakingIndicator.innerHTML = '💬 Professor is speaking...';
+                chatArea.appendChild(professorSpeakingIndicator);
+                
                 const loading = document.createElement('div');
                 loading.className = 'loading';
-                loading.textContent = 'Professor thinking...';
+                loading.textContent = '';
                 chatArea.appendChild(loading);
                 chatArea.scrollTop = chatArea.scrollHeight;
 
@@ -728,6 +777,7 @@
                 });
                 
                 loading.remove();
+                professorSpeakingIndicator.remove();
                 
                 if (!response.ok) {
                     const errorMsg = document.createElement('div');

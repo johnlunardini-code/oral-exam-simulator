@@ -118,6 +118,32 @@ function extractAndHideCorrectAnswer(responseText, questionType) {
 }
 
 // ============================================================
+// Meta-Question Detection (time, technical, repeat, context requests)
+// ============================================================
+
+function detectMetaQuestion(studentAnswer) {
+  const text = (studentAnswer || '').toLowerCase().trim();
+  
+  // Time request patterns
+  const timePatterns = /\b(what time|can you tell.*time|do i have.*time|how long|time left|timer|how much time)\b/i;
+  if (timePatterns.test(text)) return 'time-request';
+  
+  // Technical issue patterns
+  const technicalPatterns = /\b(can you hear|can you see|audio|microphone|connection|technical|sound|not working|broken|hear me|see me|repeat)\b/i;
+  if (technicalPatterns.test(text)) return 'technical-issue';
+  
+  // Repeat question patterns
+  const repeatPatterns = /\b(repeat|say again|could you repeat|what was|what did you ask|ask again|rephrase)\b/i;
+  if (repeatPatterns.test(text)) return 'repeat-question';
+  
+  // Alternative context patterns
+  const contextPatterns = /\b(example|different context|another way|clarify|explain|what do you mean|confused)\b/i;
+  if (contextPatterns.test(text)) return 'context-request';
+  
+  return null;
+}
+
+// ============================================================
 // Question Type Helpers
 // ============================================================
 
@@ -275,8 +301,38 @@ app.post('/api/exam/question', async (req, res) => {
 
     const isFirst = session.questionCount === 0;
     const trimmedAnswer = (studentAnswer || '').trim();
+    const metaQuestionType = detectMetaQuestion(trimmedAnswer);
 
-    if (trimmedAnswer) {
+    // Handle meta-questions (time, technical, repeat, context) without advancing
+    if (metaQuestionType && !isFirst) {
+      let metaResponse = '';
+      
+      if (metaQuestionType === 'time-request') {
+        metaResponse = 'You have unlimited time for this exam. Please take your time and provide a thorough answer to the current question.';
+      } else if (metaQuestionType === 'technical-issue') {
+        metaResponse = 'Yes, I can hear you clearly. Your audio and connection are working. Please proceed with your answer when ready.';
+      } else if (metaQuestionType === 'repeat-question') {
+        const lastProfessorMsg = session.messages.slice().reverse().find(m => m.role === 'assistant');
+        metaResponse = lastProfessorMsg ? lastProfessorMsg.content : 'Let me ask you another way. Could you clarify your understanding of the current topic?';
+      } else if (metaQuestionType === 'context-request') {
+        metaResponse = 'Certainly. To clarify: the current question is asking you to explain your understanding. Use any examples or context from the course materials that help illustrate your point. What is your answer?';
+      }
+      
+      session.messages.push({ role: 'user', content: trimmedAnswer });
+      session.messages.push({ role: 'assistant', content: metaResponse });
+      session.lastQuestion = session.messages[session.messages.length - 2].content;
+      
+      return res.json({
+        response: metaResponse,
+        questionNumber: session.questionCount,
+        questionType: 'clarification',
+        isMetaQuestion: true,
+        hypotheticalScore: null,
+        scoreTracker: session.scoreTracker
+      });
+    }
+
+    if (trimmedAnswer && !metaQuestionType) {
       session.messages.push({ role: 'user', content: trimmedAnswer });
       const wordCount = trimmedAnswer.split(/\s+/).length;
       const looksSubstantive = wordCount >= 8 || trimmedAnswer.length > 60;
