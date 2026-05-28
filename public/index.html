@@ -638,12 +638,17 @@
 
         function toggleMute() {
             speechSynthesisEnabled = !speechSynthesisEnabled;
+            const btn = document.getElementById('muteButton');
             if (!speechSynthesisEnabled) {
                 speechSynthesis.cancel();
+                isProfessorSpeaking = false;
+                document.getElementById('speechFeedback').innerHTML = '';
+                btn.textContent = '🔇 Mute (OFF)';
+                btn.style.background = '#95a5a6';
+            } else {
+                btn.textContent = '🔊 Mute';
+                btn.style.background = '#764ba2';
             }
-            const btn = document.getElementById('muteButton');
-            btn.textContent = speechSynthesisEnabled ? '🔊 Mute' : '🔇 Mute (OFF)';
-            btn.style.background = speechSynthesisEnabled ? '#764ba2' : '#95a5a6';
         }
 
         function insertBold() { wrapSelection('<b>', '</b>'); }
@@ -1012,7 +1017,6 @@
         }
 
         function speakText(text) {
-            if (!speechSynthesisEnabled) return;
             if (speechRecognizer && isListening) speechRecognizer.stop();
             
             isProfessorSpeaking = true;
@@ -1029,12 +1033,25 @@
             if (voice) utterance.voice = voice;
             utterance.lang = currentSessionIsItalian ? 'it-IT' : 'en-US';
             
+            utterance.onstart = () => {
+                if (!speechSynthesisEnabled) {
+                    speechSynthesis.cancel();
+                    isProfessorSpeaking = false;
+                    document.getElementById('speechFeedback').innerHTML = '';
+                }
+            };
+            
             utterance.onend = () => {
                 isProfessorSpeaking = false;
                 document.getElementById('speechFeedback').innerHTML = '';
             };
             
-            speechSynthesis.speak(utterance);
+            if (speechSynthesisEnabled) {
+                speechSynthesis.speak(utterance);
+            } else {
+                isProfessorSpeaking = false;
+                document.getElementById('speechFeedback').innerHTML = '';
+            }
         }
 
         function testVoice() {
@@ -1137,11 +1154,38 @@
                 
                 document.querySelector('.exam-screen').classList.remove('active');
                 document.querySelector('.start-screen').classList.add('active');
+                
+                // Fully reset all exam state
                 currentSessionId = null;
                 messageHistory = [];
                 currentQuestionText = '';
                 currentHintCache = null;
                 currentSessionIsItalian = false;
+                isListening = false;
+                recognitionTranscript = '';
+                isProfessorSpeaking = false;
+                speechSynthesisEnabled = true;
+                
+                // Close all sidebars
+                const sidebar = document.getElementById('sidebar');
+                if (sidebar) sidebar.classList.remove('active');
+                const settingsSidebar = document.getElementById('settingsSidebar');
+                if (settingsSidebar) settingsSidebar.style.right = '-100vw';
+                const helpSidebar = document.getElementById('helpSidebar');
+                if (helpSidebar) helpSidebar.classList.remove('active');
+                
+                // Reset buttons
+                const speechBtn = document.getElementById('speechButton');
+                if (speechBtn) {
+                    speechBtn.innerHTML = '🎤 Speak';
+                    speechBtn.style.background = '#764ba2';
+                    speechBtn.classList.remove('active');
+                }
+                const muteBtn = document.getElementById('muteButton');
+                if (muteBtn) {
+                    muteBtn.textContent = '🔊 Mute';
+                    muteBtn.style.background = '#764ba2';
+                }
             }
         }
 

@@ -107,21 +107,9 @@ function isActualQuestion(text) {
   // Must contain a question mark
   if (!trimmed.includes('?')) return false;
   
-  // Exclude short confirmations or meta-responses
-  if (trimmed.length < 20) return false;
-  
-  // Check if it has actual question structure
-  const questionMarks = (trimmed.match(/\?/g) || []).length;
-  if (questionMarks === 0) return false;
-  
-  // If it's all confirmations without substance, it's not a real question
-  const confirmationPatterns = /^\s*(yes|no|okay|ok|sure|alright|got it|i hear you|you're right|that's correct|good|thanks|thank you)[,\s.!]*$/i;
-  if (confirmationPatterns.test(trimmed)) return false;
-  
-  // If it contains "please proceed" or similar meta-text without a question, it's not a question
-  if (trimmed.match(/proceed|when ready|go ahead|continue/i) && !trimmed.match(/what|how|why|explain|describe|discuss|analyze/i)) {
-    return false;
-  }
+  // Exclude ONLY pure confirmations like "Yes." or "Ok!"
+  const pureConfirmation = /^\s*(yes|no|okay|ok|sure|alright)[.!]*\s*$/i;
+  if (pureConfirmation.test(trimmed)) return false;
   
   return true;
 }
