@@ -1,0 +1,1727 @@
+        function stopPlayerPlayback() {
+            speechSynthesis.cancel();
+            hideTTSPlayer();
+            isTTSPaused = false;
+            clearTTSUpdateInterval();
+            isProfessorSpeaking = false;
+            document.getElementById('speechFeedback').innerHTML = '';
+            removeHighlighting();
+        }<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>UCBM Exam Tutor - Biomedical Engineering</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.0/katex.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.0/katex.min.js"></script>
+    <style>
+        html, body { width: 100%; height: 100%; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 8px; margin: 0; overflow-x: hidden; box-sizing: border-box; overflow: hidden; }
+        * { box-sizing: border-box; }
+        
+        /* Responsive Layout */
+        .app-wrapper { display: flex; width: 100%; height: 100%; position: relative; }
+        .container { background: white; border-radius: 12px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); width: 100%; height: 98vh; overflow: hidden; display: flex; flex-direction: column; position: relative; z-index: 1; transition: margin-right 0.3s ease; }
+        
+        /* DESKTOP (≥1024px): Container centers with equal padding, slides left when sidebar opens */
+        @media (min-width: 1024px) { 
+            .app-wrapper { justify-content: center; }
+            .container { 
+                max-width: 900px;
+                transition: transform 0.3s ease;
+                transform: translateX(0);
+            }
+            .container.sidebar-open { 
+                transform: translateX(-150px);
+                /* Dynamically reduce if window too small to prevent cutoff */
+                max-width: calc(100vw - 300px - 40px);
+            }
+        }
+        
+        @media (max-width: 1023px) { 
+            .container { max-width: 100%; }
+        }
+        
+        @media (max-width: 768px) { 
+            .container { height: 99vh; border-radius: 8px; }
+        }
+        @media (max-width: 480px) { 
+            body { padding: 4px; } 
+            .container { height: 100vh; border-radius: 6px; }
+        }
+        
+        /* Sidebar Backdrop (for all screens) */
+        .sidebar-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 999; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .sidebar-backdrop.active { opacity: 1; pointer-events: auto; }
+        
+        header { padding: 16px; text-align: center; flex-shrink: 0; }
+        h1 { color: #333; margin: 0 0 5px 0; font-size: 24px; }
+        .subtitle { color: #666; font-size: 13px; margin: 0; }
+        
+        .start-screen, .exam-screen { display: none; flex: 1; flex-direction: column; overflow-y: auto; padding: 0 16px 16px 16px; }
+        .start-screen.active, .exam-screen.active { display: flex; }
+        
+        .feature-list { background: #f9f9f9; padding: 10px; border-radius: 6px; margin: 8px 0; font-size: 12px; flex-shrink: 0; }
+        .feature-list h3 { color: #333; margin: 0 0 8px 0; font-size: 13px; }
+        .feature-list ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; transition: max-height 0.3s ease-out; }
+        .feature-list ul.collapsed { display: none; }
+        .feature-list li { padding: 4px 0; color: #666; display: flex; align-items: center; gap: 4px; font-size: 11px; }
+        .feature-list li::before { content: '✓'; color: #667eea; font-weight: bold; }
+        
+        .upload-section { background: #f0f4ff; border: 2px solid #667eea; padding: 10px; border-radius: 8px; margin: 8px 0; font-size: 11px; flex-shrink: 0; }
+        .upload-section h3 { margin: 0 0 6px 0; color: #333; font-size: 12px; }
+        .upload-section p { margin: 0 0 6px 0; color: #666; font-size: 10px; }
+        
+        .inline-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 8px 0; }
+        @media (max-width: 600px) { .inline-row { grid-template-columns: 1fr; } }
+        .inline-row label { display: block; color: #333; font-weight: 600; margin-bottom: 4px; font-size: 12px; }
+        .inline-row input, .inline-row select { width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 4px; font-size: 11px; }
+        
+        .courses-label { color: #666; text-align: center; margin: 8px 0; font-size: 12px; font-weight: 600; flex-shrink: 0; }
+        .courses-wrapper { flex: 1; overflow-y: auto; padding-right: 8px; }
+        .courses-wrapper::-webkit-scrollbar { width: 6px; }
+        .courses-wrapper::-webkit-scrollbar-track { background: #f0f0f0; border-radius: 3px; }
+        .courses-wrapper::-webkit-scrollbar-thumb { background: #999; border-radius: 3px; }
+        
+        .year-section { margin-bottom: 16px; }
+        .year-header { background: #667eea; color: white; padding: 8px 12px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .year-header:hover { background: #764ba2; }
+        .year-courses { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .year-courses.collapsed { display: none; }
+        @media (max-width: 480px) { .year-courses { grid-template-columns: 1fr; } }
+        
+        .subject-btn { padding: 12px 10px; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; color: white; white-space: normal; text-overflow: ellipsis; overflow: hidden; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .subject-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); }
+        
+        .exam-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 16px; border-radius: 6px; margin: 12px 0 8px 0; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+        .course-name { font-size: 14px; font-weight: 700; }
+        
+        .italian-button-area { display: none; padding: 8px 0; text-align: center; }
+        .italian-button-area.active { display: block; }
+        .italian-btn { background: #8b4513; color: white; border: none; padding: 10px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px; }
+        .italian-btn:hover { background: #a0522d; }
+        
+        .chat-area { border: 1px solid #e0e0e0; border-radius: 6px; padding: 10px; flex: 1; overflow-y: auto; background: #f9f9f9; font-size: 12px; margin-bottom: 8px; }
+        .message-group { margin-bottom: 12px; display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+        .message { padding: 10px 12px; border-radius: 8px; line-height: 1.5; max-width: 90%; word-wrap: break-word; }
+        .message.question { background: #e3f2fd; border-left: 4px solid #667eea; align-self: flex-start; }
+        .message.question-header { background: #f3e5f5; border-left: 4px solid #764ba2; align-self: center; max-width: 95%; text-align: center; font-weight: 600; color: #764ba2; padding: 6px 12px; margin: 8px 0; }
+        .message.answer { background: #f0e8fe; border-left: 4px solid #764ba2; align-self: flex-end; }
+        .message-label { font-weight: 600; font-size: 11px; color: #666; margin-bottom: 3px; text-transform: uppercase; }
+        .message-text { color: #333; font-size: 12px; white-space: pre-wrap; word-wrap: break-word; }
+        .message-actions { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
+        .action-btn { background: #667eea; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 10px; font-weight: 600; }
+        .action-btn:hover { background: #764ba2; }
+        
+        .input-container { display: flex; gap: 8px; margin-bottom: 8px; flex-shrink: 0; }
+        .text-editor { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+        .formatting-toolbar { background: #f0f0f0; border: 1px solid #ddd; border-radius: 4px 4px 0 0; padding: 6px; display: flex; gap: 4px; flex-wrap: wrap; font-size: 11px; }
+        .format-btn { background: white; border: 1px solid #ddd; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-weight: 600; font-size: 11px; transition: all 0.2s; }
+        .format-btn:hover { background: #e8f0fe; border-color: #667eea; }
+        textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 0 0 4px 4px; font-family: 'Segoe UI', Tahoma, Geneva, sans-serif; font-size: 12px; resize: vertical; overflow: auto; min-height: 120px; max-height: 600px; line-height: 1.5; }
+        
+        .button-col { display: flex; gap: 6px; flex-direction: column; flex-shrink: 0; }
+        
+        @media (max-width: 480px) {
+            .input-container { flex-direction: column; }
+            .text-editor { width: 100%; }
+            .formatting-toolbar { gap: 3px; padding: 4px; }
+            .format-btn { padding: 3px 4px; font-size: 9px; }
+            textarea { min-height: 80px; max-height: 200px; padding: 6px; font-size: 11px; }
+            .button-col { flex-direction: row; flex-wrap: wrap; gap: 4px; }
+            .icon-btn { padding: 8px 6px; font-size: 10px; min-width: auto; flex: 1 1 calc(50% - 2px); }
+        }
+        .icon-btn { padding: 10px 8px; font-size: 11px; border-radius: 6px; display: flex; align-items: center; justify-content: center; gap: 4px; font-weight: 600; white-space: nowrap; min-width: 60px; cursor: pointer; border: none; transition: all 0.3s; }
+        .icon-btn:hover { transform: translateY(-2px); box-shadow: 0 3px 10px rgba(0,0,0,0.15); }
+        .icon-btn.active { box-shadow: inset 0 0 8px rgba(0,0,0,0.3); border: 2px solid #000; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-secondary { background: #764ba2; color: white; }
+        .btn-success { background: #27ae60; color: white; }
+        .btn-danger { background: #e74c3c; color: white; }
+        
+        .recording-active { 
+            border: 3px solid #e74c3c !important; 
+            animation: pulse 0.5s infinite; 
+            background: rgba(231, 76, 60, 0.1) !important;
+        }
+        @keyframes pulse { 
+            0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.5); } 
+            70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); } 
+            100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); } 
+        }
+        .icon-btn.active { 
+            border: 2px solid #e74c3c;
+            animation: pulse-btn 0.5s infinite;
+        }
+        @keyframes pulse-btn {
+            0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+        }
+        
+        .bottom-controls { display: flex; gap: 8px; flex-shrink: 0; }
+        .bottom-controls button { flex: 1; padding: 10px; font-size: 12px; font-weight: 600; border: none; border-radius: 6px; cursor: pointer; }
+        
+        /* RESPONSIVE SIDEBAR */
+        /* DESKTOP (≥1024px): Fixed sidebar in layout, always visible */
+        @media (min-width: 1024px) {
+            .sidebar { 
+                position: absolute; 
+                right: 0; 
+                top: 0; 
+                width: 300px; 
+                height: 100%; 
+                background: white; 
+                box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1); 
+                overflow-y: auto; 
+                z-index: 10; 
+                display: flex;
+                flex-direction: column;
+            }
+            .sidebar-backdrop { display: none; }
+        }
+        
+        /* TABLET/MOBILE (<1024px): Slide-in drawer with backdrop */
+        @media (max-width: 1023px) {
+            .sidebar { 
+                position: fixed; 
+                right: -100%; 
+                top: 0; 
+                width: 90vw;
+                max-width: 300px; 
+                height: 100vh; 
+                background: white; 
+                box-shadow: -5px 0 20px rgba(0, 0, 0, 0.2); 
+                transition: right 0.3s ease; 
+                overflow-y: auto; 
+                z-index: 1001;
+                display: flex;
+                flex-direction: column;
+            }
+            .sidebar.active { right: 0; }
+        }
+        
+        .sidebar-header { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; 
+            padding: 12px 16px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            flex-shrink: 0; 
+        }
+        .sidebar-header h3 { margin: 0; font-size: 14px; font-weight: 600; }
+        .sidebar-close { 
+            background: none; 
+            border: none; 
+            color: white; 
+            font-size: 24px; 
+            cursor: pointer; 
+            padding: 0 4px;
+            width: auto;
+            height: auto;
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+        }
+        .sidebar-close:hover { background: rgba(0, 0, 0, 0.1); border-radius: 4px; }
+        
+        @media (min-width: 1024px) { 
+            .sidebar-close { display: flex; }
+        }
+        
+        .sidebar-content { 
+            padding: 12px 16px; 
+            font-size: 12px; 
+            overflow-y: auto; 
+            flex: 1; 
+        }
+        
+        .loading { text-align: center; color: #667eea; font-weight: 600; padding: 10px; font-size: 12px; }
+        .feedback-history { max-height: 400px; overflow-y: auto; }
+        .feedback-item { background: white; border: 1px solid #ddd; padding: 8px; border-radius: 4px; margin-bottom: 8px; cursor: pointer; }
+        .feedback-item:hover { background: #f0f4ff; border-color: #667eea; }
+        
+        .speech-feedback { font-size: 12px; color: #27ae60; padding: 8px; background: #e8f8f5; border-radius: 4px; margin-top: 4px; text-align: center; font-weight: 600; }
+        .professor-speaking-indicator { font-size: 12px; color: #667eea; padding: 8px; background: #e3f2fd; border-radius: 4px; margin-top: 4px; text-align: center; font-weight: 600; animation: blink 1s infinite; }
+        @keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0.5; } }
+        
+        /* Hide ALL sidebars by default - only show when .active */
+        .sidebar { display: none !important; }
+        .sidebar.active { display: flex !important; }
+        
+        /* Floating TTS Player - REPLACED WITH INLINE CONTROLS BELOW CHAT */
+        .tts-controls-bar {
+            display: none;
+            background: white;
+            border-top: 2px solid #667eea;
+            padding: 10px 12px;
+            flex-shrink: 0;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+        }
+        .tts-controls-bar.active {
+            display: flex;
+        }
+        .tts-controls-bar-progress {
+            width: 100%;
+            height: 3px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .tts-controls-bar-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+        .tts-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: 600;
+            flex: 0 1 auto;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .tts-btn:hover { background: #764ba2; }
+        .tts-btn.secondary {
+            background: #f0f0f0;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        .tts-btn.secondary:hover { background: #e8e8e8; }
+        .tts-speed-group {
+            display: flex;
+            gap: 3px;
+            flex-wrap: wrap;
+        }
+        .tts-speed-btn {
+            background: #f0f0f0;
+            color: #333;
+            border: 1px solid #ddd;
+            padding: 4px 6px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 9px;
+            font-weight: 600;
+        }
+        .tts-speed-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        .tts-speed-btn:hover { background: #e8e8e8; }
+        .tts-speed-btn.active:hover { background: #764ba2; }
+        .tts-status {
+            font-size: 11px;
+            color: #666;
+            min-width: 80px;
+            text-align: center;
+        }
+        
+        /* Sentence highlighting */
+        .sentence-highlighted {
+            background: #ffeb3b;
+            font-weight: 600;
+            padding: 2px 4px;
+            border-radius: 2px;
+            transition: all 0.2s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-wrapper" id="appWrapper">
+        <div class="container">
+            <header>
+                <h1>🎓 UCBM Exam Tutor</h1>
+                <p class="subtitle">Biomedical Engineering - Piano degli Studi 2025-2026</p>
+            </header>
+
+            <!-- Start Screen -->
+            <div class="start-screen active">
+                <div class="feature-list">
+                    <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleFeatures()">
+                        <h3 style="margin: 0;">🌟 Features</h3>
+                        <span id="featuresToggle" style="font-size: 16px; transition: transform 0.3s;">▶</span>
+                    </div>
+                    <ul id="featuresList" style="display: none;">
+                        <li id="courseCount">27+ UCBM courses</li>
+                        <li>Auto Q-generation</li>
+                        <li>Live feedback</li>
+                        <li>Speech support</li>
+                        <li>Progress tracking</li>
+                        <li>Rich text editing</li>
+                    </ul>
+                </div>
+
+                <div class="inline-row">
+                    <div>
+                        <label>👤 Your Name:</label>
+                        <input type="text" id="studentName" placeholder="Your name...">
+                    </div>
+                    <div>
+                        <label>🎤 Voice:</label>
+                        <select id="voiceLanguage" onchange="changeVoiceLanguage()" style="font-size: 12px;">
+                            <option value="Google US English">Google US English - Default</option>
+                            <option value="Microsoft David - English (United States)">David (US) - Male</option>
+                            <option value="Microsoft Zira - English (United States)">Zira (US) - Female</option>
+                            <option value="Microsoft Mark - English (United States)">Mark (US) - Male</option>
+                            <option value="Google UK English">Google UK English</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Upload Materials Section -->
+                <div class="upload-section">
+                    <h3>📚 Pre-load Materials</h3>
+                    <p>Upload syllabi, notes, or slides for study.</p>
+                    <div style="margin-bottom: 8px;">
+                        <label style="display: block; color: #333; font-weight: 600; margin-bottom: 4px; font-size: 12px;">Course Assignment (optional):</label>
+                        <select id="homeUploadCourse" style="width: 100%; padding: 6px; border: 1px solid #667eea; border-radius: 4px; font-size: 11px; background: white;">
+                            <option value="">General Materials</option>
+                        </select>
+                    </div>
+                    <input type="file" id="homeUploadInput" accept=".pdf,.docx,.pptx,.txt,.jpg,.png,.gif,.webp" multiple onchange="preloadMaterials()">
+                    <div id="homeUploadStatus" style="font-size: 11px; margin-top: 4px; display: none;"></div>
+                </div>
+
+                <div class="bottom-controls">
+                    <button onclick="viewPastScores()" style="background: #27ae60; color: white;">📊 Past Scores</button>
+                    <button onclick="clearAllData()" style="background: #95a5a6; color: white;">🗑️ Clear Scores</button>
+                    <button onclick="openHelp()" style="background: #3498db; color: white;">❓ Help</button>
+                </div>
+
+                <p class="courses-label">Select a course:</p>
+                <div class="courses-wrapper">
+                    <div id="coursesContainer"></div>
+                </div>
+            </div>
+
+            <!-- Exam Screen -->
+            <div class="exam-screen">
+                <div class="exam-header">
+                    <div class="course-name" id="courseName"></div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="font-size: 11px;">Q<span id="questionCount">1</span></div>
+                        <button onclick="openSettings()" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer; padding: 4px 8px;" title="Settings">⚙️</button>
+                    </div>
+                </div>
+
+                <!-- Italian Respond Button -->
+                <div class="italian-button-area" id="italianButtonArea">
+                    <button class="italian-btn" onclick="speakItalianPrompt()">🇮🇹 Risponda in Italiano (Respond in Italian)</button>
+                </div>
+
+                <div class="chat-area" id="chatArea"></div>
+
+                <!-- TTS Controls Bar (replaces floating player) -->
+                <div class="tts-controls-bar" id="ttsControlsBar">
+                    <div style="width: 100%;">Progress: <div class="tts-controls-bar-progress"><div class="tts-controls-bar-progress-fill" id="ttsProgressFill"></div></div></div>
+                    <button class="tts-btn" id="playerPlayPauseBtn" onclick="togglePlayerPlayPause()">⏸ Pause</button>
+                    <button class="tts-btn" onclick="stopPlayerPlayback()">⏹ Stop</button>
+                    <button class="tts-btn secondary" onclick="playerRewind()">⏮ -10s</button>
+                    <button class="tts-btn secondary" onclick="playerForward()">⏭ +10s</button>
+                    <div class="tts-speed-group" id="ttsSpeedControls">
+                        <button class="tts-speed-btn" onclick="setPlayerSpeed(0.5)">0.5x</button>
+                        <button class="tts-speed-btn" onclick="setPlayerSpeed(0.75)">0.75x</button>
+                        <button class="tts-speed-btn active" onclick="setPlayerSpeed(1.0)">1.0x</button>
+                        <button class="tts-speed-btn" onclick="setPlayerSpeed(1.25)">1.25x</button>
+                        <button class="tts-speed-btn" onclick="setPlayerSpeed(1.5)">1.5x</button>
+                        <button class="tts-speed-btn" onclick="setPlayerSpeed(2.0)">2.0x</button>
+                    </div>
+                    <div class="tts-status" id="ttsStatus">Playing...</div>
+                </div>
+
+                <div class="input-container">
+                    <div class="text-editor">
+                        <div class="formatting-toolbar">
+                            <button class="format-btn" onclick="insertBold()"><strong>B</strong></button>
+                            <button class="format-btn" onclick="insertItalic()"><em>I</em></button>
+                            <button class="format-btn" onclick="insertUnderline()"><u>U</u></button>
+                            <button class="format-btn" onclick="insertCode()">&lt;/&gt;</button>
+                            <button class="format-btn" onclick="insertList()">• List</button>
+                            <button class="format-btn" onclick="insertFormula()">𝑥²</button>
+                            <button class="format-btn" onclick="insertURL()">🔗 URL</button>
+                        </div>
+                        <textarea id="answerInput" placeholder="Type answer or use speech... (URLs: http://example.com)"></textarea>
+                        <div id="speechFeedback"></div>
+                    </div>
+                    <div class="button-col">
+                        <button class="icon-btn btn-primary" onclick="submitAnswer()">✓ Send</button>
+                        <button class="icon-btn btn-secondary" onclick="toggleSpeech()" id="speechButton" title="Click to start recording">🎤 Speak</button>
+                        <button class="icon-btn btn-secondary" onclick="toggleMute()" id="muteButton">🔊 Mute</button>
+                        <button class="icon-btn btn-secondary" onclick="document.getElementById('attachInput').click()">📎 Attach</button>
+                        <input type="file" id="attachInput" accept=".pdf,.docx,.pptx,.txt,.jpg,.png,.gif,.webp,.mp3,.mp4,.mov" style="display: none;" onchange="handleAttachUpload(event)">
+                    </div>
+                </div>
+
+                <div class="bottom-controls">
+                    <button class="btn-primary" onclick="getScore()" style="flex: 1;">📊 Get Score</button>
+                    <button class="btn-secondary" onclick="generateHint()" style="flex: 1;">💡 Hint</button>
+                    <button class="btn-success" onclick="openHintHistory()" style="flex: 1;">📋 History</button>
+                    <button class="btn-success" onclick="openFeedbackHistory()" style="flex: 1;">💬 Feedback</button>
+                    <button class="btn-danger" onclick="endExam()" style="flex: 1;">End Exam</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hint/Feedback Sidebar (Desktop fixed, Mobile drawer) -->
+        <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeAllSidebars();"></div>
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h3 id="sidebarTitle">Study Hint</h3>
+                <button class="sidebar-close" onclick="closeSidebar()">×</button>
+            </div>
+            <div class="sidebar-content">
+                <div id="hintResult">
+                    <p style="color: #999; font-size: 12px;">Click Hint button to start.</p>
+                </div>
+                <button id="googleSearchBtn" class="icon-btn btn-primary" style="width: 100%; margin-top: 12px; display: none;">🔍 Search Google</button>
+            </div>
+        </div>
+
+        <!-- Settings Sidebar -->
+        <div class="sidebar" id="settingsSidebar">
+            <div class="sidebar-header">
+                <h3>Settings</h3>
+                <button class="sidebar-close" onclick="closeSettings()">×</button>
+            </div>
+            <div class="sidebar-content">
+                <h4 style="color: #667eea; font-size: 12px; margin-bottom: 8px; margin-top: 0;">🎤 Voice Selection</h4>
+                <select id="examVoiceSelect" onchange="updateVoiceFromSettings()" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; margin-bottom: 8px;">
+                    <option value="Google US English">Google US English</option>
+                    <option value="Microsoft David - English (United States)">David (US) - Male</option>
+                    <option value="Microsoft Zira - English (United States)">Zira (US) - Female</option>
+                    <option value="Microsoft Mark - English (United States)">Mark (US) - Male</option>
+                    <option value="Google UK English">Google UK English</option>
+                </select>
+                <button onclick="testVoice()" style="width: 100%; padding: 10px; background: #27ae60; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; margin-bottom: 12px;">🔊 Test Voice</button>
+                <button onclick="openHelpInSettings()" style="width: 100%; padding: 10px; background: #3498db; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; margin-bottom: 6px;">❓ Help</button>
+                <button onclick="closeSettings()" style="width: 100%; padding: 10px; background: #667eea; color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;">Close</button>
+            </div>
+        </div>
+
+        <!-- Help Sidebar -->
+        <div class="sidebar" id="helpSidebar">
+            <div class="sidebar-header">
+                <h3>Help Guide</h3>
+                <button class="sidebar-close" onclick="closeHelp()">×</button>
+            </div>
+            <div class="sidebar-content">
+                <div style="font-size: 11px; line-height: 1.6; color: #333;">
+                    <h4 style="color: #667eea; margin-top: 10px; margin-bottom: 6px; font-size: 12px;">🏠 Home Page</h4>
+                    <p style="margin: 3px 0;"><strong>📚 Pre-load Materials:</strong> Upload course syllabi, notes, or slides (PDFs, DOCX, images) to help the tutor understand your course content. Assign to specific courses for targeted feedback.</p>
+                    <p style="margin: 3px 0;"><strong>👤 Your Name:</strong> Optional student name for personalized tracking.</p>
+                    <p style="margin: 3px 0;"><strong>🎤 Voice:</strong> Choose your preferred text-to-speech voice.</p>
+                    <p style="margin: 3px 0;"><strong>📊 Past Scores:</strong> View all your exam attempts and average scores for each course.</p>
+                    <p style="margin: 3px 0;"><strong>🗑️ Clear Scores:</strong> Delete all saved exam data (irreversible).</p>
+                    
+                    <h4 style="color: #667eea; margin-top: 10px; margin-bottom: 6px; font-size: 12px;">🇮🇹 Italian Exams</h4>
+                    <p style="margin: 3px 0;"><strong>Language Support:</strong> Italian courses accept responses in Italian or English.</p>
+                    <p style="margin: 3px 0;"><strong>🇮🇹 Risponda in Italiano Button:</strong> Appears for Italian courses. Click to hear the professor remind you that you can respond in Italian.</p>
+                    <p style="margin: 3px 0;"><strong>Auto Language Switch:</strong> Speech recognition automatically switches to Italian (it-IT) when using the Speak button in Italian exams.</p>
+                    
+                    <h4 style="color: #667eea; margin-top: 10px; margin-bottom: 6px; font-size: 12px;">📝 During Exam</h4>
+                    <p style="margin: 3px 0;"><strong>✓ Send:</strong> Submit your typed or spoken answer.</p>
+                    <p style="margin: 3px 0;"><strong>🎤 Speak:</strong> Click to start recording, click again to stop.</p>
+                    <p style="margin: 3px 0;"><strong>🔊 Mute:</strong> Toggle audio on/off. Changes to "Stop" during professor response to let you stop playback anytime.</p>
+                    <p style="margin: 3px 0;"><strong>📎 Attach:</strong> Upload supporting files for the tutor to review.</p>
+                    <p style="margin: 3px 0;"><strong>📊 Get Score:</strong> View your current score and Italian 30-point scale.</p>
+                    <p style="margin: 3px 0;"><strong>💡 Hint:</strong> Get a study tip and search terms.</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Floating TTS Player -->
+        <div class="floating-player" id="floatingPlayer">
+            <div class="floating-player-header">🔊 Playing...</div>
+            <div class="floating-player-progress">
+                <div class="floating-player-progress-bar" id="playerProgressBar"></div>
+            </div>
+            <div class="floating-player-controls">
+                <button class="floating-player-btn" id="playerPlayPauseBtn" onclick="togglePlayerPlayPause()">⏸️ Pause</button>
+                <button class="floating-player-btn" id="playerStopBtn" onclick="stopPlayerPlayback()">⏹️ Stop</button>
+                <button class="floating-player-btn secondary" id="playerRewindBtn" onclick="playerRewind()">⏮️ -10s</button>
+                <button class="floating-player-btn secondary" id="playerForwardBtn" onclick="playerForward()">⏭️ +10s</button>
+            </div>
+            <div class="floating-player-speed" id="playerSpeedControls">
+                <button class="floating-player-speed-btn" onclick="setPlayerSpeed(0.5)">0.5x</button>
+                <button class="floating-player-speed-btn" onclick="setPlayerSpeed(0.75)">0.75x</button>
+                <button class="floating-player-speed-btn active" onclick="setPlayerSpeed(1.0)">1.0x</button>
+                <button class="floating-player-speed-btn" onclick="setPlayerSpeed(1.25)">1.25x</button>
+                <button class="floating-player-speed-btn" onclick="setPlayerSpeed(1.5)">1.5x</button>
+                <button class="floating-player-speed-btn" onclick="setPlayerSpeed(2.0)">2.0x</button>
+            </div>
+            <div class="floating-player-text" id="playerText">Initializing...</div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '';
+        let currentSessionId = null;
+        let isListening = false;
+        let preloadedMaterials = [];
+        let voiceLanguage = localStorage.getItem('userVoicePreference') || 'Microsoft Sonia - English (United Kingdom)';
+        let speechRecognizer = null;
+        let currentHintCache = null;
+        let speechSynthesisEnabled = true;
+        let messageHistory = [];
+        let recognitionSilenceTimer = null;
+        let recognitionTranscript = '';
+        let currentSessionIsItalian = false;
+        let isProfessorSpeaking = false;
+        const recognition = window.webkitSpeechRecognition || window.SpeechRecognition;
+
+        let yearStructure = {};
+        let courseDataMap = {};
+        let currentQuestionText = '';
+
+        function toggleFeatures() {
+            const list = document.getElementById('featuresList');
+            const toggle = document.getElementById('featuresToggle');
+            if (list.style.display === 'none') {
+                list.style.display = 'grid';
+                toggle.textContent = '\u25bc';
+            } else {
+                list.style.display = 'none';
+                toggle.textContent = '\u25b6';
+            }
+        }
+
+        function updateCourseCount() {
+            const count = Object.values(yearStructure).reduce((sum, courses) => sum + courses.length, 0);
+            const courseCountEl = document.getElementById('courseCount');
+            if (courseCountEl) {
+                courseCountEl.textContent = count + ' UCBM courses';
+            }
+        }
+
+        function extractQuestionOnly(text) {
+            if (!text) return '';
+            
+            let cleaned = text;
+            cleaned = cleaned.replace(/^.*?(?:Hello|Hi|Good|Dear|Welcome|Hey),\s+[^.!?]*[.!?]\s+/i, '');
+            cleaned = cleaned.replace(/^.*?(?:This exam|The exam|In this exam|Here is|We will|Let me|I'm|I am)[^?]*\.\s+/i, '');
+            cleaned = cleaned.replace(/^.*?(?:Go ahead|Please go ahead|You can|Next|Now)[^?]*\b(?:and answer|to answer|the question|about)\s+/i, '');
+            cleaned = cleaned.replace(/^\s*"?(?:Please )?(?:answer|respond to)[^:]*:\s*/i, '');
+            cleaned = cleaned.replace(/^.*?(?:For this question|This question asks|Your task|The question|Please answer)[^?]*\s+/i, '');
+            cleaned = cleaned.replace(/^.*?(?:Respond to|Consider|Address|Explain|Describe|Discuss)\s+(?:the following|this)[^:]*:\s*/i, '');
+            cleaned = cleaned.replace(/^\s*(?:Based on|Regarding|About|Concerning)\s+[^?]*\s*[,:]\s*/i, '');
+            cleaned = cleaned.trim();
+            
+            const mcMatch = cleaned.match(/^([^A-D\n]*?\?)\s*(?:A\)|B\)|$)/i);
+            if (mcMatch) {
+                return mcMatch[1].trim();
+            }
+            
+            const paragraphs = cleaned.split(/\n\n+/).map(p => p.trim()).filter(p => p.length > 0);
+            for (let i = paragraphs.length - 1; i >= 0; i--) {
+                if (paragraphs[i].includes('?') || /[!.?]$/.test(paragraphs[i])) {
+                    return paragraphs[i];
+                }
+            }
+            
+            return cleaned.substring(0, 250);
+        }
+
+        function searchGoogle() {
+            if (!currentQuestionText.trim()) {
+                alert('No question text available.');
+                return;
+            }
+            const questionOnly = extractQuestionOnly(currentQuestionText);
+            const query = encodeURIComponent(questionOnly);
+            window.open(`https://www.google.com/search?q=${query}`, '_blank');
+        }
+
+        const colorPalette = [
+            '#667eea', '#764ba2', '#e74c3c', '#f39c12', '#16a085',
+            '#2980b9', '#8b4513', '#c0392b', '#9b59b6', '#8e44ad',
+            '#27ae60', '#d35400', '#1abc9c', '#34495e', '#e67e22',
+            '#9b59b6', '#1e8449', '#154360', '#784212', '#641e16',
+            '#8b4513', '#1e90ff', '#3498db', '#2ecc71', '#e67e22',
+            '#16a085', '#d35400', '#8e44ad'
+        ];
+        let colorIndex = 0;
+
+        async function loadCoursesFromJSON() {
+            try {
+                const response = await fetch('/course-specs.json');
+                const courseSpecs = await response.json();
+                yearStructure = {};
+                courseDataMap = {};
+
+                courseSpecs.courses.forEach((course) => {
+                    const year = `Year ${course.year}`;
+                    if (!yearStructure[year]) {
+                        yearStructure[year] = [];
+                    }
+
+                    const color = colorPalette[colorIndex % colorPalette.length];
+                    colorIndex++;
+                    
+                    let emoji = course.emoji || '📖';
+                    if (emoji === '🇦🇮' || course.name.includes('English')) {
+                        emoji = '🇺🇸';
+                    }
+                    if (course.name.includes('Italian')) {
+                        emoji = '🇮🇹';
+                    }
+
+                    const courseInfo = {
+                        id: course.id,
+                        name: course.name,
+                        emoji: emoji,
+                        semester: course.semester,
+                        color: color
+                    };
+
+                    yearStructure[year].push(courseInfo);
+                    courseDataMap[course.id] = courseInfo;
+                });
+
+                console.log('✅ Loaded', courseSpecs.courses.length, 'courses from course-specs.json');
+                initializeCourses();
+                populateUploadDropdown();
+            } catch (error) {
+                console.error('Error loading courses:', error);
+            }
+        }
+
+        function populateUploadDropdown() {
+            const dropdown = document.getElementById('homeUploadCourse');
+            Object.values(courseDataMap).forEach(course => {
+                const option = document.createElement('option');
+                option.value = course.id;
+                option.textContent = course.emoji + ' ' + course.name;
+                dropdown.appendChild(option);
+            });
+        }
+
+        function initializeCourses() {
+            const container = document.getElementById('coursesContainer');
+            container.innerHTML = '';
+            updateCourseCount();
+            
+            Object.entries(yearStructure).forEach(([year, courses], yearIndex) => {
+                const yearDiv = document.createElement('div');
+                yearDiv.className = 'year-section';
+                
+                const header = document.createElement('div');
+                header.className = 'year-header';
+                header.innerHTML = `<span>${year}</span><span class="toggle">${yearIndex === 0 ? '▼' : '▶'}</span>`;
+                header.onclick = () => toggleYear(header);
+                
+                const coursesDiv = document.createElement('div');
+                coursesDiv.className = 'year-courses';
+                if (yearIndex > 0) coursesDiv.classList.add('collapsed');
+                
+                courses.forEach(course => {
+                    const btn = document.createElement('button');
+                    btn.className = 'subject-btn';
+                    btn.style.background = course.color;
+                    btn.title = `${course.name} (Sem ${course.semester})`;
+                    btn.innerHTML = `<span style="font-size: 14px;">${course.emoji}</span><span>${course.name}</span>`;
+                    btn.onclick = () => startExam(course.id);
+                    coursesDiv.appendChild(btn);
+                });
+                
+                yearDiv.appendChild(header);
+                yearDiv.appendChild(coursesDiv);
+                container.appendChild(yearDiv);
+            });
+        }
+
+        function toggleYear(header) {
+            const coursesDiv = header.nextElementSibling;
+            coursesDiv.classList.toggle('collapsed');
+            header.querySelector('.toggle').textContent = coursesDiv.classList.contains('collapsed') ? '▶' : '▼';
+        }
+
+        function loadVoices() {
+            const voices = speechSynthesis.getVoices();
+            if (voices.length > 0) {
+                document.getElementById('voiceLanguage').value = voiceLanguage;
+            }
+        }
+
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = () => loadVoices();
+        }
+
+        function changeVoiceLanguage() {
+            voiceLanguage = document.getElementById('voiceLanguage').value;
+            localStorage.setItem('userVoicePreference', voiceLanguage);
+        }
+
+        function updateVoiceFromSettings() {
+            voiceLanguage = document.getElementById('examVoiceSelect').value;
+            localStorage.setItem('userVoicePreference', voiceLanguage);
+        }
+
+        if (recognition) {
+            speechRecognizer = new recognition();
+            speechRecognizer.continuous = true;
+            speechRecognizer.interimResults = true;
+            speechRecognizer.lang = 'en-US';
+            
+            speechRecognizer.onstart = () => {
+                isListening = true;
+                recognitionTranscript = '';
+                document.getElementById('answerInput').value = '';
+                updateRecordingUI(true);
+                document.getElementById('speechFeedback').innerHTML = '<div class="speech-feedback">🎤 RECORDING...</div>';
+            };
+            
+            speechRecognizer.onend = () => {
+                isListening = false;
+                updateRecordingUI(false);
+                const wordCount = recognitionTranscript.trim().split(/\s+/).length;
+                if (wordCount > 0) {
+                    document.getElementById('speechFeedback').innerHTML = `<div class="speech-feedback">✓ ${wordCount} word${wordCount !== 1 ? 's' : ''} captured</div>`;
+                    setTimeout(() => { document.getElementById('speechFeedback').innerHTML = ''; }, 3000);
+                }
+            };
+            
+            speechRecognizer.onresult = (event) => {
+                let finalTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript + ' ';
+                    }
+                }
+                if (finalTranscript.trim()) {
+                    recognitionTranscript = finalTranscript.trim();
+                }
+                document.getElementById('answerInput').value = recognitionTranscript.trim();
+            };
+
+            speechRecognizer.onerror = (event) => {
+                console.error('Speech error:', event.error);
+            };
+        }
+
+        function startRecording() {
+            document.getElementById('answerInput').value = '';
+            recognitionTranscript = '';
+            speechRecognizer.lang = currentSessionIsItalian ? 'it-IT' : 'en-US';
+            speechRecognizer.start();
+        }
+
+        function stopRecording() {
+            speechRecognizer.stop();
+            const answer = document.getElementById('answerInput').value.trim();
+            if (answer) {
+                setTimeout(() => submitAnswer(), 500);
+            }
+        }
+
+        function stopProfessorSpeech() {
+            if (isProfessorSpeaking) {
+                speechSynthesis.cancel();
+                isProfessorSpeaking = false;
+                const btn = document.getElementById('muteButton');
+                if (btn) {
+                    btn.textContent = '🔊 Mute';
+                    btn.style.background = '#764ba2';
+                }
+                document.getElementById('speechFeedback').innerHTML = '';
+            }
+        }
+
+        function updateRecordingUI(recording) {
+            const btn = document.getElementById('speechButton');
+            const textarea = document.getElementById('answerInput');
+            if (recording) {
+                textarea.classList.add('recording-active');
+                btn.classList.add('active');
+                btn.innerHTML = '⏹️';
+                btn.style.background = '#e74c3c';
+                btn.style.fontSize = '20px';
+            } else {
+                textarea.classList.remove('recording-active');
+                btn.classList.remove('active');
+                btn.innerHTML = '🎤 Speak';
+                btn.style.background = '#764ba2';
+                btn.style.fontSize = '11px';
+            }
+        }
+
+        function toggleSpeech() {
+            if (!speechRecognizer) { alert('Speech not supported'); return; }
+            if (isListening) {
+                stopRecording();
+            } else {
+                startRecording();
+            }
+        }
+
+        function toggleMute() {
+            speechSynthesisEnabled = !speechSynthesisEnabled;
+            const btn = document.getElementById('muteButton');
+            if (!speechSynthesisEnabled) {
+                speechSynthesis.cancel();
+                isProfessorSpeaking = false;
+                hideTTSPlayer();
+                isTTSPaused = false;
+                clearTTSUpdateInterval();
+                removeHighlighting();
+                document.getElementById('speechFeedback').innerHTML = '';
+                btn.textContent = '🔇 Mute (OFF)';
+                btn.style.background = '#95a5a6';
+            } else {
+                btn.textContent = '🔊 Mute';
+                btn.style.background = '#764ba2';
+                if (currentQuestionText) {
+                    setTimeout(() => {
+                        if (speechSynthesisEnabled && !isProfessorSpeaking) {
+                            speakText(currentQuestionText, null);
+                        }
+                    }, 100);
+                }
+            }
+        }
+
+        function insertBold() { wrapSelection('<b>', '</b>'); }
+        function insertItalic() { wrapSelection('<i>', '</i>'); }
+        function insertUnderline() { wrapSelection('<u>', '</u>'); }
+        function insertCode() { wrapSelection('<code>', '</code>'); }
+        function insertList() {
+            const textarea = document.getElementById('answerInput');
+            const text = textarea.value;
+            const lines = text.split('\n');
+            textarea.value = lines.map(l => (l.trim() ? '• ' + l : l)).join('\n');
+            textarea.focus();
+        }
+        function insertFormula() { wrapSelection('[', ']'); }
+        function insertURL() { wrapSelection('(', ')'); }
+        function wrapSelection(before, after) {
+            const textarea = document.getElementById('answerInput');
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = textarea.value;
+            const selected = text.substring(start, end) || 'text';
+            textarea.value = text.substring(0, start) + before + selected + after + text.substring(end);
+            textarea.focus();
+        }
+
+        async function preloadMaterials() {
+            const files = document.getElementById('homeUploadInput').files;
+            const status = document.getElementById('homeUploadStatus');
+            const courseAssignment = document.getElementById('homeUploadCourse').value;
+            if (!files.length) { status.style.display = 'none'; return; }
+            
+            status.textContent = `Loading ${files.length} file(s)...`;
+            status.style.display = 'block';
+            preloadedMaterials = [];
+            let loaded = 0;
+
+            for (let file of files) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    preloadedMaterials.push({
+                        name: file.name,
+                        content: e.target.result.substring(0, 50000),
+                        courseAssignment: courseAssignment || 'general'
+                    });
+                    loaded++;
+                    if (loaded === files.length) {
+                        status.textContent = `✓ ${loaded} file(s) loaded`;
+                        status.style.color = '#27ae60';
+                    }
+                };
+                reader.readAsText(file, 'utf-8');
+            }
+        }
+
+        async function startExam(subject) {
+            try {
+                const studentName = document.getElementById('studentName').value || 'Student';
+                const response = await fetch(`${API_BASE}/api/exam/start`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ subject, studentName }),
+                });
+                const data = await response.json();
+                currentSessionId = data.sessionId;
+                currentSessionIsItalian = data.isItalianCourse || false;
+                messageHistory = [];
+                currentHintCache = null;
+                currentQuestionText = '';
+                isProfessorSpeaking = false;
+                
+                document.querySelector('.start-screen').classList.remove('active');
+                document.querySelector('.exam-screen').classList.add('active');
+                document.getElementById('courseName').textContent = data.courseName;
+                document.getElementById('chatArea').innerHTML = '';
+                document.getElementById('questionCount').textContent = '1';
+                document.getElementById('answerInput').value = '';
+                
+                const italianArea = document.getElementById('italianButtonArea');
+                if (currentSessionIsItalian) {
+                    italianArea.classList.add('active');
+                } else {
+                    italianArea.classList.remove('active');
+                }
+                
+                speechSynthesis.cancel();
+                closeSidebar();
+                
+                for (let material of preloadedMaterials) {
+                    await uploadPreloadedMaterial(material);
+                }
+                
+                setTimeout(() => getQuestion(''), 500);
+                document.getElementById('answerInput').addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitAnswer(); }
+                });
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        async function uploadPreloadedMaterial(material) {
+            try {
+                const blob = new Blob([material.content], { type: 'text/plain' });
+                const formData = new FormData();
+                formData.append('file', blob, material.name);
+                formData.append('courseAssignment', material.courseAssignment || 'general');
+                await fetch(`${API_BASE}/api/exam/upload/${currentSessionId}`, { method: 'POST', body: formData });
+            } catch (e) { console.error('Preload error:', e); }
+        }
+
+        async function getQuestion(studentAnswer) {
+            try {
+                const chatArea = document.getElementById('chatArea');
+                
+                if (studentAnswer.trim()) {
+                    const lastMessage = chatArea.querySelector('.message-group:last-child .message.answer');
+                    const lastMessageText = lastMessage ? lastMessage.textContent : '';
+                    if (!lastMessageText.includes(studentAnswer)) {
+                        const group = document.createElement('div');
+                        group.className = 'message-group';
+                        const msg = document.createElement('div');
+                        msg.className = 'message answer';
+                        msg.innerHTML = `<div class="message-label">You</div><div class="message-text">${studentAnswer}</div>`;
+                        group.appendChild(msg);
+                        chatArea.appendChild(group);
+                        messageHistory.push({ role: 'user', text: studentAnswer });
+                    }
+                }
+
+                const professorSpeakingIndicator = document.createElement('div');
+                professorSpeakingIndicator.className = 'professor-speaking-indicator';
+                professorSpeakingIndicator.innerHTML = '💬 Professor is speaking...';
+                chatArea.appendChild(professorSpeakingIndicator);
+                
+                const loading = document.createElement('div');
+                loading.className = 'loading';
+                loading.textContent = '';
+                chatArea.appendChild(loading);
+                chatArea.scrollTop = chatArea.scrollHeight;
+
+                const response = await fetch(`${API_BASE}/api/exam/question`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sessionId: currentSessionId, studentAnswer }),
+                });
+                
+                loading.remove();
+                professorSpeakingIndicator.remove();
+                
+                if (!response.ok) {
+                    const errorMsg = document.createElement('div');
+                    errorMsg.className = 'message-group';
+                    const errContent = document.createElement('div');
+                    errContent.className = 'message question';
+                    errContent.style.cssText = 'background: #ffe3e3; border-left: 4px solid #e74c3c; color: #c0392b;';
+                    errContent.innerHTML = `<div class="message-label">Error</div><div class="message-text">Failed to get response. Please try again.</div>`;
+                    errorMsg.appendChild(errContent);
+                    chatArea.appendChild(errorMsg);
+                    chatArea.scrollTop = chatArea.scrollHeight;
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                if (!data || !data.response) {
+                    const errorMsg = document.createElement('div');
+                    errorMsg.className = 'message-group';
+                    const errContent = document.createElement('div');
+                    errContent.className = 'message question';
+                    errContent.style.cssText = 'background: #ffe3e3; border-left: 4px solid #e74c3c; color: #c0392b;';
+                    errContent.innerHTML = `<div class="message-label">Error</div><div class="message-text">Invalid response from server.</div>`;
+                    errorMsg.appendChild(errContent);
+                    chatArea.appendChild(errorMsg);
+                    chatArea.scrollTop = chatArea.scrollHeight;
+                    return;
+                }
+
+                const qNum = data.questionNumber || 1;
+                const hGroup = document.createElement('div');
+                hGroup.className = 'message-group';
+                const hMsg = document.createElement('div');
+                hMsg.className = 'message question-header';
+                hMsg.innerHTML = `Question ${qNum}`;
+                hGroup.appendChild(hMsg);
+                chatArea.appendChild(hGroup);
+
+                const group = document.createElement('div');
+                group.className = 'message-group';
+                const msg = document.createElement('div');
+                msg.className = 'message question';
+                const escapedResponse = data.response.replace(/\\/g, '\\\\').replace(/'/g, "\\\'")
+                    .replace(/\n/g, '\\n');
+                msg.innerHTML = `<div class="message-label">Professor</div><div class="message-text">${data.response}</div>
+                    <div class="message-actions">
+                        <button class="action-btn" onclick="speakText(this.parentElement.previousElementSibling.textContent, null)">🔊 Speak</button>
+                    </div>`;
+                group.appendChild(msg);
+                chatArea.appendChild(group);
+                
+                currentQuestionText = data.response;
+                currentHintCache = null;
+                const googleBtn = document.getElementById('googleSearchBtn');
+                if (googleBtn) {
+                    googleBtn.style.display = 'inline-block';
+                    googleBtn.onclick = searchGoogle;
+                }
+                
+                if (!messageHistory.some(m => m.role === 'professor' && m.text === data.response)) {
+                    messageHistory.push({ role: 'professor', text: data.response, index: messageHistory.filter(m => m.role === 'professor').length });
+                }
+                
+                setTimeout(() => speakText(data.response), 800);
+
+                if (data.hypotheticalScore) {
+                    const scoreMsg = document.createElement('div');
+                    scoreMsg.className = 'message-group';
+                    const scoreMsgContent = document.createElement('div');
+                    scoreMsgContent.style.cssText = 'text-align: center; background: #e8f0fe; padding: 8px; border-radius: 6px; font-weight: bold; color: #333;';
+                    scoreMsgContent.innerHTML = `📊 Hypothetical Score: ${data.hypotheticalScore}/30`;
+                    scoreMsg.appendChild(scoreMsgContent);
+                    chatArea.appendChild(scoreMsg);
+                }
+
+                document.getElementById('questionCount').textContent = qNum;
+                document.getElementById('answerInput').value = '';
+                recognitionTranscript = '';
+                if (speechRecognizer && isListening) speechRecognizer.stop();
+                chatArea.scrollTop = chatArea.scrollHeight;
+            } catch (error) {
+                console.error('Question error:', error);
+            }
+        }
+
+        let isSubmittingAnswer = false;
+        async function submitAnswer() {
+            if (isSubmittingAnswer) return;
+            const answer = document.getElementById('answerInput').value.trim();
+            if (!answer) {
+                alert('Please enter or speak an answer before sending.');
+                return;
+            }
+            if (speechRecognizer && isListening) {
+                speechRecognizer.stop();
+            }
+            isSubmittingAnswer = true;
+            document.getElementById('answerInput').disabled = true;
+            await getQuestion(answer);
+            isSubmittingAnswer = false;
+            document.getElementById('answerInput').disabled = false;
+        }
+
+        function speakItalianPrompt() {
+            speakText('Risponda in italiano. Answer in Italian.', null);
+        }
+
+        async function getScore() {
+            try {
+                const response = await fetch(`${API_BASE}/api/exam/session/${currentSessionId}`, { method: 'GET' });
+                const data = await response.json();
+                const chatArea = document.getElementById('chatArea');
+                const group = document.createElement('div');
+                group.className = 'message-group';
+                const msg = document.createElement('div');
+                msg.className = 'message question';
+                const correct = data.scoreTracker.correct;
+                const total = data.scoreTracker.total;
+                const percentage = total > 0 ? Math.round(correct / total * 100) : 0;
+                const italianScore = Math.round(percentage * 30 / 100);
+                msg.style.cssText = 'background: #e8f0fe; border-left: 4px solid #667eea; align-self: center;';
+                msg.innerHTML = `<div class="message-label">Score Report</div><div class="message-text">Correct: ${correct}/${total}\nPercentage: ${percentage}%\nItalian Score: ${italianScore}/30</div>`;
+                group.appendChild(msg);
+                chatArea.appendChild(group);
+                chatArea.scrollTop = chatArea.scrollHeight;
+            } catch (error) {
+                alert('Error getting score: ' + error.message);
+            }
+        }
+
+        async function openHintHistory() {
+            if (!currentSessionId) { alert('Start exam first'); return; }
+            openSidebar();
+            document.getElementById('sidebarTitle').textContent = '💡 Hint History';
+            const hintResult = document.getElementById('hintResult');
+            hintResult.innerHTML = '<p style="text-align: center; color: #667eea;">Loading...</p>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/exam/hint-history/${currentSessionId}`, { method: 'GET' });
+                const data = await response.json();
+                const hintHistory = data.hintHistory || {};
+                
+                if (Object.keys(hintHistory).length === 0) {
+                    hintResult.innerHTML = '<p style="color: #999; font-size: 12px; text-align: center;">No hints yet.</p>';
+                    return;
+                }
+                
+                let html = '<div style="max-height: 500px; overflow-y: auto;">';
+                Object.entries(hintHistory).forEach(([qNum, hints]) => {
+                    html += `<div style="background: #f0f4ff; padding: 10px; border-radius: 6px; margin-bottom: 10px; border-left: 4px solid #667eea;">`;
+                    html += `<div style="font-weight: 600; font-size: 12px; color: #333; margin-bottom: 8px;">Question ${qNum}</div>`;
+                    if (Array.isArray(hints)) {
+                        hints.forEach((hint) => {
+                            html += `<div style="background: white; padding: 8px; border-radius: 4px; margin-bottom: 6px; border-left: 3px solid #764ba2;">`;
+                            html += `<p style="margin: 0 0 6px 0; color: #333; font-size: 11px; line-height: 1.4;">${hint.hint}</p>`;
+                            html += `</div>`;
+                        });
+                    }
+                    html += `</div>`;
+                });
+                html += '</div>';
+                hintResult.innerHTML = html;
+            } catch (error) {
+                hintResult.innerHTML = '<p style="color: #e74c3c; font-size: 12px;">Error loading hint history</p>';
+            }
+        }
+
+        async function openFeedbackHistory() {
+            if (!messageHistory.length) { alert('No answers yet.'); return; }
+            if (!currentSessionId) { alert('Session ended. Cannot get feedback.'); return; }
+            
+            openSidebar();
+            document.getElementById('sidebarTitle').textContent = '💬 Question Feedback';
+            const hintResult = document.getElementById('hintResult');
+            let html = '<div class="feedback-history">';
+            const answers = messageHistory.filter(m => m.role === 'user');
+            if (answers.length === 0) {
+                html += '<p style="color: #999; font-size: 12px;">No answers to review yet.</p>';
+            } else {
+                answers.forEach((answer, i) => {
+                    html += `<div class="feedback-item" onclick="getFeedbackForAnswer(${i})" style="padding: 12px; background: white; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s;"><div style="font-weight:600;font-size:11px;color:#333;">Question ${i + 1}</div><div style="font-size: 10px; color: #666; margin-top: 4px;">Click for feedback</div></div>`;
+                });
+            }
+            html += '</div>';
+            hintResult.innerHTML = html;
+        }
+
+        async function getFeedbackForAnswer(index) {
+            try {
+                const hintResult = document.getElementById('hintResult');
+                hintResult.innerHTML = '<p style="text-align: center; color: #667eea;">Loading feedback...</p>';
+                const response = await fetch(`${API_BASE}/api/exam/feedback`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sessionId: currentSessionId, questionIndex: index }),
+                });
+                if (!response.ok) throw new Error('Feedback request failed');
+                const data = await response.json();
+                hintResult.innerHTML = `<div style="background: #f0f4ff; padding: 10px; border-radius: 6px; border-left: 4px solid #667eea;"><p style="color: #333; font-size: 12px; margin: 0; line-height: 1.5;">${data.feedback}</p></div>`;
+            } catch (error) {
+                console.error('Feedback error:', error);
+                document.getElementById('hintResult').innerHTML = '<p style="color: #e74c3c; font-size: 12px;">Error loading feedback. Please try again.</p>';
+            }
+        }
+
+        function handleAttachUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    try {
+                        const formData = new FormData();
+                        formData.append('file', file);
+                        const response = await fetch(`${API_BASE}/api/exam/upload/${currentSessionId}`, {
+                            method: 'POST',
+                            body: formData
+                        });
+                        if (response.ok) {
+                            const result = await response.json();
+                            getQuestion(`✓ ${result.filename} loaded`);
+                        }
+                    } catch (err) {
+                        console.error('Upload error:', err);
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            }
+            event.target.value = '';
+        }
+
+        // ============================================================
+        // ADVANCED TTS SYSTEM - Production-Ready
+        // ============================================================
+        
+        let currentUtterance = null;
+        let isTTSPaused = false;
+        let currentTTSText = '';
+        let currentPlayerSpeed = 1.0;
+        let ttsStartTime = 0;
+        let ttsPausedTime = 0;
+        let ttsUpdateInterval = null;
+        
+        function splitIntoSentences(text) {
+            // Split on sentence boundaries: . ! ? followed by space
+            // But preserve ellipsis and abbreviations
+            return text.match(/[^.!?]*[.!?]+(?:\s|$)/g) || [text];
+        }
+        
+        function cleanSentence(sentence) {
+            return sentence.trim();
+        }
+        
+        function updatePlayerUI() {
+            if (!currentUtterance) return;
+            
+            const elapsed = (Date.now() - ttsStartTime) / 1000;
+            const duration = currentUtterance.duration || 30;
+            const progress = Math.min(elapsed / Math.max(duration, 1), 1);
+            
+            const progressBar = document.getElementById('ttsProgressFill');
+            if (progressBar) {
+                progressBar.style.width = (progress * 100) + '%';
+            }
+        }
+        
+        function initTTSUpdateInterval() {
+            if (ttsUpdateInterval) clearInterval(ttsUpdateInterval);
+            ttsUpdateInterval = setInterval(updatePlayerUI, 100);
+        }
+        
+        function clearTTSUpdateInterval() {
+            if (ttsUpdateInterval) {
+                clearInterval(ttsUpdateInterval);
+                ttsUpdateInterval = null;
+            }
+        }
+        
+        function togglePlayerPlayPause() {
+            if (!currentUtterance) return;
+            
+            if (isTTSPaused) {
+                // Resume
+                speechSynthesis.resume();
+                isTTSPaused = false;
+                ttsStartTime = Date.now() - (ttsPausedTime * 1000);
+                document.getElementById('playerPlayPauseBtn').textContent = '⏸\ufe0f Pause';
+                initTTSUpdateInterval();
+            } else {
+                // Pause
+                speechSynthesis.pause();
+                isTTSPaused = true;
+                ttsPausedTime = (Date.now() - ttsStartTime) / 1000;
+                document.getElementById('playerPlayPauseBtn').textContent = '▶️ Resume';
+                clearTTSUpdateInterval();
+            }
+        }
+        
+        function stopPlayerPlayback() {
+            speechSynthesis.cancel();
+            hideTTSPlayer();
+            isTTSPaused = false;
+            clearTTSUpdateInterval();
+            isProfessorSpeaking = false;
+            document.getElementById('speechFeedback').innerHTML = '';
+            removeHighlighting();
+        }
+        
+        function playerRewind() {
+            // Cancel and restart from earlier point (simplified: restart from beginning)
+            if (!currentTTSText) return;
+            speechSynthesis.cancel();
+            clearTTSUpdateInterval();
+            isTTSPaused = false;
+            setTimeout(() => speakText(currentTTSText, null, true), 100);
+        }
+        
+        function playerForward() {
+            // Skip ahead (simplified: just continue, could implement queuing)
+            if (!isTTSPaused) {
+                speechSynthesis.pause();
+                isTTSPaused = true;
+                ttsPausedTime = (Date.now() - ttsStartTime) / 1000;
+                document.getElementById('playerPlayPauseBtn').textContent = '▶️ Resume';
+            }
+        }
+        
+        function setPlayerSpeed(speed) {
+            currentPlayerSpeed = speed;
+            
+            // Update button states
+            document.querySelectorAll('.tts-speed-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`.tts-speed-btn[onclick*="${speed}"]`).classList.add('active');
+            
+            // Re-speak with new speed if currently playing
+            if (currentUtterance && !isTTSPaused) {
+                const savedText = currentTTSText;
+                stopPlayerPlayback();
+                setTimeout(() => speakText(savedText, null, true), 200);
+            }
+        }
+        
+        function showTTSPlayer() {
+            const bar = document.getElementById('ttsControlsBar');
+            if (bar) bar.classList.add('active');
+        }
+        
+        function hideTTSPlayer() {
+            const bar = document.getElementById('ttsControlsBar');
+            if (bar) bar.classList.remove('active');
+        }
+        
+        function removeHighlighting() {
+            document.querySelectorAll('.sentence-highlighted').forEach(el => {
+                el.classList.remove('sentence-highlighted');
+            });
+        }
+        
+        function highlightSentence(sentenceText) {
+            removeHighlighting();
+            
+            // Find and highlight the sentence in the chat area
+            const chatArea = document.getElementById('chatArea');
+            if (!chatArea) return;
+            
+            const messages = chatArea.querySelectorAll('.message-text');
+            for (let msg of messages) {
+                const text = msg.innerText;
+                if (text.includes(sentenceText.trim())) {
+                    // Wrap matched sentence in a span with highlighting
+                    const regex = new RegExp(`(${sentenceText.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'g');
+                    msg.innerHTML = msg.innerHTML.replace(regex, '<span class="sentence-highlighted">$1</span>');
+                    
+                    // Auto-scroll to make it visible
+                    const highlighted = msg.querySelector('.sentence-highlighted');
+                    if (highlighted) {
+                        highlighted.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                    break;
+                }
+            }
+        }
+        
+        function speakText(text, messageId, isRetry = false) {
+            if (!text || !text.trim()) return;
+            
+            // Cancel any existing utterance
+            speechSynthesis.cancel();
+            clearTTSUpdateInterval();
+            removeHighlighting();
+            
+            if (!speechSynthesisEnabled) {
+                isProfessorSpeaking = false;
+                document.getElementById('speechFeedback').innerHTML = '';
+                return;
+            }
+            
+            if (speechRecognizer && isListening) {
+                speechRecognizer.stop();
+            }
+            
+            isProfessorSpeaking = true;
+            currentTTSText = text;
+            document.getElementById('speechFeedback').innerHTML = '<div class="professor-speaking-indicator">🔊 Professor speaking...</div>';
+            showTTSPlayer();
+            
+            // Create utterance with FULL text (not sentence-by-sentence)
+            currentUtterance = new SpeechSynthesisUtterance(text);
+            currentUtterance.rate = currentPlayerSpeed;
+            currentUtterance.pitch = 1.0;
+            currentUtterance.volume = 1.0;
+            
+            // Set voice
+            const voices = speechSynthesis.getVoices();
+            let voice = voices.find(v => v.name === voiceLanguage);
+            if (!voice && voices.length > 0) voice = voices[0];
+            if (voice) currentUtterance.voice = voice;
+            
+            // Set language
+            currentUtterance.lang = currentSessionIsItalian ? 'it-IT' : 'en-US';
+            
+            // Event handlers
+            currentUtterance.onstart = () => {
+                ttsStartTime = Date.now();
+                ttsPausedTime = 0;
+                isTTSPaused = false;
+                document.getElementById('playerPlayPauseBtn').textContent = '⏸\ufe0f Pause';
+                initTTSUpdateInterval();
+            };
+            
+            currentUtterance.onpause = () => {
+                isTTSPaused = true;
+                document.getElementById('playerPlayPauseBtn').textContent = '▶️ Resume';
+                clearTTSUpdateInterval();
+            };
+            
+            currentUtterance.onresume = () => {
+                isTTSPaused = false;
+                document.getElementById('playerPlayPauseBtn').textContent = '⏸\ufe0f Pause';
+                initTTSUpdateInterval();
+            };
+            
+            currentUtterance.onend = () => {
+                isProfessorSpeaking = false;
+                isTTSPaused = false;
+                document.getElementById('speechFeedback').innerHTML = '';
+                hideTTSPlayer();
+                clearTTSUpdateInterval();
+                removeHighlighting();
+            };
+            
+            currentUtterance.onerror = (event) => {
+                console.error('TTS error:', event.error);
+                isProfessorSpeaking = false;
+                hideTTSPlayer();
+                clearTTSUpdateInterval();
+            };
+            
+            // Speak
+            try {
+                speechSynthesis.speak(currentUtterance);
+            } catch (e) {
+                console.error('Speech synthesis error:', e);
+                isProfessorSpeaking = false;
+                hideTTSPlayer();
+            }
+        }
+        
+        // Test voice with controls
+        function testVoice() {
+            speakText('Testing ' + voiceLanguage + ' voice. This is a test of the text-to-speech system.');
+        }
+
+        function updateSidebarState() {
+            const sidebar = document.getElementById('sidebar');
+            const settingsSidebar = document.getElementById('settingsSidebar');
+            const helpSidebar = document.getElementById('helpSidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            const container = document.querySelector('.container');
+            
+            const anySidebarOpen = sidebar.classList.contains('active') || 
+                                    settingsSidebar.classList.contains('active') || 
+                                    helpSidebar.classList.contains('active');
+            
+            if (anySidebarOpen) {
+                backdrop.classList.add('active');
+                container.classList.add('sidebar-open');
+            } else {
+                backdrop.classList.remove('active');
+                container.classList.remove('sidebar-open');
+            }
+        }
+
+        function toggleSidebar(sidebarId) {
+            const sidebar = document.getElementById(sidebarId);
+            const isCurrentlyOpen = sidebar.classList.contains('active');
+            
+            closeSidebar();
+            closeSettings();
+            closeHelp();
+            
+            if (!isCurrentlyOpen) {
+                sidebar.classList.add('active');
+            }
+            
+            updateSidebarState();
+        }
+
+        function openSidebar() {
+            toggleSidebar('sidebar');
+        }
+
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('active');
+            updateSidebarState();
+        }
+
+        function openSettings() {
+            toggleSidebar('settingsSidebar');
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsSidebar').classList.remove('active');
+            updateSidebarState();
+        }
+
+        function openHelp() {
+            toggleSidebar('helpSidebar');
+        }
+
+        function closeHelp() {
+            document.getElementById('helpSidebar').classList.remove('active');
+            updateSidebarState();
+        }
+
+        function openHelpInSettings() {
+            openHelp();
+        }
+
+        function closeAllSidebars() {
+            document.getElementById('sidebar').classList.remove('active');
+            document.getElementById('settingsSidebar').classList.remove('active');
+            document.getElementById('helpSidebar').classList.remove('active');
+            updateSidebarState();
+        }
+
+        async function generateHint() {
+            if (!currentSessionId) { alert('Start exam first'); return; }
+            if (!currentQuestionText) { alert('No question to get hint for'); return; }
+            
+            openSidebar();
+            document.getElementById('sidebarTitle').textContent = '💡 Study Hint';
+            const hintResult = document.getElementById('hintResult');
+            const googleBtn = document.getElementById('googleSearchBtn');
+            hintResult.innerHTML = '<p style="text-align: center; color: #667eea;">Generating hint...</p>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/exam/hint`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sessionId: currentSessionId }),
+                });
+                if (!response.ok) throw new Error('Hint generation failed');
+                const data = await response.json();
+                if (!data.textHint) throw new Error('No hint returned');
+                hintResult.innerHTML = `<div style="background: #f0f4ff; padding: 10px; border-radius: 6px;"><p style="color: #333; font-size: 12px; margin: 0;">${data.textHint}</p></div>`;
+                currentHintCache = extractQuestionOnly(currentQuestionText);
+                googleBtn.style.display = 'inline-block';
+                googleBtn.onclick = searchGoogle;
+            } catch (error) {
+                console.error('Hint error:', error);
+                hintResult.innerHTML = '<p style="color: #e74c3c; font-size: 12px;">Error generating hint. Please try again.</p>';
+                googleBtn.style.display = 'none';
+            }
+        }
+
+        async function endExam() {
+            if (confirm('End exam?')) {
+                speechSynthesis.cancel();
+                if (speechRecognizer) speechRecognizer.stop();
+                closeSidebar();
+                closeSettings();
+                closeHelp();
+                
+                try {
+                    const response = await fetch(`${API_BASE}/api/exam/session/${currentSessionId}`, { 
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data && data.correct !== undefined) {
+                            const percentage = data.total > 0 ? Math.round(data.correct / data.total * 100) : 0;
+                            const italianScore = Math.round(percentage * 30 / 100);
+                            const courseName = document.getElementById('courseName').textContent;
+                            let scores = JSON.parse(localStorage.getItem('examScores') || '{}');
+                            if (!scores[courseName]) scores[courseName] = [];
+                            scores[courseName].push({
+                                correct: data.correct,
+                                total: data.total,
+                                percentage: percentage,
+                                italianScore: italianScore,
+                                date: new Date().toLocaleDateString()
+                            });
+                            localStorage.setItem('examScores', JSON.stringify(scores));
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error ending exam:', e);
+                }
+                
+                document.querySelector('.exam-screen').classList.remove('active');
+                document.querySelector('.start-screen').classList.add('active');
+                
+                currentSessionId = null;
+                messageHistory = [];
+                currentQuestionText = '';
+                currentHintCache = null;
+                currentSessionIsItalian = false;
+                isListening = false;
+                recognitionTranscript = '';
+                isProfessorSpeaking = false;
+                speechSynthesisEnabled = true;
+                isTTSPaused = false;
+                currentUtterance = null;
+                clearTTSUpdateInterval();
+                removeHighlighting();
+                
+                const speechBtn = document.getElementById('speechButton');
+                if (speechBtn) {
+                    speechBtn.innerHTML = '🎤 Speak';
+                    speechBtn.style.background = '#764ba2';
+                    speechBtn.classList.remove('active');
+                }
+                const muteBtn = document.getElementById('muteButton');
+                if (muteBtn) {
+                    muteBtn.textContent = '🔊 Mute';
+                    muteBtn.style.background = '#764ba2';
+                }
+            }
+        }
+
+        function viewPastScores() {
+            const scores = JSON.parse(localStorage.getItem('examScores') || '{}');
+            if (!Object.keys(scores).length) { 
+                alert('No scores yet.'); 
+                return; 
+            }
+            
+            let html = '<div style="max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); z-index: 2001;">';
+            html += '<h2 style="color: #333; text-align: center; margin-bottom: 20px;">📊 Past Scores</h2>';
+            html += '<div style="max-height: 600px; overflow-y: auto;">';
+            
+            Object.entries(scores).forEach(([course, attempts]) => {
+                const avg = Math.round(attempts.reduce((sum, a) => sum + (a.percentage || 0), 0) / attempts.length);
+                html += `<div style="background: #f9f9f9; padding: 12px; border-radius: 6px; margin-bottom: 10px; border-left: 4px solid #667eea;">`;
+                html += `<h4 style="margin: 0 0 8px 0; color: #333;">${course}</h4>`;
+                html += `<p style="margin: 0 0 8px 0; color: #666; font-size: 12px;"><strong>Average:</strong> ${avg}% (${Math.round(avg * 30 / 100)}/30)</p>`;
+            });
+            
+            html += '</div><button onclick="closePastScoresModal()" style="width:100%;margin-top:12px;background:#667eea;color:white;border:none;padding:10px;border-radius:6px;font-weight:600;cursor:pointer;">Close</button></div>';
+            
+            const modal = document.createElement('div');
+            modal.id = 'pastScoresModal';
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 2000;';
+            modal.innerHTML = html;
+            document.body.appendChild(modal);
+        }
+
+        function closePastScoresModal() {
+            const modal = document.getElementById('pastScoresModal');
+            if (modal) modal.remove();
+        }
+
+        function clearAllData() {
+            if (confirm('Delete all data?')) {
+                localStorage.removeItem('examScores');
+                alert('Cleared.');
+            }
+        }
+
+        loadVoices();
+        loadCoursesFromJSON();
+    </script>
+</body>
+</html>
