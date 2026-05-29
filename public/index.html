@@ -415,14 +415,17 @@
 
                 <div class="input-container">
                     <div class="text-editor">
-                        <div class="formatting-toolbar">
-                            <button class="format-btn" onclick="insertBold()"><strong>B</strong></button>
-                            <button class="format-btn" onclick="insertItalic()"><em>I</em></button>
-                            <button class="format-btn" onclick="insertUnderline()"><u>U</u></button>
-                            <button class="format-btn" onclick="insertCode()">&lt;/&gt;</button>
-                            <button class="format-btn" onclick="insertList()">• List</button>
-                            <button class="format-btn" onclick="insertFormula()">𝑥²</button>
-                            <button class="format-btn" onclick="insertURL()">🔗 URL</button>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                            <div class="formatting-toolbar">
+                                <button class="format-btn" onclick="insertBold()"><strong>B</strong></button>
+                                <button class="format-btn" onclick="insertItalic()"><em>I</em></button>
+                                <button class="format-btn" onclick="insertUnderline()"><u>U</u></button>
+                                <button class="format-btn" onclick="insertCode()">&lt;/&gt;</button>
+                                <button class="format-btn" onclick="insertList()">• List</button>
+                                <button class="format-btn" onclick="insertFormula()">𝑥²</button>
+                                <button class="format-btn" onclick="insertURL()">🔗 URL</button>
+                            </div>
+                            <div id="draftStatus" style="display: none; font-size: 10px; color: #667eea; font-weight: 600; background: #f0f4ff; padding: 4px 8px; border-radius: 3px;">Draft: 0 words</div>
                         </div>
                         <textarea id="answerInput" placeholder="Type answer or use speech... (URLs: http://example.com)"></textarea>
                         <div id="speechFeedback"></div>
@@ -525,9 +528,9 @@
         let speechSynthesisEnabled = true;
         let messageHistory = [];
         let recognitionSilenceTimer = null;
-        let recognitionTranscript = '';
-        let currentSessionIsItalian = false;
-        let isProfessorSpeaking = false;
+        let answerDraft = '';  // Persistent draft accumulator
+        let lastSpeechEndTime = 0;  // Track pauses between speech segments
+        let isSpeechActive = false;  // Track if speech is currently being processed
         let currentUtterance = null;
         let isTTSPaused = false;
         let ttsStartTime = 0;
@@ -771,15 +774,15 @@
                 alert('Professor is still speaking. Wait or click Mute to stop.');
                 return;
             }
-            if (!recognitionTranscript) {
-                document.getElementById('answerInput').value = '';
-            }
+            // DO NOT clear answerDraft - we want to append to it
+            // Just start recording and accumulate new speech
             speechRecognizer.lang = currentSessionIsItalian ? 'it-IT' : 'en-US';
             speechRecognizer.start();
         }
 
         function stopRecording() {
             speechRecognizer.stop();
+            // Draft persists - student can click Speak again to add more
         }
 
         function stopProfessorSpeech() {
@@ -1189,7 +1192,17 @@
             }
             isSubmittingAnswer = true;
             document.getElementById('answerInput').disabled = true;
+            
+            // Submit the answer
             await getQuestion(answer);
+            
+            // RESET DRAFT after successful submission
+            answerDraft = '';
+            lastSpeechEndTime = 0;
+            document.getElementById('answerInput').value = '';
+            const draftBadge = document.getElementById('draftStatus');
+            if (draftBadge) draftBadge.style.display = 'none';
+            
             isSubmittingAnswer = false;
             document.getElementById('answerInput').disabled = false;
         }
@@ -1522,7 +1535,8 @@
                 currentHintCache = null;
                 currentSessionIsItalian = false;
                 isListening = false;
-                recognitionTranscript = '';
+                answerDraft = '';
+                lastSpeechEndTime = 0;
                 isProfessorSpeaking = false;
                 speechSynthesisEnabled = true;
                 
