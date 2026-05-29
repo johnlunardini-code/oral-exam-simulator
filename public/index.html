@@ -237,15 +237,15 @@
         
         .speech-feedback { font-size: 12px; color: #27ae60; padding: 8px; background: #e8f8f5; border-radius: 4px; margin-top: 4px; text-align: center; font-weight: 600; }
         
-        /* TTS Controls Bar - REPLACES Professor speaking indicator */
+        /* TTS Controls Bar - COMPACT, NO PROGRESS BAR */
         .tts-controls-bar {
             display: none;
             background: white;
             border: 1px solid #e0e0e0;
             border-radius: 6px;
-            padding: 10px;
+            padding: 6px 8px;
             flex-shrink: 0;
-            gap: 8px;
+            gap: 4px;
             flex-wrap: wrap;
             justify-content: center;
             align-items: center;
@@ -254,32 +254,6 @@
         }
         .tts-controls-bar.active {
             display: flex;
-        }
-        .tts-progress-wrapper {
-            width: 100%;
-            display: flex;
-            gap: 4px;
-            align-items: center;
-            margin-bottom: 6px;
-        }
-        .tts-progress-label {
-            font-size: 9px;
-            color: #666;
-            min-width: 50px;
-            white-space: nowrap;
-        }
-        .tts-progress-bar {
-            flex: 1;
-            height: 4px;
-            background: #e0e0e0;
-            border-radius: 2px;
-            overflow: hidden;
-        }
-        .tts-progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #667eea, #764ba2);
-            width: 0%;
-            transition: width 0.1s linear;
         }
         .tts-button-row {
             display: flex;
@@ -292,7 +266,7 @@
             background: #667eea;
             color: white;
             border: none;
-            padding: 5px 8px;
+            padding: 4px 7px;
             border-radius: 3px;
             cursor: pointer;
             font-size: 9px;
@@ -421,14 +395,8 @@
 
                 <div class="chat-area" id="chatArea"></div>
 
-                <!-- TTS Controls Bar (replaces professor speaking indicator) -->
+                <!-- TTS Controls Bar (compact, no progress) -->
                 <div class="tts-controls-bar" id="ttsControlsBar">
-                    <div class="tts-progress-wrapper">
-                        <span class="tts-progress-label">Progress:</span>
-                        <div class="tts-progress-bar">
-                            <div class="tts-progress-fill" id="ttsProgressFill"></div>
-                        </div>
-                    </div>
                     <div class="tts-button-row">
                         <button class="tts-btn" id="playerPlayPauseBtn" onclick="togglePlayerPlayPause()">⏸ Pause</button>
                         <button class="tts-btn" onclick="stopPlayerPlayback()">⏹ Stop</button>
@@ -471,7 +439,7 @@
                 <div class="bottom-controls">
                     <button class="btn-primary" onclick="getScore()" style="flex: 1;">📊 Get Score</button>
                     <button class="btn-secondary" onclick="generateHint()" style="flex: 1;">💡 Hint</button>
-                    <button class="btn-success" onclick="openHintHistory()" style="flex: 1;">📋 History</button>
+                    <button class="btn-success" onclick="openQuestionHistory()" style="flex: 1;">📋 History</button>
                     <button class="btn-success" onclick="openFeedbackHistory()" style="flex: 1;">💬 Feedback</button>
                     <button class="btn-danger" onclick="endExam()" style="flex: 1;">End Exam</button>
                 </div>
@@ -799,18 +767,19 @@
         }
 
         function startRecording() {
-            document.getElementById('answerInput').value = '';
-            recognitionTranscript = '';
+            if (isProfessorSpeaking) {
+                alert('Professor is still speaking. Wait or click Mute to stop.');
+                return;
+            }
+            if (!recognitionTranscript) {
+                document.getElementById('answerInput').value = '';
+            }
             speechRecognizer.lang = currentSessionIsItalian ? 'it-IT' : 'en-US';
             speechRecognizer.start();
         }
 
         function stopRecording() {
             speechRecognizer.stop();
-            const answer = document.getElementById('answerInput').value.trim();
-            if (answer) {
-                setTimeout(() => submitAnswer(), 500);
-            }
         }
 
         function stopProfessorSpeech() {
@@ -1252,41 +1221,38 @@
             }
         }
 
-        async function openHintHistory() {
-            if (!currentSessionId) { alert('Start exam first'); return; }
+        async function openQuestionHistory() {
+            if (!messageHistory.length) { alert('No questions answered yet.'); return; }
             openSidebar();
-            document.getElementById('sidebarTitle').textContent = '💡 Hint History';
+            document.getElementById('sidebarTitle').textContent = '📋 Exam History';
             const hintResult = document.getElementById('hintResult');
-            hintResult.innerHTML = '<p style="text-align: center; color: #667eea;">Loading...</p>';
+            let html = '<div class="feedback-history" style="max-height: 600px; overflow-y: auto;">';
             
-            try {
-                const response = await fetch(`${API_BASE}/api/exam/hint-history/${currentSessionId}`, { method: 'GET' });
-                const data = await response.json();
-                const hintHistory = data.hintHistory || {};
+            let questionNum = 0;
+            for (let i = 0; i < messageHistory.length; i += 2) {
+                const profMsg = messageHistory[i];
+                const studentMsg = messageHistory[i + 1];
                 
-                if (Object.keys(hintHistory).length === 0) {
-                    hintResult.innerHTML = '<p style="color: #999; font-size: 12px; text-align: center;">No hints yet.</p>';
-                    return;
-                }
-                
-                let html = '<div style="max-height: 500px; overflow-y: auto;">';
-                Object.entries(hintHistory).forEach(([qNum, hints]) => {
-                    html += `<div style="background: #f0f4ff; padding: 10px; border-radius: 6px; margin-bottom: 10px; border-left: 4px solid #667eea;">`;
-                    html += `<div style="font-weight: 600; font-size: 12px; color: #333; margin-bottom: 8px;">Question ${qNum}</div>`;
-                    if (Array.isArray(hints)) {
-                        hints.forEach((hint) => {
-                            html += `<div style="background: white; padding: 8px; border-radius: 4px; margin-bottom: 6px; border-left: 3px solid #764ba2;">`;
-                            html += `<p style="margin: 0 0 6px 0; color: #333; font-size: 11px; line-height: 1.4;">${hint.hint}</p>`;
-                            html += `</div>`;
-                        });
+                if (profMsg && profMsg.role === 'professor') {
+                    questionNum++;
+                    html += `<div style="background: #f9f9f9; padding: 12px; border-radius: 6px; margin-bottom: 10px; border-left: 4px solid #667eea;">`;
+                    html += `<h4 style="margin: 0 0 8px 0; color: #333; font-size: 12px;">Question ${questionNum}</h4>`;
+                    html += `<div style="background: #e3f2fd; padding: 8px; border-radius: 4px; margin-bottom: 8px;"><p style="margin: 0; color: #333; font-size: 11px; line-height: 1.4;">${profMsg.text}</p></div>`;
+                    
+                    if (studentMsg && studentMsg.role === 'user') {
+                        html += `<h4 style="margin: 0 0 4px 0; color: #666; font-size: 11px;">Your Answer:</h4>`;
+                        html += `<div style="background: #f0e8fe; padding: 8px; border-radius: 4px;"><p style="margin: 0; color: #333; font-size: 11px; line-height: 1.4;">${studentMsg.text}</p></div>`;
                     }
                     html += `</div>`;
-                });
-                html += '</div>';
-                hintResult.innerHTML = html;
-            } catch (error) {
-                hintResult.innerHTML = '<p style="color: #e74c3c; font-size: 12px;">Error loading hint history</p>';
+                }
             }
+            
+            if (questionNum === 0) {
+                html = '<p style="color: #999; font-size: 12px; text-align: center;">No questions answered yet.</p>';
+            }
+            
+            html += '</div>';
+            hintResult.innerHTML = html;
         }
 
         async function openFeedbackHistory() {
