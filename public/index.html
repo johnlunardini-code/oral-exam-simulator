@@ -52,6 +52,7 @@
         
         .start-screen, .exam-screen { display: none; flex: 1; flex-direction: column; overflow-y: auto; padding: 0 16px 16px 16px; }
         .start-screen.active, .exam-screen.active { display: flex; }
+        .start-screen { max-width: 1000px; margin: 0 auto; width: 100%; }
         
         .feature-list { background: #f9f9f9; padding: 10px; border-radius: 6px; margin: 8px 0; font-size: 12px; flex-shrink: 0; }
         .feature-list h3 { color: #333; margin: 0 0 8px 0; font-size: 13px; }
@@ -235,8 +236,100 @@
         .feedback-item:hover { background: #f0f4ff; border-color: #667eea; }
         
         .speech-feedback { font-size: 12px; color: #27ae60; padding: 8px; background: #e8f8f5; border-radius: 4px; margin-top: 4px; text-align: center; font-weight: 600; }
-        .professor-speaking-indicator { font-size: 12px; color: #667eea; padding: 8px; background: #e3f2fd; border-radius: 4px; margin-top: 4px; text-align: center; font-weight: 600; animation: blink 1s infinite; }
-        @keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0.5; } }
+        
+        /* TTS Controls Bar - REPLACES Professor speaking indicator */
+        .tts-controls-bar {
+            display: none;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 10px;
+            flex-shrink: 0;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            font-size: 11px;
+            margin-bottom: 8px;
+        }
+        .tts-controls-bar.active {
+            display: flex;
+        }
+        .tts-progress-wrapper {
+            width: 100%;
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .tts-progress-label {
+            font-size: 9px;
+            color: #666;
+            min-width: 50px;
+            white-space: nowrap;
+        }
+        .tts-progress-bar {
+            flex: 1;
+            height: 4px;
+            background: #e0e0e0;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .tts-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.1s linear;
+        }
+        .tts-button-row {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+        }
+        .tts-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 5px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 9px;
+            font-weight: 600;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .tts-btn:hover { background: #764ba2; }
+        .tts-btn.secondary {
+            background: #f0f0f0;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        .tts-btn.secondary:hover { background: #e8e8e8; }
+        .tts-speed-group {
+            display: flex;
+            gap: 2px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .tts-speed-btn {
+            background: #f0f0f0;
+            color: #333;
+            border: 1px solid #ddd;
+            padding: 3px 5px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 8px;
+            font-weight: 600;
+        }
+        .tts-speed-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        .tts-speed-btn:hover { background: #e8e8e8; }
+        .tts-speed-btn.active:hover { background: #764ba2; }
         
         /* Hide ALL sidebars by default - only show when .active */
         .sidebar { display: none !important; }
@@ -327,6 +420,30 @@
                 </div>
 
                 <div class="chat-area" id="chatArea"></div>
+
+                <!-- TTS Controls Bar (replaces professor speaking indicator) -->
+                <div class="tts-controls-bar" id="ttsControlsBar">
+                    <div class="tts-progress-wrapper">
+                        <span class="tts-progress-label">Progress:</span>
+                        <div class="tts-progress-bar">
+                            <div class="tts-progress-fill" id="ttsProgressFill"></div>
+                        </div>
+                    </div>
+                    <div class="tts-button-row">
+                        <button class="tts-btn" id="playerPlayPauseBtn" onclick="togglePlayerPlayPause()">⏸ Pause</button>
+                        <button class="tts-btn" onclick="stopPlayerPlayback()">⏹ Stop</button>
+                        <button class="tts-btn secondary" onclick="playerRewind()">⏮ -10s</button>
+                        <button class="tts-btn secondary" onclick="playerForward()">⏭ +10s</button>
+                        <div class="tts-speed-group" id="ttsSpeedControls">
+                            <button class="tts-speed-btn" onclick="setPlayerSpeed(0.5)">0.5x</button>
+                            <button class="tts-speed-btn" onclick="setPlayerSpeed(0.75)">0.75x</button>
+                            <button class="tts-speed-btn active" onclick="setPlayerSpeed(1.0)">1.0x</button>
+                            <button class="tts-speed-btn" onclick="setPlayerSpeed(1.25)">1.25x</button>
+                            <button class="tts-speed-btn" onclick="setPlayerSpeed(1.5)">1.5x</button>
+                            <button class="tts-speed-btn" onclick="setPlayerSpeed(2.0)">2.0x</button>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="input-container">
                     <div class="text-editor">
@@ -443,6 +560,13 @@
         let recognitionTranscript = '';
         let currentSessionIsItalian = false;
         let isProfessorSpeaking = false;
+        let currentUtterance = null;
+        let isTTSPaused = false;
+        let ttsStartTime = 0;
+        let ttsPausedTime = 0;
+        let ttsUpdateInterval = null;
+        let currentPlayerSpeed = 1.0;
+        let currentTTSText = '';
         const recognition = window.webkitSpeechRecognition || window.SpeechRecognition;
 
         let yearStructure = {};
@@ -722,10 +846,111 @@
 
         function toggleSpeech() {
             if (!speechRecognizer) { alert('Speech not supported'); return; }
+            if (isProfessorSpeaking) {
+                alert('Professor is still speaking. Wait or click Mute to stop.');
+                return;
+            }
             if (isListening) {
                 stopRecording();
             } else {
                 startRecording();
+            }
+        }
+
+        function stopProfessorSpeech() {
+            if (isProfessorSpeaking) {
+                speechSynthesis.cancel();
+                isProfessorSpeaking = false;
+                document.getElementById('ttsControlsBar').classList.remove('active');
+                document.getElementById('speechFeedback').innerHTML = '';
+            }
+        }
+
+        function updatePlayerUI() {
+            if (!currentUtterance) return;
+            const elapsed = (Date.now() - ttsStartTime) / 1000;
+            const duration = 30;
+            const progress = Math.min(elapsed / duration, 1);
+            const bar = document.getElementById('ttsProgressFill');
+            if (bar) bar.style.width = (progress * 100) + '%';
+        }
+
+        function initTTSUpdateInterval() {
+            if (ttsUpdateInterval) clearInterval(ttsUpdateInterval);
+            ttsUpdateInterval = setInterval(updatePlayerUI, 100);
+        }
+
+        function clearTTSUpdateInterval() {
+            if (ttsUpdateInterval) {
+                clearInterval(ttsUpdateInterval);
+                ttsUpdateInterval = null;
+            }
+        }
+
+        function togglePlayerPlayPause() {
+            if (!currentUtterance) return;
+            if (isTTSPaused) {
+                speechSynthesis.resume();
+                isTTSPaused = false;
+                ttsStartTime = Date.now() - (ttsPausedTime * 1000);
+                document.getElementById('playerPlayPauseBtn').textContent = '⏸ Pause';
+                initTTSUpdateInterval();
+            } else {
+                speechSynthesis.pause();
+                isTTSPaused = true;
+                ttsPausedTime = (Date.now() - ttsStartTime) / 1000;
+                document.getElementById('playerPlayPauseBtn').textContent = '▶ Resume';
+                clearTTSUpdateInterval();
+            }
+        }
+
+        function stopPlayerPlayback() {
+            speechSynthesis.cancel();
+            document.getElementById('ttsControlsBar').classList.remove('active');
+            isTTSPaused = false;
+            clearTTSUpdateInterval();
+            isProfessorSpeaking = false;
+            document.getElementById('speechFeedback').innerHTML = '';
+        }
+
+        function playerRewind() {
+            if (!currentTTSText) return;
+            const text = currentTTSText;
+            stopPlayerPlayback();
+            setTimeout(() => speakText(text), 100);
+        }
+
+        function playerForward() {
+            if (!isTTSPaused) {
+                speechSynthesis.pause();
+                isTTSPaused = true;
+                ttsPausedTime = (Date.now() - ttsStartTime) / 1000;
+                document.getElementById('playerPlayPauseBtn').textContent = '▶ Resume';
+                clearTTSUpdateInterval();
+            }
+        }
+
+        function setPlayerSpeed(speed) {
+            currentPlayerSpeed = speed;
+            document.querySelectorAll('.tts-speed-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.tts-speed-btn[onclick*="${speed}"]`).classList.add('active');
+        }
+
+        function updateRecordingUI(recording) {
+            const btn = document.getElementById('speechButton');
+            const textarea = document.getElementById('answerInput');
+            if (recording) {
+                textarea.classList.add('recording-active');
+                btn.classList.add('active');
+                btn.innerHTML = '⏹️';
+                btn.style.background = '#e74c3c';
+                btn.style.fontSize = '20px';
+            } else {
+                textarea.classList.remove('recording-active');
+                btn.classList.remove('active');
+                btn.innerHTML = '🎤 Speak';
+                btn.style.background = '#764ba2';
+                btn.style.fontSize = '11px';
             }
         }
 
@@ -1128,41 +1353,55 @@
         }
 
         function speakText(text) {
-            if (speechRecognizer && isListening) speechRecognizer.stop();
+            if (!text || !speechSynthesisEnabled) return;
+            
+            // Stop recording if it's active
+            if (speechRecognizer && isListening) {
+                speechRecognizer.stop();
+            }
+            
+            // Cancel any existing speech
+            speechSynthesis.cancel();
+            clearTTSUpdateInterval();
             
             isProfessorSpeaking = true;
-            document.getElementById('speechFeedback').innerHTML = '<div class="professor-speaking-indicator">🔊 Professor speaking...</div>';
+            currentTTSText = text;
+            document.getElementById('ttsControlsBar').classList.add('active');
+            document.getElementById('speechFeedback').innerHTML = '';
             
-            speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.rate = 0.9;
+            currentUtterance = new SpeechSynthesisUtterance(text);
+            currentUtterance.rate = currentPlayerSpeed || 0.9;
+            currentUtterance.pitch = 1.0;
+            currentUtterance.volume = 1.0;
             
             const voices = speechSynthesis.getVoices();
             let voice = voices.find(v => v.name === voiceLanguage);
             if (!voice && voices.length > 0) voice = voices[0];
+            if (voice) currentUtterance.voice = voice;
             
-            if (voice) utterance.voice = voice;
-            utterance.lang = currentSessionIsItalian ? 'it-IT' : 'en-US';
+            currentUtterance.lang = currentSessionIsItalian ? 'it-IT' : 'en-US';
             
-            utterance.onstart = () => {
-                if (!speechSynthesisEnabled) {
-                    speechSynthesis.cancel();
-                    isProfessorSpeaking = false;
-                    document.getElementById('speechFeedback').innerHTML = '';
-                }
+            currentUtterance.onstart = () => {
+                ttsStartTime = Date.now();
+                ttsPausedTime = 0;
+                isTTSPaused = false;
+                document.getElementById('playerPlayPauseBtn').textContent = '⏸ Pause';
+                initTTSUpdateInterval();
             };
             
-            utterance.onend = () => {
+            currentUtterance.onend = () => {
                 isProfessorSpeaking = false;
-                document.getElementById('speechFeedback').innerHTML = '';
+                document.getElementById('ttsControlsBar').classList.remove('active');
+                clearTTSUpdateInterval();
             };
             
-            if (speechSynthesisEnabled) {
-                speechSynthesis.speak(utterance);
-            } else {
+            currentUtterance.onerror = () => {
                 isProfessorSpeaking = false;
-                document.getElementById('speechFeedback').innerHTML = '';
-            }
+                document.getElementById('ttsControlsBar').classList.remove('active');
+                clearTTSUpdateInterval();
+            };
+            
+            speechSynthesis.speak(currentUtterance);
         }
 
         function testVoice() {
