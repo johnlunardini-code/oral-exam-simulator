@@ -1485,8 +1485,8 @@
                 googleBtn.onclick = searchGoogle;
             } catch (error) {
                 console.error('Hint error:', error);
-                hintResult.innerHTML = '<p style="color: #e74c3c; font-size: 12px;">Error generating hint. Please try again.</p>';
-                googleBtn.style.display = 'none';
+                hintResult.innerHTML = '<p style="color: #e74c3c; font-size: 12px;">Hint service temporarily unavailable. Try searching Google below or reviewing your course materials.</p>';
+                googleBtn.style.display = 'inline-block';
             }
         }
 
