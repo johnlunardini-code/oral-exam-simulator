@@ -328,6 +328,65 @@ app.post('/api/exam/start', async (req, res) => {
   }
 });
 
+// ============================================================
+// IMPROVED GROK-BASED SCORING ENDPOINT
+// ============================================================
+
+app.post('/api/exam/get-score', async (req, res) => {
+  try {
+    const { sessionId, questionIndex } = req.body || {};
+    const session = getSession(sessionId);
+    if (!session) return res.status(404).json({ error: 'Session not found' });
+
+    const studentTurns = session.messages.filter(m => m.role === 'user');
+    const idx = Math.max(0, Math.min(questionIndex ?? studentTurns.length - 1, studentTurns.length - 1));
+    const studentAnswer = studentTurns[idx]?.content || 'No answer provided';
+    const question = session.askedQuestions[idx] || { text: 'Previous question' };
+
+    const course = getCourse(session.courseId);
+    
+    const scoringPrompt = `You are Professor ${course?.professor || 'Professor'} grading a UCBM Biomedical Engineering oral exam.
+
+COURSE CONTEXT:
+${JSON.stringify(course, null, 2)}
+
+QUESTION:
+${question.text}
+
+STUDENT ANSWER:
+${studentAnswer}
+
+Evaluate strictly according to UCBM standards for this course (use difficulty_guideline, modules, dublinDescriptors, and typical_oral_style).
+Provide a fair score on the 18-30 scale.
+
+Return ONLY a valid JSON object:
+{
+  "score": number,
+  "feedback": "Detailed paragraph with strengths and weaknesses",
+  "strengths": ["bullet point 1", "bullet point 2"],
+  "improvements": ["specific improvement 1", "specific improvement 2"]
+}`;
+
+    const result = await callGrok(scoringPrompt, [], { temperature: 0.3, max_tokens: 800 });
+    
+    let parsed;
+    try {
+      parsed = JSON.parse(result);
+    } catch (e) {
+      parsed = { 
+        score: 22, 
+        feedback: result.slice(0, 600), 
+        strengths: ["Good effort"], 
+        improvements: ["Provide more specific examples from course modules"] 
+      };
+    }
+
+    res.json(parsed);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/api/exam/question', async (req, res) => {
   try {
     const { sessionId, studentAnswer } = req.body || {};
