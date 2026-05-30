@@ -284,8 +284,8 @@ function buildSystemPromptForSession(session, isFirstQuestion = false) {
   }
 
   if (session.askedQuestions.length > 0) {
-    prompt += `\n\n**PREVIOUSLY ASKED IN THIS SESSION (DO NOT REPEAT)**:\n`;
-    prompt += session.askedQuestions.slice(-8).map((q, i) => `  ${i + 1}. ${typeof q === 'string' ? q : q.text || q}`).join('\n');
+    prompt += `\n\n**PREVIOUSLY ASKED QUESTIONS IN THIS SESSION (DO NOT REPEAT)**:\n`;
+    prompt += session.askedQuestions.slice(-12).map((q, i) => `  ${i + 1}. ${typeof q === 'string' ? q : q.text || q}`).join('\n');
   }
 
   if (session.uploads.length > 0) {
@@ -297,9 +297,9 @@ function buildSystemPromptForSession(session, isFirstQuestion = false) {
   }
 
   if (isFirstQuestion) {
-    prompt += `\n\n**FIRST QUESTION**: Greet ${session.studentName}, introduce yourself as ${course?.professor || 'the professor'}, introduce the course format briefly, then ask the first realistic question immediately. DO NOT describe exam scoring criteria - only mention how the exam will be given/conducted.`;
+    prompt += `\n\n**FIRST QUESTION INSTRUCTIONS**:\nYou are starting a brand new exam session. Generate a completely new and different question from the full course content — do NOT repeat any questions you have asked in previous sessions for this course.\nDraw from different modules, topics, and angles across the entire syllabus to ensure high variety.\nGreet ${session.studentName}, introduce yourself as ${course?.professor || 'the professor'}, briefly mention the exam format, then immediately ask the first realistic, high-quality oral question.`;
   } else {
-    prompt += `\n\n**CONTINUE THE EXAM**: Give short feedback on the last answer, then ask the next non-repetitive question.`;
+    prompt += `\n\n**CONTINUE THE EXAM**: Give short feedback on the last answer, then ask a new, non-repetitive question from a different part of the course than previously asked.`;
   }
 
   prompt += `\n\nCurrent question number: ${session.questionCount + 1}`;
