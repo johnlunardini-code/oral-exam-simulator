@@ -249,12 +249,20 @@ function buildSystemPromptForSession(session, isFirstQuestion = false) {
   let prompt = SYSTEM_PROMPT;
 
   if (course) {
-    prompt += `\n\nCURRENT COURSE: ${course.name} (ID: ${session.courseId}, Year ${course.year || '?'}, Semester ${course.semester || '?'})`;
-    prompt += `\nProfessor name: ${course.professor || 'Professor'}`;
-    prompt += `\nProfessor style: ${course.typical_oral_style || 'rigorous oral exam'}`;
-    if (course.examFormat) {
-      prompt += `\nExam format: ${JSON.stringify(course.examFormat)}`;
-    }
+    // === DIFFICULTY GUIDELINE INJECTION ===
+    // This appears as its own separate paragraph right after professor intro
+    // The difficulty_guideline field is critical for constraining question scope
+    const difficultyGuideline = course.difficulty_guideline || 
+      `Teach at the standard university level appropriate for this course and year.`;
+    
+    prompt += `\n\nYou are Professor ${course.professor || 'Professor'}, teaching ${course.name} to Biomedical Engineering students at Università Campus Bio-Medico di Roma, Year ${course.year || '?'}.\n\n${difficultyGuideline}\n\n`;
+    
+    // === COURSE CONTEXT DETAILS (continues below) ===
+    prompt += `COURSE DETAILS:`;
+    prompt += `\nCourse ID: ${course.id}`;
+    prompt += `\nSemester: ${course.semester || '?'}`;
+    prompt += `\nExam Format: ${course.examFormat ? JSON.stringify(course.examFormat) : 'standard'}`;
+    prompt += `\nExam Style: ${course.typical_oral_style || 'rigorous oral exam'}`;
     
     const nextType = getNextQuestionType(course, session);
     session.lastQuestionType = nextType;
