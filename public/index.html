@@ -735,8 +735,8 @@
             
             speechRecognizer.onstart = () => {
                 isListening = true;
-                recognitionTranscript = '';
-                document.getElementById('answerInput').value = '';
+                const existingText = document.getElementById('answerInput').value.trim();
+                recognitionTranscript = existingText;
                 updateRecordingUI(true);
                 document.getElementById('speechFeedback').innerHTML = '<div class="speech-feedback">🎤 RECORDING...</div>';
             };
@@ -752,16 +752,33 @@
             };
             
             speechRecognizer.onresult = (event) => {
+                let interimTranscript = '';
                 let finalTranscript = '';
+                
                 for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
                     if (event.results[i].isFinal) {
-                        finalTranscript += event.results[i][0].transcript + ' ';
+                        finalTranscript += transcript + ' ';
+                    } else {
+                        interimTranscript += transcript;
                     }
                 }
+                
                 if (finalTranscript.trim()) {
-                    recognitionTranscript = finalTranscript.trim();
+                    recognitionTranscript += finalTranscript;
                 }
-                document.getElementById('answerInput').value = recognitionTranscript.trim();
+                
+                const textarea = document.getElementById('answerInput');
+                const accumulated = recognitionTranscript.trim();
+                const displayText = accumulated + (interimTranscript ? ' ' + interimTranscript : '');
+                textarea.value = displayText;
+                
+                const wordCount = displayText.split(/\s+/).filter(w => w.length > 0).length;
+                const draftBadge = document.getElementById('draftStatus');
+                if (wordCount > 0) {
+                    draftBadge.textContent = `Draft: ${wordCount} word${wordCount !== 1 ? 's' : ''}`;
+                    draftBadge.style.display = 'inline-block';
+                }
             };
 
             speechRecognizer.onerror = (event) => {
