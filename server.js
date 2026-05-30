@@ -18,6 +18,12 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const sessions = new Map();
 let sessionCounter = 0;
+const QUESTIONS_DIR = path.join(__dirname, 'questions');
+
+// Ensure questions directory exists for cross-session persistence
+if (!fs.existsSync(QUESTIONS_DIR)) {
+  fs.mkdirSync(QUESTIONS_DIR, { recursive: true });
+}
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
@@ -169,6 +175,41 @@ function detectMetaQuestion(studentAnswer) {
 }
 
 // ============================================================
+// Cross-Session Question Persistence
+// ============================================================
+
+function loadPreviousQuestionsForCourse(courseId) {
+  const filePath = path.join(QUESTIONS_DIR, `${courseId}-questions.json`);
+  if (!fs.existsSync(filePath)) return [];
+  try {
+    const data = fs.readFileSync(filePath, 'utf8');
+    return JSON.parse(data);
+  } catch (e) {
+    console.error(`[KB] Error loading questions for ${courseId}:`, e.message);
+    return [];
+  }
+}
+
+function savePreviousQuestionsForCourse(courseId, questions) {
+  const filePath = path.join(QUESTIONS_DIR, `${courseId}-questions.json`);
+  try {
+    const recentQuestions = questions.slice(-30);
+    fs.writeFileSync(filePath, JSON.stringify(recentQuestions, null, 2));
+  } catch (e) {
+    console.error(`[KB] Error saving questions for ${courseId}:`, e.message);
+  }
+}
+
+function addQuestionToCourseHistory(courseId, questionText) {
+  const questions = loadPreviousQuestionsForCourse(courseId);
+  questions.push({
+    text: questionText,
+    timestamp: new Date().toISOString()
+  });
+  savePreviousQuestionsForCourse(courseId, questions);
+}
+
+// ============================================================
 // Question Type Helpers
 // ============================================================
 
@@ -217,6 +258,8 @@ function createSession(courseId, studentName) {
                           (course && (course.name || '').toLowerCase().includes('italian'));
 
   const sessionId = `sess_${Date.now()}_${++sessionCounter}`;
+  const previousQuestions = loadPreviousQuestionsForCourse(courseId);
+  
   const session = {
     id: sessionId,
     courseId,
@@ -226,6 +269,7 @@ function createSession(courseId, studentName) {
     createdAt: new Date().toISOString(),
     messages: [],
     askedQuestions: [],
+    previousQuestionsForCourse: previousQuestions,
     scoreTracker: { correct: 0, total: 0 },
     hintHistory: {},
     uploads: [],
@@ -286,6 +330,13 @@ function buildSystemPromptForSession(session, isFirstQuestion = false) {
   if (session.askedQuestions.length > 0) {
     prompt += `\n\n**PREVIOUSLY ASKED QUESTIONS IN THIS SESSION (DO NOT REPEAT)**:\n`;
     prompt += session.askedQuestions.slice(-12).map((q, i) => `  ${i + 1}. ${typeof q === 'string' ? q : q.text || q}`).join('\n');
+  }
+
+  if (session.previousQuestionsForCourse && session.previousQuestionsForCourse.length > 0) {
+    prompt += `\n\n**RECENT QUESTIONS FROM PREVIOUS SESSIONS (AVOID EXACT REPETITION, REPHRASE/REAPPROACH)**:\n`;
+    const recentPrevious = session.previousQuestionsForCourse.slice(-15);
+    prompt += recentPrevious.map((q, i) => `  ${i + 1}. ${q.text}`).join('\n');
+    prompt += `\n\nCRITICAL: Avoid repeating the exact same questions from previous sessions. You may cover the same topics but must rephrase, use different examples, or approach from a different angle. Draw from different modules and ensure variety.`;
   }
 
   if (session.uploads.length > 0) {
@@ -481,6 +532,7 @@ app.post('/api/exam/question', async (req, res) => {
       number: session.questionCount
     };
     session.askedQuestions.push(qObj);
+    addQuestionToCourseHistory(session.courseId, displayText);
 
     let hypotheticalScore = null;
     if (session.questionCount % 5 === 0 && session.scoreTracker.total > 0) {
