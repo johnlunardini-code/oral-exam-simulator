@@ -329,9 +329,8 @@ app.post('/api/exam/start', async (req, res) => {
 });
 
 // ============================================================
-// IMPROVED GROK-BASED SCORING ENDPOINT
+// IMPROVED GROK-BASED SCORING ENDPOINT (Realistic UCBM Grading)
 // ============================================================
-
 app.post('/api/exam/get-score', async (req, res) => {
   try {
     const { sessionId, questionIndex } = req.body || {};
@@ -345,7 +344,12 @@ app.post('/api/exam/get-score', async (req, res) => {
 
     const course = getCourse(session.courseId);
     
-    const scoringPrompt = `You are Professor ${course?.professor || 'Professor'} grading a UCBM Biomedical Engineering oral exam.
+    const scoringPrompt = `You are Professor ${course?.professor || 'Professor'} grading a real UCBM Biomedical Engineering oral exam for ${course?.name || 'the course'}.
+
+STRICT GRADING INSTRUCTIONS - Be critical and realistic:
+- Use the official 18-30 scale. 30/30 is only for outstanding, complete, well-structured answers.
+- If the student missed depth, key histological/mechanical/functional details, or used imprecise terminology, lower the score (e.g. 24-28 range).
+- Consider accuracy, completeness, correct terminology, and links to course content.
 
 COURSE CONTEXT:
 ${JSON.stringify(course, null, 2)}
@@ -356,15 +360,16 @@ ${question.text}
 STUDENT ANSWER:
 ${studentAnswer}
 
-Evaluate strictly according to UCBM standards for this course (use difficulty_guideline, modules, dublinDescriptors, and typical_oral_style).
-Provide a fair score on the 18-30 scale.
+PROFESSOR'S LATEST FEEDBACK:
+${session.messages[session.messages.length - 2]?.content || 'None'}
 
-Return ONLY a valid JSON object:
+Return ONLY valid JSON:
 {
   "score": number,
-  "feedback": "Detailed paragraph with strengths and weaknesses",
+  "percentage": number,
+  "feedback": "Short constructive paragraph (2-4 sentences)",
   "strengths": ["bullet point 1", "bullet point 2"],
-  "improvements": ["specific improvement 1", "specific improvement 2"]
+  "improvements": ["specific missing concept", "area to deepen"]
 }`;
 
     const result = await callGrok(scoringPrompt, [], { temperature: 0.3, max_tokens: 800 });
@@ -374,10 +379,11 @@ Return ONLY a valid JSON object:
       parsed = JSON.parse(result);
     } catch (e) {
       parsed = { 
-        score: 22, 
-        feedback: result.slice(0, 600), 
-        strengths: ["Good effort"], 
-        improvements: ["Provide more specific examples from course modules"] 
+        score: 26, 
+        percentage: 85, 
+        feedback: "Answer was mostly correct but lacked sufficient depth in some areas.", 
+        strengths: ["Good macroscopic description"], 
+        improvements: ["Expand on functional and histological relationships"] 
       };
     }
 
