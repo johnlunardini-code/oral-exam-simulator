@@ -19,7 +19,10 @@
       "semester": "II",
       "cfu": 10,
       "professor": "Rosa Sicilia",
-      "prerequisites": ["Knowledge of vectors and matrices from Mathematics course", "Ability to interact with a computer system as a user"],
+      "prerequisites": [
+        "Knowledge of vectors and matrices from Mathematics course",
+        "Ability to interact with a computer system as a user"
+      ],
       "modules": [
         "Elements of computer architecture, data representation, computer arithmetic, Boolean algebra (15 hours)",
         "Structure of operating systems, process management, memory management, file system and user interface (15 hours)",
@@ -47,7 +50,8 @@
         "communicationSkills": "Knowledge of user interfaces for interacting with a computer system.",
         "learningSkills": "Knowledge and understanding of basic algorithms on multidimensional sequences and data structures."
       },
-      "typical_oral_style": "Explain code, algorithmic thinking, biomedical data applications, and how the code solves real biomedical problems."
+      "typical_oral_style": "Explain code, algorithmic thinking, biomedical data applications, and how the code solves real biomedical problems.",
+      "difficulty_guideline": "Year 1 Fundamentals of Computer Science at UCBM Biomedical Engineering. Cover basic computer architecture, data representation, Boolean algebra, operating system basics, Python programming (basic types, control structures, OOP), and software development fundamentals. Keep at introductory university level. Do not go into advanced topics like low-level assembly, complex algorithms, modern frameworks, or pipelining unless specified in course materials."
     },
     {
       "id": "mathematics",
@@ -58,7 +62,9 @@
       "semester": "I",
       "cfu": 12,
       "professor": "Marta Menci",
-      "prerequisites": ["Basic notions of mathematics and physics"],
+      "prerequisites": [
+        "Basic notions of mathematics and physics"
+      ],
       "modules": [
         "Linear Algebra: Vector spaces, vector subspaces, linear independence, generator sets, bases and dimensions of a vector space, vectors in Euclidean space, matrices, elementary matrices, operations with matrices and properties, transpose and inverse of a matrix and properties, rank and determinant of a matrix and properties, systems of linear equations (existence of solutions and calculation), Rouche-Capelli Theorem",
         "Calculus and Real Analysis: Number sets, properties of real numbers and inequalities, complex numbers (operations with complex numbers and properties), functions and limits, fundamental functions and compound functions, definition of limit of a function of a real variable, computation of limits, derivatives (definition and geometric meaning), derivation rules, monotony, convexity and concavity, critical and inflection points, relative and absolute minima and maxima, continuity and differentiability of functions, approximation of functions, Taylor polynomials",
@@ -70,7 +76,14 @@
         "primary": "written",
         "writtenType": "mixed",
         "details": "4 practical open-form exercises + 4 multiple choice questions",
-        "topics": ["vector spaces", "matrices", "systems of linear equations", "functions of one real variable", "integration of real functions", "Linear Ordinary Differential Equations"],
+        "topics": [
+          "vector spaces",
+          "matrices",
+          "systems of linear equations",
+          "functions of one real variable",
+          "integration of real functions",
+          "Linear Ordinary Differential Equations"
+        ],
         "timeLimit": "2 hours",
         "scoring": "Maximum total score 32. The test assesses effective learning and autonomous elaboration ability. Open-form exercises reward identifying key aspects and presenting them correctly and synthetically. Theoretical questions focus on the theoretical contents of the course program.",
         "laudeOral": true,
@@ -86,7 +99,8 @@
       "textbooks": [
         "Mathematics - solved exercises and theory review. Authors: M. Buscema, F. Lattanzi, THE. Mazzoli, TO. Veredice, M. Papi. Editor: Esculapio Publishing Company"
       ],
-      "typical_oral_style": "Proofs, derivations, step-by-step problem solving, and clear connections to biomedical modeling (e.g., pharmacokinetics, population dynamics, signal analysis)."
+      "typical_oral_style": "Proofs, derivations, step-by-step problem solving, and clear connections to biomedical modeling (e.g., pharmacokinetics, population dynamics, signal analysis).",
+      "difficulty_guideline": "Year 1 Mathematics at UCBM Biomedical Engineering. Cover foundational topics at introductory university level: linear algebra (vectors, matrices, systems of equations, Rouche-Capelli theorem), calculus (limits, derivatives, integrals, Taylor polynomials), and linear ordinary differential equations of first and second order. Use precise mathematical terminology. Keep all questions and examples at standard Year 1 difficulty. Do not include advanced topics such as multivariable calculus, partial differential equations, complex analysis, or advanced linear algebra unless explicitly covered in the course materials."
     },
     {
       "id": "general-physics",
@@ -97,7 +111,9 @@
       "semester": "Ciclo Annuale Unico (I + II)",
       "cfu": 12,
       "professor": "Alessandro Loppini",
-      "prerequisites": ["Precalculus. A basic prior knowledge of calculus is recommended."],
+      "prerequisites": [
+        "Precalculus. A basic prior knowledge of calculus is recommended."
+      ],
       "modules": [
         "Modulus 1 (1st Semester) - Classical Mechanics: Introduction. Physical quantities, measurement units systems. Scalar and vector quantities. Kinematics in one and two dimensions. Displacement, velocity, acceleration. Motion at constant acceleration. Falling body. Circular motion. Projectile motion. Single particle dynamics: Newton's laws. Inertia principle. Mass and force. The second and third laws of motion. Rotational and non-inertial reference systems. Weight force. Constraints and contact forces. Strings and springs. Friction. Drag forces. Work and kinetic energy. Conservative forces and potential. Conservation of mechanical energy. Impulse and linear momentum. Systems of particles. Center of mass. Collisions. Conservation of linear momentum. Kinetic energy of a system. Rotational kinetic energy. Rigid body rotation with fixed axis. Rolling motion. Static equilibrium. Elastic properties of solids. Angular momentum and conservation of angular momentum. Newton's law of gravity and gravitational field. Kepler's laws. Oscillators. Harmonic motion. Damped oscillations. Driven oscillations and resonance.",
         "Modulus 1 (continued) - Fluids: Density and pressure. Stevin's law. Buoyant force and Archimedes' principle. Fluids in motion: Inviscid fluids and Bernoulli equation. Torricelli's law. Viscid fluids and Poiseuille's law.",
@@ -124,7 +140,8 @@
       "textbooks": [
         "Physics for Scientists and Engineers, Extended Version, 6th Edition, Tipler & Mosca, Macmillan"
       ],
-      "typical_oral_style": "Physical principles and their direct application to biomedical instruments and devices (e.g., MRI, ECG, ultrasound, radiation therapy)."
+      "typical_oral_style": "Physical principles and their direct application to biomedical instruments and devices (e.g., MRI, ECG, ultrasound, radiation therapy).",
+      "difficulty_guideline": "Year 1 General Physics at UCBM Biomedical Engineering. Cover foundational topics exactly as listed in the course modules: classical mechanics (kinematics, Newton's laws, energy, momentum, oscillations), fluids, thermodynamics, electromagnetism (electricity, circuits, magnetism, Maxwell's equations), and properties of light (reflection, refraction, polarization, geometrical optics with lenses and mirrors). Use precise physical terminology. Keep ALL questions and examples at introductory university level - this is a foundational Year 1 course. Do not introduce advanced applied topics such as ultrasound imaging, acoustic impedance, Doppler, or biomedical instrumentation."
     },
     {
       "id": "economics-and-management",
@@ -135,7 +152,9 @@
       "semester": "II",
       "cfu": 6,
       "professor": "Giuseppe Turchetti",
-      "prerequisites": ["Basic mathematical concepts (strongly suggested)"],
+      "prerequisites": [
+        "Basic mathematical concepts (strongly suggested)"
+      ],
       "modules": [
         "Module 1 (10 hours): Fundamental concepts regarding business and competition. Civil definitions of organizational entities (enterprise, company, entrepreneur), different legal forms (sole proprietorships, partnerships, corporations), basics of sustainable development (economic, social, environmental), stakeholders, specific reference to the Healthcare sector",
         "Module 2 (20 hours): Business system from an organizational point of view. Main organizational forms, advantages and disadvantages, specific reference to the Healthcare sector",
@@ -161,7 +180,8 @@
         "Essentials of Strategic Management: The Quest for Competitive Advantage, 2020, McGraw Hill",
         "Corporate Finance, di J. Berk e P. De Marzo 2020, Pearson"
       ],
-      "typical_oral_style": "Healthcare economics, business models, strategic management, investment decisions, and regulatory affairs in the healthcare sector."
+      "typical_oral_style": "Healthcare economics, business models, strategic management, investment decisions, and regulatory affairs in the healthcare sector.",
+      "difficulty_guideline": "Year 1 Economics and Management at UCBM Biomedical Engineering. Cover introductory business and management concepts: organizational forms, marketing fundamentals, operations management tools, basic financial statements, time value of money, Net Present Value, Payback period, and regulatory aspects. Use precise economic and managerial terminology. Keep all questions and examples at standard introductory university level. Do not include advanced corporate finance, complex strategic models, or MBA-level topics unless explicitly covered in the course materials."
     },
     {
       "id": "anatomy",
@@ -172,7 +192,9 @@
       "semester": "I",
       "cfu": 5,
       "professor": "Giovanni Di Pino",
-      "prerequisites": ["Chemistry, Physics and general knowledge of Molecular Biology"],
+      "prerequisites": [
+        "Chemistry, Physics and general knowledge of Molecular Biology"
+      ],
       "modules": [
         "General organization of the body. Cytology and basic cell biology: structure of cellular membranes, cytoplasm and cytoplasmic organelles, principles of DNA and RNA visualization and function. Cells differentiation and specialization.",
         "Stem cells. The different tissues of the body: epithelial tissue, connective tissues, muscular and nervous tissue.",
@@ -196,8 +218,11 @@
         "communicationSkills": "Use precise anatomical terminology and describe complex structures and relationships with clarity and accuracy.",
         "learningSkills": "Independently study and integrate macroscopic and microscopic anatomy, relating the structural organisation to the corresponding functions of systems, organs and tissues."
       },
-      "textbooks": ["Gray's Anatomy for Students. With Student Consult Online Access Paperback - Illustrated, 11 April 2019"],
-      "typical_oral_style": "Precise description of anatomical structures, histological features, functional correlates, and the general organisation of the human body considered on a macroscopic and microscopic level, relating the structural organisation to the corresponding functions of systems, organs and tissues."
+      "textbooks": [
+        "Gray's Anatomy for Students. With Student Consult Online Access Paperback - Illustrated, 11 April 2019"
+      ],
+      "typical_oral_style": "Precise description of anatomical structures, histological features, functional correlates, and the general organisation of the human body considered on a macroscopic and microscopic level, relating the structural organisation to the corresponding functions of systems, organs and tissues.",
+      "difficulty_guideline": "Year 1 Anatomy at UCBM Biomedical Engineering. Focus on the general macroscopic and histological organization of the human body, basic cytology, the four main tissue types, locomotor apparatus, central and peripheral nervous system, cardiovascular system, respiratory system, and urinary system. Use precise anatomical and histological terminology. Questions must stay at foundational university level. Do not jump to advanced neuroanatomy, clinical pathology, or Year 2+ topics."
     },
     {
       "id": "physiology",
@@ -208,7 +233,9 @@
       "semester": "II",
       "cfu": 5,
       "professor": "Giorgio Vivacqua",
-      "prerequisites": ["Chemistry, Physics and general knowledge of Molecular Biology"],
+      "prerequisites": [
+        "Chemistry, Physics and general knowledge of Molecular Biology"
+      ],
       "modules": [
         "Feedback and feedforward controls and homeostasis (models in physiology, homeostasis, control systems, negative and positive feedback control)",
         "Diffusion and transport (basic concepts of transport of material, Gibbs-Donnan equilibrium, mass and molecular transport, Fick's law of diffusion, transport of solutes across membranes)",
@@ -250,7 +277,8 @@
         "Kandel/Koester/Mack/Siegelbaum, Principles of Neural Science, 6th edition, 2021",
         "Joseph Feher, Quantitative Human Physiology: An Introduction, 2nd edition, 2016"
       ],
-      "typical_oral_style": "Physiological mechanisms, homeostasis, control systems, quantitative modeling, and biomedical engineering applications."
+      "typical_oral_style": "Physiological mechanisms, homeostasis, control systems, quantitative modeling, and physiology applications.",
+      "difficulty_guideline": "Year 1 Physiology at UCBM Biomedical Engineering. Cover foundational physiological mechanisms exactly as listed in the course modules: homeostasis and control systems, diffusion/transport across membranes, ion channels, membrane resting and action potentials, nerve conduction, synapses, muscle physiology (including Hill's model), autonomic nervous system, cardiac physiology, haemodynamics, respiratory mechanics and gas transport, renal physiology, digestive system, endocrine system, and basic sensory/motor physiology. Use precise physiological terminology and keep all questions at introductory university level. Do not introduce advanced neurophysiology, clinical pathophysiology, or Year 2+ topics."
     },
     {
       "id": "advanced-physics",
@@ -261,7 +289,10 @@
       "semester": "I",
       "cfu": 6,
       "professor": "Letizia Chiodo",
-      "prerequisites": ["General Physics", "Calculus I"],
+      "prerequisites": [
+        "General Physics",
+        "Calculus I"
+      ],
       "modules": [
         "Advanced Mechanics and Thermodynamics: Angular momentum theorem, physical pendulum, ellipsoid of inertia, Stirling/Otto/Diesel engines, microscopic origin of entropy (10 hours)",
         "Advanced Electromagnetism: Dielectrics, polarization, magnetism in matter, Maxwell equations in differential form (in vacuum and in matter) (10 hours)",
@@ -291,7 +322,8 @@
         "Modern Physics for Scientists and Engineers, 2010. John C. Morrison. Elsevier.",
         "Semiconductor devices, S.M. Sze, 2006. Wiley."
       ],
-      "typical_oral_style": "Deep theoretical explanations, mathematical derivations, and direct connections to biomedical technologies (MRI, PET, lasers, semiconductors, radiation-matter interaction)."
+      "typical_oral_style": "Deep theoretical explanations, mathematical derivations, and direct connections to biomedical technologies (MRI, PET, lasers, semiconductors, radiation-matter interaction).",
+      "difficulty_guideline": "Year 2 Advanced Physics at UCBM Biomedical Engineering. Cover advanced topics: angular momentum theorem, advanced electromagnetism (dielectrics, magnetism in matter, Maxwell equations), waves and Fourier analysis, introduction to quantum mechanics (Schrödinger equation, tunneling, hydrogen atom), basic solid state physics (quantum statistics, semiconductors, nanostructures, lasers), radiation-matter interaction, and technological applications (NMR, radioisotopes, PET). Include biomedical applications prominently. Do not include advanced quantum field theory."
     },
     {
       "id": "italian",
@@ -302,7 +334,9 @@
       "semester": "I",
       "cfu": 1,
       "professor": "Roberta Aronica",
-      "prerequisites": ["Placement test required to determine initial level. Students with B1 or higher may obtain exemption."],
+      "prerequisites": [
+        "Placement test required to determine initial level. Students with B1 or higher may obtain exemption."
+      ],
       "modules": [
         "Elementary logical-grammatical structures of Italian",
         "Basic Italian vocabulary and syntactic structures",
@@ -323,8 +357,11 @@
         "communicationSkills": "Understand conversations and answer questions; produce written texts and participate in interactive activities.",
         "learningSkills": "Independently self-correct their own papers while verifying the level of understanding of other texts analyzed during the frontal lessons."
       },
-      "textbooks": ["Teaching material provided by the teacher during the course"],
-      "typical_oral_style": "Basic conversation practice, listening comprehension, and everyday/academic communication in Italian at elementary level."
+      "textbooks": [
+        "Teaching material provided by the teacher during the course"
+      ],
+      "typical_oral_style": "Basic conversation practice, listening comprehension, and everyday/academic communication in Italian at elementary level.",
+      "difficulty_guideline": "Year 1 Italian (Elementary Level) at UCBM Biomedical Engineering. Focus exclusively on elementary (A1-A2) Italian: basic grammar, vocabulary, simple syntactic structures, listening, reading, writing, and everyday/academic communication. All questions, exercises, and oral simulations must stay at beginner/elementary level. Do not use advanced grammar, complex literature, or B1+ level content."
     },
     {
       "id": "general-english",
@@ -335,7 +372,9 @@
       "semester": "I",
       "cfu": 1,
       "professor": "Roberta Aronica (or equivalent)",
-      "prerequisites": ["NONE"],
+      "prerequisites": [
+        "NONE"
+      ],
       "modules": [
         "Reinforces C1 level general English",
         "Academic and technical English language skills",
@@ -359,7 +398,8 @@
         "Material provided by teachers",
         "English File Advanced (Oxford University Press) or equivalent C1-level textbook"
       ],
-      "typical_oral_style": "Conversation practice, technical terminology used in biomedical engineering, and C1-level discussion skills."
+      "typical_oral_style": "Conversation practice, technical terminology used in biomedical engineering, and C1-level discussion skills.",
+      "difficulty_guideline": "Year 1 General English (C1 Advanced Level) at UCBM Biomedical Engineering. Strengthen advanced academic and technical English proficiency at solid C1 level. Focus on complex grammar, sophisticated vocabulary, academic writing, technical terminology, fluent spoken expression, and high-level listening comprehension. All exam simulations, questions, and interactions must be at C1 proficiency level using formal, precise, and academically appropriate language."
     },
     {
       "id": "history-of-biomedical-engineering-in-twelve-machines",
@@ -370,7 +410,9 @@
       "semester": "I",
       "cfu": 6,
       "professor": "Giampaolo Ghilardi, Luca Borghi",
-      "prerequisites": ["None"],
+      "prerequisites": [
+        "None"
+      ],
       "modules": [
         "1. Introduction. Specula and forceps: to the roots of medicine",
         "2. The stethoscope and the instrumental diagnostic revolution",
@@ -402,7 +444,8 @@
         "Jessica Casaccia & Luca Borghi - Tools of the Trade. The History of the Relationship between Medicine and Engineering in Twelve Machines, Amazon KDP 2025",
         "Luca Borghi - Sense of Humors. The Human Factor in the History of Medicine, Amazon KDP 2022"
       ],
-      "typical_oral_style": "Critical discussion of the historical relationship between medicine and technology, the human factor of the protagonists, ethical and socio-cultural aspects, and cross-fertilization between engineering and medicine."
+      "typical_oral_style": "Critical discussion of the historical relationship between medicine and technology, the human factor of the protagonists, ethical and socio-cultural aspects, and cross-fertilization between engineering and medicine.",
+      "difficulty_guideline": "Year 1 The History of Biomedical Engineering in Twelve Machines at UCBM Biomedical Engineering. Base every question, example, and discussion strictly on the 12 historical machines listed in the course modules. Emphasize the human factor of the inventors, socio-cultural and ethical implications, and the cross-fertilization between medicine and engineering. Promote critical thinking, synthesis, and the student's ability to critically reformulate concepts. Keep the level appropriate for first-year students - focus on historical context and interdisciplinary reflection rather than deep technical details."
     },
     {
       "id": "mathematics-ii",
@@ -413,7 +456,9 @@
       "semester": "I/II",
       "cfu": 13,
       "professor": "Flavia Smarrazzo, Marco Papi",
-      "prerequisites": ["Mathematics I"],
+      "prerequisites": [
+        "Mathematics I"
+      ],
       "modules": [
         "Linear Transformations between vector spaces. Null space and Col space. Matrix associated to a linear transformation. Eigenvalues and eigenvectors, diagonalization (15 hours - Papi)",
         "Analytic geometry: lines and planes. Angle between lines, parallel lines. Distance from point to plane, line to plane (15 hours - Papi)",
@@ -442,7 +487,8 @@
         "J. Stewart, \"Calculus, Early Transcendentals\", Brooks/Cole, Seventh Edition.",
         "S. Lang, \"Undergraduate Analysis\", Springer, Second Edition."
       ],
-      "typical_oral_style": "Discussion of solutions to open-form exercises and theoretical questions with emphasis on logical argumentation, clarity of exposition, and application to applied science problems."
+      "typical_oral_style": "Discussion of solutions to open-form exercises and theoretical questions with emphasis on logical argumentation, clarity of exposition, and application to applied science problems.",
+      "difficulty_guideline": "Year 2 Mathematics II at UCBM Biomedical Engineering. Cover advanced topics: linear transformations and eigenvalue analysis; analytic geometry; multivariable calculus (limits, partial derivatives, optimization, constrained extrema); multiple integration (reduction of variables, change of variables, parametric curves and surfaces); vector calculus (conservative fields, differential forms, Gauss-Green formula, Stokes' theorem); numerical sequences and series (convergence criteria, Taylor series); and ordinary differential equations (linear and nonlinear, existence and uniqueness, solutions). Use precise mathematical terminology. Assume foundation from Year 1 Mathematics. Do not include highly specialized topics beyond course scope."
     },
     {
       "id": "probability-and-statistics",
@@ -453,7 +499,9 @@
       "semester": "I",
       "cfu": 6,
       "professor": "Marco Papi",
-      "prerequisites": ["Mathematics I"],
+      "prerequisites": [
+        "Mathematics I"
+      ],
       "modules": [
         "Descriptive Statistics: Types of data. Graphical representations. Frequency tables. Mean, median, mode, variance, standard deviation. Percentiles, interquartile range. Covariance and correlation. Simple and multiple linear regression.",
         "Probability: Probability spaces. Classical, frequentist, and axiomatic definitions. Operations on events. Law of total probability. Bayes' theorem. Independence.",
@@ -481,7 +529,8 @@
         "Sheldon M. Ross - Student Solutions Manual for Introduction to Probability and Statistics for Engineers and Scientists, 6th edition, 2021",
         "Teaching materials provided by the instructor through the e-learning platform"
       ],
-      "typical_oral_style": "Discussion of probability models, statistical tests, interpretation of biomedical experimental data, logical reasoning, and application to real biomedical case studies."
+      "typical_oral_style": "Discussion of probability models, statistical tests, interpretation of biomedical experimental data, logical reasoning, and application to real biomedical case studies.",
+      "difficulty_guideline": "Year 2 Probability and Statistics at UCBM Biomedical Engineering. Cover intermediate topics: descriptive statistics, probability theory, random variables (discrete and continuous distributions), statistical inference, hypothesis testing, and confidence intervals. Include biomedical applications and case studies throughout. Use proper statistical terminology. Assume foundation from Year 1 Mathematics. Do not include advanced multivariate statistics beyond course scope."
     },
     {
       "id": "healthcare-information-systems-and-telemedicine",
@@ -492,7 +541,9 @@
       "semester": "I",
       "cfu": 6,
       "professor": "Anna Sabatini",
-      "prerequisites": ["Fundamentals of Computer Science"],
+      "prerequisites": [
+        "Fundamentals of Computer Science"
+      ],
       "modules": [
         "Module I: Healthcare Information Systems – What is a Healthcare Information System, Telemedicine and its evolution, Electronic Health Record (EHR), medical data processing, informed consent and privacy management, strategies for managing patients at a distance, outlines of Intelligent Systems applied to Telemedicine, examples and use cases",
         "Module II: Computer Networks – What is a Computer Network, ISO/OSI model and TCP/IP, physical components (Data Link, Switch, Router), design of IP networks, addressing and subnetting, VLANs, HTTP/HTTPS, DNS, SMTP, POP, IMAP, Peer2Peer protocols, Elements of SOA (REST, SOAP)",
@@ -519,7 +570,8 @@
         "Dee W. Ford, Shawn R. Valenta, \"Telemedicine. Overview and Application in Pulmonary, Critical Care, and Sleep Medicine\", Humana Cham, 2021",
         "Joan M. Kiel, George R. Kim, Marion J. Ball, \"Healthcare Information Management Systems\", Springer Cham, 2022 (5a ed.)"
       ],
-      "typical_oral_style": "Discussion of real-world Telemedicine systems, design criteria, data privacy, database implementation, network protocols, graphical interfaces, and practical case studies in healthcare environments."
+      "typical_oral_style": "Discussion of real-world Telemedicine systems, design criteria, data privacy, database implementation, network protocols, graphical interfaces, and practical case studies in healthcare environments.",
+      "difficulty_guideline": "Year 2 Healthcare Information Systems and Telemedicine at UCBM Biomedical Engineering. Cover intermediate topics: healthcare information systems, telemedicine evolution, electronic health records (EHR), medical data processing, privacy management, computer networks, databases (relational model, SQL), and data visualization. Include substantial biomedical/healthcare applications. Assume foundation from Year 1 Computer Science and Electronics. Do not include advanced cybersecurity beyond course scope."
     },
     {
       "id": "electronics-and-electrotechnics",
@@ -530,7 +582,9 @@
       "semester": "II",
       "cfu": 11,
       "professor": "Mauro Parise",
-      "prerequisites": ["General Physics (Electromagnetism module strongly advised)"],
+      "prerequisites": [
+        "General Physics (Electromagnetism module strongly advised)"
+      ],
       "modules": [
         "Module A: Electrotechnics – Steady-state DC circuits and networks, linear time-invariant elements, Kirchhoff's laws, nodal/mesh analysis, network theorems (Thevenin, Norton, superposition, maximum power transfer), capacitors, magnetic circuits, transient response, sinusoidal steady-state, phasors, AC power, three-phase systems, transformers, rotary electrical machines (50 hours)",
         "Module B: Electronics – Introduction to one-port/two-port networks, STC circuits, LP/HP filters (10 hours); Semiconductors, diodes, BJT and MOSFET (physics, I-V characteristics, amplifiers, biasing, small-signal models) (18 hours); Analog integrated circuits: differential amplifier, operational amplifier, current/voltage sources, feedback (22 hours); Introduction to digital electronics: inverter, logic families, A/D and D/A conversion, combinatory/sequential circuits, memories, microcontrollers (10 hours)"
@@ -554,7 +608,8 @@
         "Module B: P. Horowitz, W. Hill - The Art of Electronics, Cambridge University Press, Third Edition, 2015",
         "Teaching materials and slides provided by the instructor on the e-learning platform"
       ],
-      "typical_oral_style": "Step-by-step circuit analysis, derivation of equations, discussion of real biomedical applications (e.g., amplifiers, sensors, power systems), and explanation of component behavior."
+      "typical_oral_style": "Step-by-step circuit analysis, derivation of equations, discussion of real biomedical applications (e.g., amplifiers, sensors, power systems), and explanation of component behavior.",
+      "difficulty_guideline": "Year 2 Electronics and Electrotechnics at UCBM Biomedical Engineering. Cover intermediate topics: steady-state DC/AC circuits, network theorems, transient response, transformers; semiconductors, diodes, BJT/MOSFET, analog ICs (op-amps), digital electronics. Include biomedical applications prominently. Assume strong foundation from Year 1 Physics and Mathematics. Do not include advanced power electronics."
     },
     {
       "id": "transport-phenomena-and-thermodynamics",
@@ -565,7 +620,9 @@
       "semester": "II",
       "cfu": 6,
       "professor": "Luisa Di Paola",
-      "prerequisites": ["None"],
+      "prerequisites": [
+        "None"
+      ],
       "modules": [
         "Molecular transport of momentum, heat, and mass and constitutive equations",
         "Local mass balances and mass transport through dense membranes",
@@ -600,7 +657,8 @@
         "L. Marrelli - Termodinamica degli equilibri di fasi fluide. Ed. Efesto (2017)",
         "Lecture notes by the teacher and solved exercises, available on the e-learning platform and through cloud sharing"
       ],
-      "typical_oral_style": "Discussion of modeling biomedical systems (hemodialysis, bioreactors, pharmacokinetic models), application of conservation laws, mass/heat transfer problems, and problem-solving in real biomedical engineering contexts."
+      "typical_oral_style": "Discussion of modeling biomedical systems (hemodialysis, bioreactors, pharmacokinetic models), application of conservation laws, mass/heat transfer problems, and problem-solving in real biomedical engineering contexts.",
+      "difficulty_guideline": "Year 2 Transport Phenomena and Thermodynamics at UCBM Biomedical Engineering. Cover intermediate topics: molecular transport of momentum, heat, and mass; diffusion through membranes; fluid dynamics; mass transfer coefficients with applications to hemodialysis and oxygenators; thermodynamic properties and equilibria; macroscopic mass balances; bioreactor modeling; artificial kidney and artificial liver design; and pharmacokinetic models. Include substantial biomedical applications. Do not include highly specialized chemical engineering topics."
     },
     {
       "id": "technical-italian",
@@ -611,7 +669,9 @@
       "semester": "I",
       "cfu": 2,
       "professor": "Roberta Aronica (or equivalent language instructor)",
-      "prerequisites": ["Italian (Year 1)"],
+      "prerequisites": [
+        "Italian (Year 1)"
+      ],
       "modules": [
         "Advanced technical and academic Italian for English-speaking biomedical engineering students",
         "Specialized bioengineering, medical device, physiology, and clinical terminology in Italian",
@@ -639,7 +699,8 @@
         "Technical Italian for Biomedical Engineering (specific resources provided during the course)",
         "Italian technical language textbooks with biomedical engineering supplement (provided during the course)"
       ],
-      "typical_oral_style": "Technical discussion of bioengineering topics in Italian, with possible code-switching to English, presentation of research findings, and professional communication in bilingual biomedical contexts."
+      "typical_oral_style": "Technical discussion of bioengineering topics in Italian, with possible code-switching to English, presentation of research findings, and professional communication in bilingual biomedical contexts.",
+      "difficulty_guideline": "Year 2 Technical Italian at UCBM Biomedical Engineering. Strengthen C1-level technical Italian with focus on biomedical engineering terminology and academic communication for English-speaking students. Use Italian effectively in technical and professional biomedical contexts while using English as support language when needed. All questions must be at C1 technical level in Italian. Assume B1+ general Italian level from Year 1."
     },
     {
       "id": "technical-english",
@@ -650,7 +711,9 @@
       "semester": "I",
       "cfu": 2,
       "professor": "Roberta Aronica (or equivalent language instructor)",
-      "prerequisites": ["General English/Italian (Year 1)"],
+      "prerequisites": [
+        "General English/Italian (Year 1)"
+      ],
       "modules": [
         "Advanced technical and academic English for non-native (Italian-speaking) biomedical engineering students",
         "Specialized bioengineering, medical device, physiology, and clinical terminology in English",
@@ -678,7 +741,8 @@
         "Technical English for Biomedical Engineering (specific resources provided during the course)",
         "English File Advanced or equivalent C1-level textbook with technical supplement"
       ],
-      "typical_oral_style": "Technical discussion of bioengineering topics in English, with possible code-switching to Italian, presentation of research findings, and professional communication in bilingual biomedical contexts."
+      "typical_oral_style": "Technical discussion of bioengineering topics in English, with possible code-switching to Italian, presentation of research findings, and professional communication in bilingual biomedical contexts.",
+      "difficulty_guideline": "Year 2 Technical English at UCBM Biomedical Engineering. Strengthen C1-level technical English with focus on biomedical engineering terminology and academic communication. Use English effectively in technical and professional biomedical contexts while using Italian as support language when needed. All questions must be at C1 technical level. Assume C1 general English level from Year 1."
     },
     {
       "id": "biomedical-signal-processing-i",
@@ -689,7 +753,13 @@
       "semester": "I",
       "cfu": 5,
       "professor": "Leandro Pecchia",
-      "prerequisites": ["Mathematics", "Probability and Statistics", "Fundamentals of Computer Science", "Electronics and Electrotechnics", "Physiology and Anatomy"],
+      "prerequisites": [
+        "Mathematics",
+        "Probability and Statistics",
+        "Fundamentals of Computer Science",
+        "Electronics and Electrotechnics",
+        "Physiology and Anatomy"
+      ],
       "modules": [
         "Part 1: Biomedical Data and Statistics – Descriptive and inferential statistics, parametric vs. non-parametric tests, MATLAB for statistics",
         "Part 2: Signal Acquisition and Fundamentals – Biomedical signal acquisition (ECG, EEG, EMG), sampling, quantization, filtering (FIR, IIR), artifact removal",
@@ -714,7 +784,8 @@
         "Aboof S. Digital Signal Processing: A primer with MATLAB (2020, CRC Press)",
         "Hu L. & Zhang Z. EEG Signal Processing and Feature Extraction (2019, Springer)"
       ],
-      "typical_oral_style": "Discussion of signal acquisition, filtering, basic statistical analysis, and interpretation of ECG/EEG/EMG signals."
+      "typical_oral_style": "Discussion of signal acquisition, filtering, basic statistical analysis, and interpretation of ECG/EEG/EMG signals.",
+      "difficulty_guideline": "Year 3 Biomedical Signal Processing I at UCBM Biomedical Engineering. Cover foundational topics: biomedical data and statistics (descriptive, inferential, parametric vs. non-parametric tests); signal acquisition (ECG, EEG, EMG, sampling, quantization); filtering (FIR, IIR, artifact removal); and applications (electrocardiography, heart rate variability, QRS detection). Use basic signal processing and statistics terminology. MATLAB/Python implementation expected. This is the introductory module preparing students for Year 3 Signal Processing II."
     },
     {
       "id": "biomedical-signal-processing-ii",
@@ -725,7 +796,9 @@
       "semester": "II",
       "cfu": 5,
       "professor": "Leandro Pecchia",
-      "prerequisites": ["Biomedical Signal Processing I"],
+      "prerequisites": [
+        "Biomedical Signal Processing I"
+      ],
       "modules": [
         "Signals and Systems Theory",
         "Classification of signals: energy vs power, periodic vs aperiodic, deterministic vs stochastic",
@@ -758,7 +831,8 @@
         "Aboof S. Digital Signal Processing: A primer with MATLAB (2020, CRC Press)",
         "Hu L. & Zhang Z. EEG Signal Processing and Feature Extraction (2019, Springer)"
       ],
-      "typical_oral_style": "Discussion of advanced processing algorithms, spectral/time-frequency analysis, machine learning applications on biomedical signals, feature extraction, model validation, and presentation of the final group project results."
+      "typical_oral_style": "Discussion of advanced processing algorithms, spectral/time-frequency analysis, machine learning applications on biomedical signals, feature extraction, model validation, and presentation of the final group project results.",
+      "difficulty_guideline": "Year 3 Biomedical Signal Processing II at UCBM Biomedical Engineering. Cover advanced topics: signals and systems theory (classification, elementary signals, LTI systems, convolution); Fourier analysis (series, transform, frequency response); spectral analysis (PSD estimation, STFT, spectrogram, AR models); wavelet transform; and machine learning (feature extraction, feature engineering, classification and regression algorithms, model validation, performance metrics). Include practical applications to real biomedical signals. Do not include highly specialized topics beyond course scope."
     },
     {
       "id": "fundamentals-of-automatic-control",
@@ -769,7 +843,11 @@
       "semester": "I",
       "cfu": 9,
       "professor": "Filippo Cacace",
-      "prerequisites": ["Linear algebra", "Calculus", "Basic notions of programming in Matlab"],
+      "prerequisites": [
+        "Linear algebra",
+        "Calculus",
+        "Basic notions of programming in Matlab"
+      ],
       "modules": [
         "Systems theory: Linear continuous-time and discrete-time systems. Superposition principle. Natural modes, free and forced evolution. Stability. Lyapunov stability criteria. Laplace and transform. Transfer functions. Bode diagrams.",
         "Control theory and design: Nyquist criterion. Transient and steady-state control specifications. Proportional, integral, derivative controls. Compensators with leading and retarding networks. Compensators with the roots locus. State space representation. Controller design in state space. Eigenvalue assignment. Observers. Separation principle.",
@@ -792,7 +870,8 @@
         "Astrom, K. J., & Murray, R. (2021). Feedback systems: an introduction for scientists and engineers. Princeton University Press.",
         "Lecture notes, exercises, and Matlab simulation files provided on the e-learning platform"
       ],
-      "typical_oral_style": "Oral discussion of systems theory, frequency and time-domain control design, state-space methods, controller tuning (PID, state feedback), and numerical simulation in Matlab with direct application to biomedical control problems."
+      "typical_oral_style": "Oral discussion of systems theory, frequency and time-domain control design, state-space methods, controller tuning (PID, state feedback), and numerical simulation in Matlab with direct application to biomedical control problems.",
+      "difficulty_guideline": "Year 3 Fundamentals of Automatic Control at UCBM Biomedical Engineering. Cover advanced topics: linear continuous and discrete-time systems theory; stability analysis; Laplace transforms and transfer functions; Bode diagrams; Nyquist criterion; transient and steady-state specifications; PID control; compensator design; state-space representation; eigenvalue assignment; observer design; and separation principle. Include biomedical applications. Assume strong foundation from Year 1-2 Mathematics and programming. Do not include advanced nonlinear control."
     },
     {
       "id": "biomechanics",
@@ -803,7 +882,10 @@
       "semester": "I",
       "cfu": 9,
       "professor": "Francesca Cordella, Federica Bressi",
-      "prerequisites": ["Physiology and Anatomy", "General Physics"],
+      "prerequisites": [
+        "Physiology and Anatomy",
+        "General Physics"
+      ],
       "modules": [
         "Module MED/34 (30 hours): Anatomy and Physiology of the Musculoskeletal System – Introduction to bones, tendons, ligaments, cartilage, joints; physiology and primary functions; symptoms and disorders; clinical evaluation techniques; common therapies",
         "Module ING/IND34 (60 hours):",
@@ -829,7 +911,8 @@
         "Lecture notes distributed by the teacher",
         "N. Ozkaya, M. Nordin, Fundamentals of Biomechanics, Second Edition, Springer"
       ],
-      "typical_oral_style": "Discussion of musculoskeletal biomechanics, EMG signal analysis, fatigue evaluation, kinematic/dynamics modeling, and real biomedical applications (upper limb, prosthetics, patient monitoring)."
+      "typical_oral_style": "Discussion of musculoskeletal biomechanics, EMG signal analysis, fatigue evaluation, kinematic/dynamics modeling, and real biomedical applications (upper limb, prosthetics, patient monitoring).",
+      "difficulty_guideline": "Year 3 Biomechanics at UCBM Biomedical Engineering. Cover advanced topics: anatomy and physiology of musculoskeletal system; biomechanics fundamentals; upper limb kinematics and dynamics; muscular activity (EMG signal processing); and fatigue evaluation (physiological parameters, cognitive and muscular fatigue). Emphasis on experimental data acquisition, signal processing, and real biomedical applications. Use advanced biomechanics and physiology terminology. Do not include highly specialized orthopedic topics."
     },
     {
       "id": "fundamentals-of-bioengineering",
@@ -840,7 +923,14 @@
       "semester": "II",
       "cfu": 12,
       "professor": "Fabrizio Taffoni",
-      "prerequisites": ["Mathematics", "Physics", "Geometry", "Mechanics of Solids", "Electronics", "Programming"],
+      "prerequisites": [
+        "Mathematics",
+        "Physics",
+        "Geometry",
+        "Mechanics of Solids",
+        "Electronics",
+        "Programming"
+      ],
       "modules": [
         "1. Multidisciplinary design, integration, and testing in bioengineering (0.5 ECTS - Lecture)",
         "2. Applied mechanics for bioengineering (1.5 ECTS Lecture + 0.5 ECTS Laboratory) – Fundamentals of mechanical design, sizing and verification of machine components, design of machines and biomechanical systems through CAE",
@@ -870,7 +960,8 @@
         "Jerald, J. (2015). The VR book: Human-centered design for virtual reality. Morgan & Claypool.",
         "Boy, G. A. (Ed.). (2017). The handbook of human-machine interaction: a human-centered design approach. CRC Press."
       ],
-      "typical_oral_style": "Discussion of multidisciplinary bioengineering design, hardware/software integration, human-centered prototyping, experimental validation, and group project results in a technical multidisciplinary context."
+      "typical_oral_style": "Discussion of multidisciplinary bioengineering design, hardware/software integration, human-centered prototyping, experimental validation, and group project results in a technical multidisciplinary context.",
+      "difficulty_guideline": "Year 3 Fundamentals of Bioengineering at UCBM Biomedical Engineering. Cover advanced topics: multidisciplinary bioengineering design and integration; applied mechanics (mechanical design, CAE, component verification); applied electronics (component selection, electronic architectures); hardware-software integration; virtual environments; human-machine interfaces; experimental validation and testing. Strong emphasis on integrated design of complete biomedical devices. Assume strong foundation from all Year 1-2 core courses. Do not include highly specialized advanced manufacturing topics."
     },
     {
       "id": "measurements-and-instrumentation-in-biomedical-engineering-and-standards-for-medical-devices",
@@ -881,7 +972,9 @@
       "semester": "I",
       "cfu": 7,
       "professor": "Emiliano Schena",
-      "prerequisites": ["None (admission to the degree program)"],
+      "prerequisites": [
+        "None (admission to the degree program)"
+      ],
       "modules": [
         "Basic Concepts of Measurement Methods: Measurement of a physical quantity, Measurement system, Units of measurement (International System and others), Significant figures and uncertainty",
         "Operations and significant figures, Significant differences between experimental data, Analysis of static and dynamic measurements, Representation of experimental data, Gaussian and Student's t-distributions, Law of uncertainty propagation",
@@ -914,7 +1007,8 @@
         "R. S. Figliola, D. E. Beasley. Theory and Design for Mechanical Measurements, Wiley.",
         "Lecture notes and materials provided on the e-learning platform of Università Campus Bio-Medico di Roma."
       ],
-      "typical_oral_style": "Oral discussion of measurement principles, uncertainty analysis, sensor/transducer performance, biomedical applications, regulatory standards (IEC/FDA), and practical interpretation of experimental data."
+      "typical_oral_style": "Oral discussion of measurement principles, uncertainty analysis, sensor/transducer performance, biomedical applications, regulatory standards (IEC/FDA), and practical interpretation of experimental data.",
+      "difficulty_guideline": "Year 3 Measurements and Instrumentation in Biomedical Engineering and Standards for Medical Devices at UCBM Biomedical Engineering. Cover advanced topics: measurement methodology, uncertainty propagation, static and dynamic metrological properties, signal conditioning, and detailed sensor/transducer types; and medical device standards (IEC, FDA verification, performance testing). Strong emphasis on biomedical applications and regulatory compliance. Use precise metrological and standards terminology. Do not include specialized topics in advanced materials characterization."
     },
     {
       "id": "humanities-for-bioengineering",
@@ -925,7 +1019,9 @@
       "semester": "II",
       "cfu": 6,
       "professor": "Giampaolo Ghilardi, Marta Bertolaso",
-      "prerequisites": ["None"],
+      "prerequisites": [
+        "None"
+      ],
       "modules": [
         "1. The difference between natural and artificial – New emerging paradigms in complex systems for modelling the human. An integrated approach to complex and multi-disciplinary problems. The cognitive process and modelling of natural realities: notions of mechanism and system",
         "2. Science, Life science and Artificial Intelligence – Technological and social impact of frontier engineering solutions. Technoscience",
@@ -953,7 +1049,8 @@
         "Bertolaso M., MacLeod M. (Eds) (2016) In Silica Modeling: the Human Factor",
         "Additional bibliography provided during the course (full list on e-learning platform)"
       ],
-      "typical_oral_style": "Critical discussion of frontier cases between technology and life sciences (bio-inspired robotics, advanced biotechnology, AI, micro/nano-engineering, simulation, life and artificial intelligence, bioinformatics). Emphasis on philosophical, epistemological, and methodological problems, critical thinking, and the human dimension in bioengineering."
+      "typical_oral_style": "Critical discussion of frontier cases between technology and life sciences (bio-inspired robotics, advanced biotechnology, AI, micro/nano-engineering, simulation, life and artificial intelligence, bioinformatics). Emphasis on philosophical, epistemological, and methodological problems, critical thinking, and the human dimension in bioengineering.",
+      "difficulty_guideline": "Year 3 Humanities for Bioengineering at UCBM Biomedical Engineering. Cover advanced interdisciplinary topics: natural vs. artificial systems; complex systems modeling; cognitive processes and scientific paradigms; technoscience and AI impact; philosophical perspectives on artificial agents; and philosophy of technology and engineering. Strong emphasis on critical thinking, interdisciplinary synthesis, and ability to apply philosophical frameworks to emerging bioengineering challenges. Promote discussion of case studies and critical analysis of frontier technologies."
     }
   ]
 }
