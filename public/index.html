@@ -8,7 +8,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.0/katex.min.js"></script>
     <style>
         html, body { width: 100%; height: 100%; margin: 0; padding: 0; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 8px; margin: 0; overflow-x: hidden; box-sizing: border-box; overflow: hidden; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 8px; margin: 0; overflow-x: hidden; box-sizing: border-box; overflow: hidden; padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+        @media (max-width: 768px) { body { padding-bottom: max(8px, calc(60px + env(safe-area-inset-bottom))); } }
         * { box-sizing: border-box; }
         
         /* Responsive Layout */
@@ -39,7 +40,7 @@
         }
         @media (max-width: 480px) { 
             body { padding: 4px; } 
-            .container { height: 100vh; border-radius: 6px; }
+            .container { height: 100vh; border-radius: 6px; padding-bottom: env(safe-area-inset-bottom); }
         }
         
         /* Sidebar Backdrop (for all screens) */
@@ -758,33 +759,37 @@
                 let finalTranscript = '';
                 let interimTranscript = '';
                 
-                // Process all results from the current recognition sequence
+                // MOBILE FIX: Process results carefully to avoid duplication
+                // Track which results are truly new
                 for (let i = event.resultIndex; i < event.results.length; i++) {
-                    const transcript = event.results[i][0].transcript;
+                    const transcript = event.results[i][0].transcript.trim();
+                    if (!transcript) continue;
+                    
                     if (event.results[i].isFinal) {
-                        // Final results: accumulate only once per unique index
+                        // Add ONLY NEW finals (never processed before)
                         if (i > lastProcessedResultIndex) {
                             finalTranscript += transcript + ' ';
                             lastProcessedResultIndex = i;
                         }
                     } else {
-                        // Interim results: show current interim only (not accumulated)
+                        // Show ONLY current interim (NOT accumulated)
+                        // This prevents "testing testing testing" on mobile
                         interimTranscript = transcript;
                     }
                 }
                 
-                // Add new final text to persistent accumulator
+                // Accumulate only genuinely new finals
                 if (finalTranscript.trim()) {
                     recognitionTranscript += finalTranscript;
                 }
                 
-                // Display: accumulated finals + current interim
+                // Display accumulated finals + current interim ONLY
                 const textarea = document.getElementById('answerInput');
                 const accumulated = recognitionTranscript.trim();
                 const displayText = accumulated + (interimTranscript ? ' ' + interimTranscript : '');
                 textarea.value = displayText;
                 
-                // Update word count badge
+                // Update word count
                 const wordCount = displayText.split(/\s+/).filter(w => w.length > 0).length;
                 const draftBadge = document.getElementById('draftStatus');
                 if (wordCount > 0) {
