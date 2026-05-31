@@ -39,8 +39,9 @@
             .container { height: 99vh; border-radius: 8px; }
         }
         @media (max-width: 480px) { 
-            body { padding: 4px; } 
-            .container { height: 100vh; border-radius: 6px; padding-bottom: env(safe-area-inset-bottom); }
+            body { padding: 4px; padding-bottom: max(4px, calc(80px + env(safe-area-inset-bottom))); } 
+            .container { height: calc(100vh - 80px - env(safe-area-inset-bottom)); border-radius: 6px; overflow: hidden; display: flex; flex-direction: column; }
+            .exam-screen { padding-bottom: 80px; }
         }
         
         /* Sidebar Backdrop (for all screens) */
@@ -117,11 +118,11 @@
         .button-col { display: flex; gap: 6px; flex-direction: column; flex-shrink: 0; }
         
         @media (max-width: 480px) {
-            .input-container { flex-direction: column; }
+            .input-container { flex-direction: column; gap: 6px; }
             .text-editor { width: 100%; }
             .formatting-toolbar { gap: 3px; padding: 4px; }
             .format-btn { padding: 3px 4px; font-size: 9px; }
-            textarea { min-height: 80px; max-height: 200px; padding: 6px; font-size: 11px; }
+            textarea { min-height: 80px; max-height: 180px; padding: 6px; font-size: 11px; overflow-y: auto; }
             .button-col { flex-direction: row; flex-wrap: wrap; gap: 4px; }
             .icon-btn { padding: 8px 6px; font-size: 10px; min-width: auto; flex: 1 1 calc(50% - 2px); }
         }
@@ -759,37 +760,37 @@
                 let finalTranscript = '';
                 let interimTranscript = '';
                 
-                // MOBILE FIX: Process results carefully to avoid duplication
-                // Track which results are truly new
+                // MOBILE FIX: Only accumulate NEW finals, show ONLY current interim
+                // This prevents repetition on mobile where onresult fires multiple times
                 for (let i = event.resultIndex; i < event.results.length; i++) {
-                    const transcript = event.results[i][0].transcript.trim();
-                    if (!transcript) continue;
+                    const transcript = event.results[i][0].transcript;
+                    if (!transcript || !transcript.trim()) continue;
                     
                     if (event.results[i].isFinal) {
-                        // Add ONLY NEW finals (never processed before)
+                        // NEW final: only add if index > lastProcessedResultIndex
                         if (i > lastProcessedResultIndex) {
                             finalTranscript += transcript + ' ';
                             lastProcessedResultIndex = i;
                         }
                     } else {
-                        // Show ONLY current interim (NOT accumulated)
-                        // This prevents "testing testing testing" on mobile
+                        // Interim: REPLACE (don't accumulate) with current one
+                        // This prevents "testing testing testing" from repeated interim events
                         interimTranscript = transcript;
                     }
                 }
                 
-                // Accumulate only genuinely new finals
+                // Add new finals to persistent accumulator
                 if (finalTranscript.trim()) {
                     recognitionTranscript += finalTranscript;
                 }
                 
-                // Display accumulated finals + current interim ONLY
+                // Display: accumulated finals + ONLY current interim
                 const textarea = document.getElementById('answerInput');
                 const accumulated = recognitionTranscript.trim();
                 const displayText = accumulated + (interimTranscript ? ' ' + interimTranscript : '');
                 textarea.value = displayText;
                 
-                // Update word count
+                // Update word count badge
                 const wordCount = displayText.split(/\s+/).filter(w => w.length > 0).length;
                 const draftBadge = document.getElementById('draftStatus');
                 if (wordCount > 0) {
