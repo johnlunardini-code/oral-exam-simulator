@@ -755,29 +755,36 @@
             };
             
             speechRecognizer.onresult = (event) => {
-                let interimTranscript = '';
                 let finalTranscript = '';
+                let interimTranscript = '';
                 
-                const startIdx = Math.max(lastProcessedResultIndex + 1, event.resultIndex);
-                for (let i = startIdx; i < event.results.length; i++) {
+                // Process all results from the current recognition sequence
+                for (let i = event.resultIndex; i < event.results.length; i++) {
                     const transcript = event.results[i][0].transcript;
                     if (event.results[i].isFinal) {
-                        finalTranscript += transcript + ' ';
-                        lastProcessedResultIndex = i;
+                        // Final results: accumulate only once per unique index
+                        if (i > lastProcessedResultIndex) {
+                            finalTranscript += transcript + ' ';
+                            lastProcessedResultIndex = i;
+                        }
                     } else {
+                        // Interim results: show current interim only (not accumulated)
                         interimTranscript = transcript;
                     }
                 }
                 
+                // Add new final text to persistent accumulator
                 if (finalTranscript.trim()) {
                     recognitionTranscript += finalTranscript;
                 }
                 
+                // Display: accumulated finals + current interim
                 const textarea = document.getElementById('answerInput');
                 const accumulated = recognitionTranscript.trim();
                 const displayText = accumulated + (interimTranscript ? ' ' + interimTranscript : '');
                 textarea.value = displayText;
                 
+                // Update word count badge
                 const wordCount = displayText.split(/\s+/).filter(w => w.length > 0).length;
                 const draftBadge = document.getElementById('draftStatus');
                 if (wordCount > 0) {
