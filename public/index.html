@@ -752,43 +752,33 @@
             };
             
             speechRecognizer.onresult = (event) => {
-                // MOBILE FIX: Only process results we haven't seen before
-                // Track the index to prevent re-processing old results
-                let newFinalText = '';
-                let currentInterim = '';
+                let interimTranscript = '';
+                let finalTranscript = '';
                 
-                // Only loop through NEW results (after the last one we processed)
-                for (let i = Math.max(lastProcessedResultIndex + 1, event.resultIndex); i < event.results.length; i++) {
+                for (let i = event.resultIndex; i < event.results.length; i++) {
                     const transcript = event.results[i][0].transcript;
-                    
                     if (event.results[i].isFinal) {
-                        // Only add NEW final results
-                        newFinalText += transcript + ' ';
-                        lastProcessedResultIndex = i;
+                        finalTranscript += transcript + ' ';
                     } else {
-                        // Show only current interim result
-                        currentInterim = transcript;
+                        interimTranscript += transcript;
                     }
                 }
                 
-                // Add only new final text to accumulated
-                if (newFinalText.trim()) {
-                    recognitionTranscript += newFinalText;
+                if (finalTranscript.trim()) {
+                    recognitionTranscript += finalTranscript;
                 }
                 
-                // Display: accumulated + current interim
                 const textarea = document.getElementById('answerInput');
-                const displayText = recognitionTranscript.trim() + (currentInterim ? ' ' + currentInterim : '');
+                const accumulated = recognitionTranscript.trim();
+                const displayText = accumulated + (interimTranscript ? ' ' + interimTranscript : '');
                 textarea.value = displayText;
                 
-                // Update word count
                 const wordCount = displayText.split(/\s+/).filter(w => w.length > 0).length;
                 const draftBadge = document.getElementById('draftStatus');
                 if (wordCount > 0) {
                     draftBadge.textContent = `Draft: ${wordCount} word${wordCount !== 1 ? 's' : ''}`;
                     draftBadge.style.display = 'inline-block';
                 }
-            }
             };
 
             speechRecognizer.onerror = (event) => {
