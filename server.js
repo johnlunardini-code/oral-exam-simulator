@@ -183,7 +183,9 @@ function loadPreviousQuestionsForCourse(courseId) {
   if (!fs.existsSync(filePath)) return [];
   try {
     const data = fs.readFileSync(filePath, 'utf8');
-    return JSON.parse(data);
+    const questions = JSON.parse(data);
+    console.log(`[KB] Loaded ${questions.length} previous questions for ${courseId}`);
+    return questions;
   } catch (e) {
     console.error(`[KB] Error loading questions for ${courseId}:`, e.message);
     return [];
@@ -193,8 +195,10 @@ function loadPreviousQuestionsForCourse(courseId) {
 function savePreviousQuestionsForCourse(courseId, questions) {
   const filePath = path.join(QUESTIONS_DIR, `${courseId}-questions.json`);
   try {
-    const recentQuestions = questions.slice(-30);
+    // Keep last 100 questions for better cross-session variety checking
+    const recentQuestions = questions.slice(-100);
     fs.writeFileSync(filePath, JSON.stringify(recentQuestions, null, 2));
+    console.log(`[KB] Saved ${recentQuestions.length} questions for ${courseId}`);
   } catch (e) {
     console.error(`[KB] Error saving questions for ${courseId}:`, e.message);
   }
@@ -202,11 +206,14 @@ function savePreviousQuestionsForCourse(courseId, questions) {
 
 function addQuestionToCourseHistory(courseId, questionText) {
   const questions = loadPreviousQuestionsForCourse(courseId);
-  questions.push({
-    text: questionText,
-    timestamp: new Date().toISOString()
-  });
-  savePreviousQuestionsForCourse(courseId, questions);
+  // Avoid duplicate entries for the exact same question
+  if (!questions.some(q => q.text === questionText)) {
+    questions.push({
+      text: questionText,
+      timestamp: new Date().toISOString()
+    });
+    savePreviousQuestionsForCourse(courseId, questions);
+  }
 }
 
 // ============================================================
@@ -333,10 +340,11 @@ function buildSystemPromptForSession(session, isFirstQuestion = false) {
   }
 
   if (session.previousQuestionsForCourse && session.previousQuestionsForCourse.length > 0) {
-    prompt += `\n\n**RECENT QUESTIONS FROM PREVIOUS SESSIONS (AVOID EXACT REPETITION, REPHRASE/REAPPROACH)**:\n`;
-    const recentPrevious = session.previousQuestionsForCourse.slice(-15);
+    prompt += `\n\n**CRITICAL: QUESTIONS ASKED IN PREVIOUS SESSIONS (MUST AVOID REPETITION)**:\n`;
+    // Include MORE previous questions (last 50) for stronger similarity detection
+    const recentPrevious = session.previousQuestionsForCourse.slice(-50);
     prompt += recentPrevious.map((q, i) => `  ${i + 1}. ${q.text}`).join('\n');
-    prompt += `\n\nCRITICAL: Avoid repeating the exact same questions from previous sessions. You may cover the same topics but must rephrase, use different examples, or approach from a different angle. Draw from different modules and ensure variety.`;
+    prompt += `\n\n⚠️ CRITICAL INSTRUCTION: These are questions asked in previous exams for this exact course.\n- DO NOT ask any of these questions again, even with slight rephrasings\n- DO NOT ask questions that are 80%+ similar in scope or wording\n- MUST vary the topics covered and approach them from different angles\n- DO NOT ask multiple questions on the same sub-topic in succession\n- Ensure each new question explores a DIFFERENT module or concept than the last 5 questions listed above\n- If a topic was covered, wait at least 5+ questions before returning to it`;
   }
 
   if (session.uploads.length > 0) {
@@ -500,6 +508,8 @@ app.post('/api/exam/question', async (req, res) => {
 
     const systemPrompt = buildSystemPromptForSession(session, isFirst);
     const recent = session.messages.slice(-12);
+    
+    console.log(`[EXAM] Q#${session.questionCount + 1} | Course: ${session.courseId} | Type: ${session.lastQuestionType} | Previous Q's tracked: ${session.previousQuestionsForCourse.length} | Session Q's asked: ${session.askedQuestions.length}`);
 
     let professorResponse;
     try {
@@ -527,11 +537,13 @@ app.post('/api/exam/question', async (req, res) => {
     }
     
     const qObj = {
-      text: displayText.slice(0, 220),
+      text: displayText.slice(0, 500),
       type: session.lastQuestionType,
-      number: session.questionCount
+      number: session.questionCount,
+      timestamp: new Date().toISOString()
     };
     session.askedQuestions.push(qObj);
+    // Save full question text (not truncated) for better similarity detection
     addQuestionToCourseHistory(session.courseId, displayText);
 
     let hypotheticalScore = null;
