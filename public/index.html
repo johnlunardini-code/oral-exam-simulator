@@ -550,13 +550,10 @@
         
         // MOBILE STT IMPROVEMENTS
         let isMobileDevice = /iPhone|iPad|Android|Opera Mini|IEMobile|WPDesktop/.test(navigator.userAgent);
-        let isAndroid = /Android/.test(navigator.userAgent);
         let silenceTimeout = null;
         let lastInterimTime = 0;
         let lastFinalText = '';
         let interimBuffer = '';  // Buffer for interim results to prevent rapid re-display
-        let finalResultsProcessed = {};  // Track ALL processed final results by hash
-        let lastDisplayedText = '';  // Track last displayed text to prevent duplicate renders
 
         function toggleFeatures() {
             const list = document.getElementById('featuresList');
@@ -755,8 +752,6 @@
                 lastFinalText = '';
                 interimBuffer = '';
                 lastInterimTime = 0;
-                lastDisplayedText = '';
-                finalResultsProcessed = {};
                 if (silenceTimeout) clearTimeout(silenceTimeout);
                 updateRecordingUI(true);
                 document.getElementById('speechFeedback').innerHTML = '<div class="speech-feedback">🎤 RECORDING...</div>';
@@ -775,7 +770,6 @@
             speechRecognizer.onresult = (event) => {
                 let finalTranscript = '';
                 let currentInterim = '';
-                let newFinalAdded = false;
                 
                 // Clear silence timeout - speech is still happening
                 if (silenceTimeout) {
@@ -783,59 +777,37 @@
                     silenceTimeout = null;
                 }
                 
-                // ANDROID: Process results with aggressive deduplication
+                // Process results - only grab NEW finals
                 for (let i = event.resultIndex; i < event.results.length; i++) {
                     const transcript = event.results[i][0].transcript;
                     if (!transcript || !transcript.trim()) continue;
                     
                     if (event.results[i].isFinal) {
-                        // ANDROID FIX: Multiple checks to prevent any duplication
+                        // Only add genuinely NEW final results
                         if (i > lastProcessedResultIndex) {
-                            const cleanTranscript = transcript.trim();
-                            
-                            // Check 1: Avoid exact duplicate of last final
-                            if (lastFinalText === cleanTranscript) {
-                                console.log('[STT-ANDROID] Skipped duplicate final:', cleanTranscript);
-                                continue;
+                            // Mobile fix: Clean repetitive patterns before adding
+                            if (isMobileDevice) {
+                                const cleanTranscript = transcript.trim();
+                                // Avoid adding if it's just repetition of last word
+                                if (lastFinalText && cleanTranscript === lastFinalText) {
+                                    continue;
+                                }
+                                lastFinalText = cleanTranscript;
                             }
-                            
-                            // Check 2: Avoid if already in recognitionTranscript (Android re-sends finals)
-                            if (recognitionTranscript.includes(cleanTranscript)) {
-                                console.log('[STT-ANDROID] Final already in transcript:', cleanTranscript);
-                                continue;
-                            }
-                            
-                            // Check 3: Hash-based deduplication (handle word order variations)
-                            const hash = cleanTranscript.toLowerCase().replace(/\s+/g, ' ').trim();
-                            if (finalResultsProcessed[hash]) {
-                                console.log('[STT-ANDROID] Hash already processed:', hash);
-                                continue;
-                            }
-                            finalResultsProcessed[hash] = true;
-                            
-                            // All checks passed - add the final
-                            finalTranscript += cleanTranscript + ' ';
-                            lastFinalText = cleanTranscript;
+                            finalTranscript += transcript + ' ';
                             lastProcessedResultIndex = i;
-                            newFinalAdded = true;
                         }
                     } else {
                         // Interim: Show ONLY current interim (not accumulated)
-                        const interimText = transcript.trim();
-                        
-                        // ANDROID: Skip interim if it's similar to accumulated text (false interim)
-                        if (isAndroid) {
-                            const lastWord = recognitionTranscript.trim().split(/\s+/).pop();
-                            if (lastWord && interimText.endsWith(lastWord)) {
-                                // This interim just echoes the last word - skip it
-                                continue;
+                        // On mobile, interim fires very frequently - only update display if text changed
+                        if (isMobileDevice) {
+                            if (transcript.trim() !== interimBuffer) {
+                                currentInterim = transcript;
+                                interimBuffer = transcript.trim();
+                                lastInterimTime = Date.now();
                             }
-                        }
-                        
-                        if (interimText !== interimBuffer) {
-                            currentInterim = interimText;
-                            interimBuffer = interimText;
-                            lastInterimTime = Date.now();
+                        } else {
+                            currentInterim = transcript;
                         }
                     }
                 }
@@ -844,35 +816,28 @@
                 if (finalTranscript.trim()) {
                     recognitionTranscript += finalTranscript;
                     interimBuffer = '';  // Reset interim buffer when we get a final
-                    newFinalAdded = true;
                 }
                 
                 // Display: accumulated finals + current interim
                 const textarea = document.getElementById('answerInput');
                 const accumulated = recognitionTranscript.trim();
                 const displayText = accumulated + (currentInterim ? ' ' + currentInterim : '');
+                textarea.value = displayText;
                 
-                // Only update DOM if text actually changed (prevent re-renders)
-                if (displayText !== lastDisplayedText) {
-                    textarea.value = displayText;
-                    lastDisplayedText = displayText;
-                    
-                    // Update word count
-                    const wordCount = displayText.split(/\s+/).filter(w => w.length > 0).length;
-                    const draftBadge = document.getElementById('draftStatus');
-                    if (wordCount > 0) {
-                        draftBadge.textContent = `Draft: ${wordCount} word${wordCount !== 1 ? 's' : ''}`;
-                        draftBadge.style.display = 'inline-block';
-                    }
+                // Update word count
+                const wordCount = displayText.split(/\s+/).filter(w => w.length > 0).length;
+                const draftBadge = document.getElementById('draftStatus');
+                if (wordCount > 0) {
+                    draftBadge.textContent = `Draft: ${wordCount} word${wordCount !== 1 ? 's' : ''}`;
+                    draftBadge.style.display = 'inline-block';
                 }
                 
-                // PAUSE DETECTION: Restart on silence (1.5s no new events)
+                // MOBILE PAUSE DETECTION: If no more events for 1.5s, auto-restart
                 if (isMobileDevice && !event.isFinal) {
                     silenceTimeout = setTimeout(() => {
                         if (isListening && speechRecognizer) {
-                            console.log('[STT] Silence detected, restarting recognition...');
+                            console.log('[STT] Mobile silence detected, restarting recognition...');
                             recognitionTranscript = document.getElementById('answerInput').value.trim();
-                            lastDisplayedText = recognitionTranscript;
                             speechRecognizer.stop();
                             setTimeout(() => {
                                 if (isListening) speechRecognizer.start();
