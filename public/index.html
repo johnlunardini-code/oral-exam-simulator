@@ -808,14 +808,12 @@
                 if (silenceTimeout) clearTimeout(silenceTimeout);
                 updateRecordingUI(true);
                 document.getElementById('speechFeedback').innerHTML = '<div class="speech-feedback">🎤 RECORDING...</div>';
-                console.log('[STT] Speech recognition started');
             };
             
             speechRecognizer.onend = () => {
                 isListening = false;
                 updateRecordingUI(false);
                 const wordCount = recognitionTranscript.trim().split(/\s+/).length;
-                console.log('[STT] Recognition ended. Words captured: ' + wordCount);
                 if (wordCount > 0) {
                     document.getElementById('speechFeedback').innerHTML = `<div class="speech-feedback">✓ ${wordCount} word${wordCount !== 1 ? 's' : ''} captured</div>`;
                     setTimeout(() => { document.getElementById('speechFeedback').innerHTML = ''; }, 3000);
@@ -972,36 +970,7 @@
             };
 
             speechRecognizer.onerror = (event) => {
-                console.error('[STT-ERROR]', event.error);
-                isListening = false;
-                updateRecordingUI(false);
-                
-                let errorMsg = '';
-                switch(event.error) {
-                    case 'no-speech':
-                        errorMsg = 'No speech detected. Try speaking louder or check microphone.';
-                        break;
-                    case 'network':
-                        errorMsg = 'Network error. Check internet connection.';
-                        break;
-                    case 'permission-denied':
-                        errorMsg = 'Microphone permission denied. Please enable in browser settings.';
-                        break;
-                    case 'audio-capture':
-                        errorMsg = 'Microphone not found or not accessible.';
-                        break;
-                    case 'service-not-allowed':
-                        errorMsg = 'Speech recognition not allowed. Check permissions.';
-                        break;
-                    default:
-                        errorMsg = 'Speech error: ' + event.error;
-                }
-                
-                console.log('[STT-ERROR] ' + errorMsg);
-                document.getElementById('speechFeedback').innerHTML = '<div class="speech-feedback" style="background: #ffe3e3; color: #c0392b;">❌ ' + errorMsg + '</div>';
-                setTimeout(() => { 
-                    document.getElementById('speechFeedback').innerHTML = ''; 
-                }, 4000);
+                console.error('Speech error:', event.error);
             };
         }
 
@@ -1010,38 +979,10 @@
                 alert('Professor is still speaking. Wait or click Mute to stop.');
                 return;
             }
-            
-            if (!speechRecognizer) {
-                alert('Speech recognition not available in your browser.');
-                return;
-            }
-            
-            try {
-                console.log('[STT] Starting speech recognition on', currentSessionIsItalian ? 'it-IT' : 'en-US');
-                speechRecognizer.lang = currentSessionIsItalian ? 'it-IT' : 'en-US';
-                speechRecognizer.start();
-                
-                // Timeout: if no onstart within 1.5s, there's likely a permission issue
-                const startTimeout = setTimeout(() => {
-                    if (isListening === false) {
-                        console.error('[STT] Start timeout - likely permission denied');
-                        updateRecordingUI(false);
-                        document.getElementById('speechFeedback').innerHTML = '<div class="speech-feedback" style="background: #ffe3e3; color: #c0392b;">❌ Microphone access denied. Enable in browser settings.</div>';
-                        setTimeout(() => { document.getElementById('speechFeedback').innerHTML = ''; }, 4000);
-                    }
-                }, 1500);
-                
-                // Clear timeout if onstart fires
-                const originalOnstart = speechRecognizer.onstart;
-                speechRecognizer.onstart = function(e) {
-                    clearTimeout(startTimeout);
-                    originalOnstart.call(this, e);
-                };
-            } catch (error) {
-                console.error('[STT-CATCH]', error);
-                document.getElementById('speechFeedback').innerHTML = '<div class="speech-feedback" style="background: #ffe3e3; color: #c0392b;">❌ Error: ' + error.message + '</div>';
-                setTimeout(() => { document.getElementById('speechFeedback').innerHTML = ''; }, 4000);
-            }
+            // DO NOT clear answerDraft - we want to append to it
+            // Just start recording and accumulate new speech
+            speechRecognizer.lang = currentSessionIsItalian ? 'it-IT' : 'en-US';
+            speechRecognizer.start();
         }
 
         function stopRecording() {
