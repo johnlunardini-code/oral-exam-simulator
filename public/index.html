@@ -547,6 +547,13 @@
         let currentQuestionText = '';
         let recognitionTranscript = '';
         let lastProcessedResultIndex = -1;
+        
+        // MOBILE STT IMPROVEMENTS
+        let isMobileDevice = /iPhone|iPad|Android|Opera Mini|IEMobile|WPDesktop/.test(navigator.userAgent);
+        let silenceTimeout = null;
+        let lastInterimTime = 0;
+        let lastFinalText = '';
+        let interimBuffer = '';  // Buffer for interim results to prevent rapid re-display
 
         function toggleFeatures() {
             const list = document.getElementById('featuresList');
@@ -742,6 +749,10 @@
                 const existingText = document.getElementById('answerInput').value.trim();
                 recognitionTranscript = existingText;
                 lastProcessedResultIndex = -1;
+                lastFinalText = '';
+                interimBuffer = '';
+                lastInterimTime = 0;
+                if (silenceTimeout) clearTimeout(silenceTimeout);
                 updateRecordingUI(true);
                 document.getElementById('speechFeedback').innerHTML = '<div class="speech-feedback">🎤 RECORDING...</div>';
             };
@@ -758,44 +769,81 @@
             
             speechRecognizer.onresult = (event) => {
                 let finalTranscript = '';
-                let interimTranscript = '';
+                let currentInterim = '';
                 
-                // MOBILE FIX: Only accumulate NEW finals, show ONLY current interim
-                // This prevents repetition on mobile where onresult fires multiple times
+                // Clear silence timeout - speech is still happening
+                if (silenceTimeout) {
+                    clearTimeout(silenceTimeout);
+                    silenceTimeout = null;
+                }
+                
+                // Process results - only grab NEW finals
                 for (let i = event.resultIndex; i < event.results.length; i++) {
                     const transcript = event.results[i][0].transcript;
                     if (!transcript || !transcript.trim()) continue;
                     
                     if (event.results[i].isFinal) {
-                        // NEW final: only add if index > lastProcessedResultIndex
+                        // Only add genuinely NEW final results
                         if (i > lastProcessedResultIndex) {
+                            // Mobile fix: Clean repetitive patterns before adding
+                            if (isMobileDevice) {
+                                const cleanTranscript = transcript.trim();
+                                // Avoid adding if it's just repetition of last word
+                                if (lastFinalText && cleanTranscript === lastFinalText) {
+                                    continue;
+                                }
+                                lastFinalText = cleanTranscript;
+                            }
                             finalTranscript += transcript + ' ';
                             lastProcessedResultIndex = i;
                         }
                     } else {
-                        // Interim: REPLACE (don't accumulate) with current one
-                        // This prevents "testing testing testing" from repeated interim events
-                        interimTranscript = transcript;
+                        // Interim: Show ONLY current interim (not accumulated)
+                        // On mobile, interim fires very frequently - only update display if text changed
+                        if (isMobileDevice) {
+                            if (transcript.trim() !== interimBuffer) {
+                                currentInterim = transcript;
+                                interimBuffer = transcript.trim();
+                                lastInterimTime = Date.now();
+                            }
+                        } else {
+                            currentInterim = transcript;
+                        }
                     }
                 }
                 
-                // Add new finals to persistent accumulator
+                // Accumulate new finals
                 if (finalTranscript.trim()) {
                     recognitionTranscript += finalTranscript;
+                    interimBuffer = '';  // Reset interim buffer when we get a final
                 }
                 
-                // Display: accumulated finals + ONLY current interim
+                // Display: accumulated finals + current interim
                 const textarea = document.getElementById('answerInput');
                 const accumulated = recognitionTranscript.trim();
-                const displayText = accumulated + (interimTranscript ? ' ' + interimTranscript : '');
+                const displayText = accumulated + (currentInterim ? ' ' + currentInterim : '');
                 textarea.value = displayText;
                 
-                // Update word count badge
+                // Update word count
                 const wordCount = displayText.split(/\s+/).filter(w => w.length > 0).length;
                 const draftBadge = document.getElementById('draftStatus');
                 if (wordCount > 0) {
                     draftBadge.textContent = `Draft: ${wordCount} word${wordCount !== 1 ? 's' : ''}`;
                     draftBadge.style.display = 'inline-block';
+                }
+                
+                // MOBILE PAUSE DETECTION: If no more events for 1.5s, auto-restart
+                if (isMobileDevice && !event.isFinal) {
+                    silenceTimeout = setTimeout(() => {
+                        if (isListening && speechRecognizer) {
+                            console.log('[STT] Mobile silence detected, restarting recognition...');
+                            recognitionTranscript = document.getElementById('answerInput').value.trim();
+                            speechRecognizer.stop();
+                            setTimeout(() => {
+                                if (isListening) speechRecognizer.start();
+                            }, 100);
+                        }
+                    }, 1500);
                 }
             };
 
