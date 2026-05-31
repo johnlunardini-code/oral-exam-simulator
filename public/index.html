@@ -553,15 +553,10 @@
         let isAndroid = /Android/.test(navigator.userAgent);
         let silenceTimeout = null;
         let lastInterimTime = 0;
-        let interimBuffer = '';
-        let finalResultsProcessed = new Set();
-        let lastDisplayedText = '';
-        let accumulatedLength = 0;
-        
-        // ANDROID NOISE FILTERING
-        let noisePatterns = /^\d+\s*\d+\s*\d+|^\d{6,}|random|garbage|test/i;
-        let validWordMinLength = 2;  // Words must be at least 2 chars
-        let validContentMinWords = 1;  // At least 1 real word
+        let interimBuffer = '';  // Buffer for interim results to prevent rapid re-display
+        let finalResultsProcessed = new Set();  // Track processed finals to prevent duplication
+        let lastDisplayedText = '';  // Track last displayed text to prevent duplicate renders
+        let accumulatedLength = 0;  // Track length of genuinely accumulated text from user speech
 
         function toggleFeatures() {
             const list = document.getElementById('featuresList');
@@ -746,49 +741,6 @@
             localStorage.setItem('userVoicePreference', voiceLanguage);
         }
 
-        // ANDROID NOISE FILTER FUNCTION
-        function isValidContent(text) {
-            if (!text || !text.trim()) return false;
-            
-            // Block pure numbers (noise pattern: "1 2 3" or "456789")
-            if (/^\d+\s*\d*\s*\d*$/.test(text.trim())) {
-                console.log('[STT-FILTER] Blocked: pure numbers', text);
-                return false;
-            }
-            
-            // Block test/garbage patterns
-            if (noisePatterns.test(text)) {
-                console.log('[STT-FILTER] Blocked: noise pattern', text);
-                return false;
-            }
-            
-            // Block if mostly non-alpha characters
-            const alphaCount = (text.match(/[a-z]/gi) || []).length;
-            const totalCount = text.length;
-            if (alphaCount < totalCount * 0.5) {
-                console.log('[STT-FILTER] Blocked: too few letters', text);
-                return false;
-            }
-            
-            // Block if less than validContentMinWords valid words
-            const words = text.trim().split(/\s+/).filter(w => w.length >= validWordMinLength);
-            if (words.length < validContentMinWords) {
-                console.log('[STT-FILTER] Blocked: too few valid words', text);
-                return false;
-            }
-            
-            // Block if contains too much repetition (e.g. "quick quick quick quick")
-            const wordList = text.toLowerCase().trim().split(/\s+/);
-            const uniqueWords = new Set(wordList);
-            const repetitionRatio = 1 - (uniqueWords.size / wordList.length);
-            if (repetitionRatio > 0.7 && wordList.length > 5) {
-                console.log('[STT-FILTER] Blocked: too much repetition', text);
-                return false;
-            }
-            
-            return true;
-        }
-        
         if (recognition) {
             speechRecognizer = new recognition();
             speechRecognizer.continuous = true;
@@ -834,12 +786,6 @@
                 for (let i = event.resultIndex; i < event.results.length; i++) {
                     const transcript = event.results[i][0].transcript;
                     if (!transcript || !transcript.trim()) continue;
-                    
-                    // ANDROID: Filter out noise and garbage results
-                    if (isAndroid && !isValidContent(transcript)) {
-                        console.log('[STT-ANDROID] Skipped noise:', transcript.substring(0, 50));
-                        continue;
-                    }
                     
                     if (event.results[i].isFinal) {
                         // ANDROID CRITICAL FIX: Only add text that's genuinely NEW
@@ -891,12 +837,6 @@
                     } else {
                         // Interim: Only show truly new text
                         const interimText = transcript.trim();
-                        
-                        // ANDROID: Filter noise from interim too
-                        if (isAndroid && !isValidContent(interimText)) {
-                            console.log('[STT-ANDROID-INTERIM] Skipped noise interim:', interimText.substring(0, 50));
-                            continue;
-                        }
                         
                         // ANDROID: Strip accumulated text from interim
                         if (isAndroid && recognitionTranscript.length > 0) {
