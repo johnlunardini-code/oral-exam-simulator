@@ -5,10 +5,10 @@
   "total_cfu": 180,
   "cohort_rules": "Students follow the Piano di Studi of their year of enrollment",
   "oral_exam_format": {
-    "duration": "15-30 minutes",
-    "style": "Conversational, deep conceptual understanding, strong emphasis on biomedical applications and integration",
-    "scoring": "18-30/30 (lode/honors possible)"
-  },
+  "duration": "15-30 minutes",
+  "style": "Conversational, deep conceptual understanding, strong emphasis on fundamental principles, clear explanations, and practical examples appropriate to the specific course and year level.",
+  "scoring": "18-30/30 (lode/honors possible)"
+},
   "courses": [
     {
       "id": "fundamentals-of-computer-science",
