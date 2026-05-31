@@ -51,7 +51,7 @@
         "learningSkills": "Knowledge and understanding of basic algorithms on multidimensional sequences and data structures."
       },
       "typical_oral_style": "Explain code, algorithmic thinking, data applications, and how the code solves real problems.",
-      "difficulty_guideline": "Year 1 Fundamentals of Computer Science at UCBM Biomedical Engineering. Cover basic computer architecture, data representation, Boolean algebra, operating system basics, Python programming (basic types, control structures, OOP), and software development fundamentals. Keep at introductory university level. Do not go into advanced topics like low-level assembly, complex algorithms, modern frameworks, or pipelining unless specified in course materials."
+      "difficulty_guideline": "Year 1 Fundamentals of Computer Science at UCBM Biomedical Engineering. Cover basic computer architecture, data representation, Boolean algebra, operating system basics, Python programming (basic types, control structures, OOP), and software development fundamentals. Keep at introductory university level. Do not go into advanced topics like low-level assembly, complex algorithms, modern frameworks, pipelining or biomedical and bioengineering applications unless specified in course materials."
     },
     {
       "id": "mathematics",
