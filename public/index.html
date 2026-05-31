@@ -543,6 +543,10 @@
         let yearStructure = {};
         let courseDataMap = {};
         let currentQuestionText = '';
+        let recognitionTranscript = '';
+        let lastProcessedResultIndex = -1;
+        let recognitionTranscript = '';
+        let lastProcessedResultIndex = -1;
 
         function toggleFeatures() {
             const list = document.getElementById('featuresList');
@@ -737,6 +741,7 @@
                 isListening = true;
                 const existingText = document.getElementById('answerInput').value.trim();
                 recognitionTranscript = existingText;
+                lastProcessedResultIndex = -1;
                 updateRecordingUI(true);
                 document.getElementById('speechFeedback').innerHTML = '<div class="speech-feedback">🎤 RECORDING...</div>';
             };
@@ -755,12 +760,14 @@
                 let interimTranscript = '';
                 let finalTranscript = '';
                 
-                for (let i = event.resultIndex; i < event.results.length; i++) {
+                const startIdx = Math.max(lastProcessedResultIndex + 1, event.resultIndex);
+                for (let i = startIdx; i < event.results.length; i++) {
                     const transcript = event.results[i][0].transcript;
                     if (event.results[i].isFinal) {
                         finalTranscript += transcript + ' ';
+                        lastProcessedResultIndex = i;
                     } else {
-                        interimTranscript += transcript;
+                        interimTranscript = transcript;
                     }
                 }
                 
