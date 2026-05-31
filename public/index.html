@@ -1081,12 +1081,6 @@
         }
 
         function toggleSpeech() {
-            // ANDROID WORKAROUND: Disable broken Web Speech API on Android
-            if (isAndroid) {
-                alert('📱 Android Chrome speech recognition is not reliable yet.\n\nFor best results, please:\n1. Use the web version on desktop/laptop\n2. Or type your answer instead of speaking\n\nWe\'re working on a better solution!');
-                return;
-            }
-            
             if (!speechRecognizer) { alert('Speech not supported'); return; }
             if (isProfessorSpeaking) {
                 alert('Professor is still speaking. Wait or click Mute to stop.');
